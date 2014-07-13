@@ -570,6 +570,118 @@ class Ax12:
 		sleep(Ax12.TX_DELAY_TIME)
 		return self.readData(id)
 
+	def readTemperature(self, id):
+		self.direction(Ax12.RPI_DIRECTION_TX)
+		Ax12.port.flushInput()
+		checksum = (~(id + Ax12.AX_TEM_LENGTH + Ax12.AX_READ_DATA + Ax12.AX_PRESENT_TEMPERATURE + Ax12.AX_BYTE_READ))&0xff
+		outData = chr(Ax12.AX_START)
+		outData += chr(Ax12.AX_START)
+		outData += chr(id)
+		outData += chr(Ax12.AX_TEM_LENGTH)
+		outData += chr(Ax12.AX_READ_DATA)
+		outData += chr(Ax12.AX_PRESENT_TEMPERATURE)
+		outData += chr(Ax12.AX_BYTE_READ)
+		outData += chr(checksum)
+		Ax12.port.write(outData)
+		sleep(Ax12.TX_DELAY_TIME)
+		return self.readData(id)
+
+	def readPosition(self, id):
+		self.direction(Ax12.RPI_DIRECTION_TX)
+		Ax12.port.flushInput()
+		checksum = (~(id + Ax12.AX_POS_LENGTH + Ax12.AX_READ_DATA + Ax12.AX_PRESENT_POSITION_L + Ax12.AX_INT_READ))&0xff
+		outData = chr(Ax12.AX_START)
+		outData += chr(Ax12.AX_START)
+		outData += chr(id)
+		outData += chr(Ax12.AX_POS_LENGTH)
+		outData += chr(Ax12.AX_READ_DATA)
+		outData += chr(Ax12.AX_PRESENT_POSITION_L)
+		outData += chr(Ax12.AX_INT_READ)
+		outData += chr(checksum)
+		Ax12.port.write(outData)
+		sleep(Ax12.TX_DELAY_TIME)
+		return self.readData(id)
+
+	def readVoltage(self, id):
+		self.direction(Ax12.RPI_DIRECTION_TX)
+		Ax12.port.flushInput()
+		checksum = (~(id + Ax12.AX_VOLT_LENGTH + Ax12.AX_READ_DATA + Ax12.AX_PRESENT_VOLTAGE + Ax12.AX_BYTE_READ))&0xff
+		outData = chr(Ax12.AX_START)
+		outData += chr(Ax12.AX_START)
+		outData += chr(id)
+		outData += chr(Ax12.AX_VOLT_LENGTH)
+		outData += chr(Ax12.AX_READ_DATA)
+		outData += chr(Ax12.AX_PRESENT_VOLTAGE)
+		outData += chr(Ax12.AX_BYTE_READ)
+		outData += chr(checksum)
+		Ax12.port.write(outData)
+		sleep(Ax12.TX_DELAY_TIME)
+		return self.readData(id)
+
+	def readSpeed(self, id):
+		self.direction(Ax12.RPI_DIRECTION_TX)
+		Ax12.port.flushInput()
+		checksum = (~(id + Ax12.AX_SPEED_LENGTH + Ax12.AX_READ_DATA + Ax12.AX_PRESENT_SPEED_L + Ax12.AX_INT_READ))&0xff
+		outData = chr(Ax12.AX_START)
+		outData += chr(Ax12.AX_START)
+		outData += chr(id)
+		outData += chr(Ax12.AX_SPEED_LENGTH)
+		outData += chr(Ax12.AX_READ_DATA)
+		outData += chr(Ax12.AX_PRESENT_SPEED_L)
+		outData += chr(Ax12.AX_INT_READ)
+		outData += chr(checksum)
+		Ax12.port.write(outData)
+		sleep(Ax12.TX_DELAY_TIME)
+		return self.readData(id)
+
+	def readLoad(self, id):
+		self.direction(Ax12.RPI_DIRECTION_TX)
+		Ax12.port.flushInput()
+		checksum = (~(id + Ax12.AX_LOAD_LENGTH + Ax12.AX_READ_DATA + Ax12.AX_PRESENT_LOAD_L + Ax12.AX_INT_READ))&0xff
+		outData = chr(Ax12.AX_START)
+		outData += chr(Ax12.AX_START)
+		outData += chr(id)
+		outData += chr(Ax12.AX_LOAD_LENGTH)
+		outData += chr(Ax12.AX_READ_DATA)
+		outData += chr(Ax12.AX_PRESENT_LOAD_L)
+		outData += chr(Ax12.AX_INT_READ)
+		outData += chr(checksum)
+		Ax12.port.write(outData)
+		sleep(Ax12.TX_DELAY_TIME)
+		return self.readData(id)
+
+	def readMovingStatus(self, id):
+		self.direction(Ax12.RPI_DIRECTION_TX)
+		Ax12.port.flushInput()
+		checksum = (~(id + Ax12.AX_MOVING_LENGTH + Ax12.AX_READ_DATA + Ax12.AX_MOVING + Ax12.AX_BYTE_READ))&0xff
+		outData = chr(Ax12.AX_START)
+		outData += chr(Ax12.AX_START)
+		outData += chr(id)
+		outData += chr(Ax12.AX_MOVING_LENGTH)
+		outData += chr(Ax12.AX_READ_DATA)
+		outData += chr(Ax12.AX_MOVING)
+		outData += chr(Ax12.AX_BYTE_READ)
+		outData += chr(checksum)
+		Ax12.port.write(outData)
+		sleep(Ax12.TX_DELAY_TIME)
+		return self.readData(id)
+
+	def readRWStatus(self, id):
+		self.direction(Ax12.RPI_DIRECTION_TX)
+		Ax12.port.flushInput()
+		checksum = (~(id + Ax12.AX_RWS_LENGTH + Ax12.AX_READ_DATA + Ax12.AX_REGISTERED_INSTRUCTION + Ax12.AX_BYTE_READ))&0xff
+		outData = chr(Ax12.AX_START)
+		outData += chr(Ax12.AX_START)
+		outData += chr(id)
+		outData += chr(Ax12.AX_RWS_LENGTH)
+		outData += chr(Ax12.AX_READ_DATA)
+		outData += chr(Ax12.AX_REGISTERED_INSTRUCTION)
+		outData += chr(Ax12.AX_BYTE_READ)
+		outData += chr(checksum)
+		Ax12.port.write(outData)
+		sleep(Ax12.TX_DELAY_TIME)
+		return self.readData(id)
+
 
 def learnServos(minValue=1, maxValue=32, timeout=0.25, verbose=False) :
 	'''
