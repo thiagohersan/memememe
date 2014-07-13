@@ -248,6 +248,38 @@ class Ax12:
 		sleep(Ax12.TX_DELAY_TIME)
 		return self.readError(id)
 
+	def setStatusReturnLevel(self, id, level):
+		self.direction(Ax12.RPI_DIRECTION_TX)
+		Ax12.port.flushInput()
+		checksum = (~(id + Ax12.AX_SRL_LENGTH + Ax12.AX_WRITE_DATA + Ax12.AX_RETURN_LEVEL + level))&0xff
+		outData = chr(Ax12.AX_START)
+		outData += chr(Ax12.AX_START)
+		outData += chr(id)
+		outData += chr(Ax12.AX_SRL_LENGTH)
+		outData += chr(Ax12.AX_WRITE_DATA)
+		outData += chr(Ax12.AX_RETURN_LEVEL)
+		outData += chr(level)
+		outData += chr(checksum)
+		Ax12.port.write(outData)
+		sleep(Ax12.TX_DELAY_TIME)
+		return self.readError(id)
+
+	def setReturnDelayTime(self, id, delay):
+		self.direction(Ax12.RPI_DIRECTION_TX)
+		Ax12.port.flushInput()
+		checksum = (~(id + Ax12.AX_RDT_LENGTH + Ax12.AX_WRITE_DATA + Ax12.AX_RETURN_DELAY_TIME + (int(delay)/2)&0xff))&0xff
+		outData = chr(Ax12.AX_START)
+		outData += chr(Ax12.AX_START)
+		outData += chr(id)
+		outData += chr(Ax12.AX_RDT_LENGTH)
+		outData += chr(Ax12.AX_WRITE_DATA)
+		outData += chr(Ax12.AX_RETURN_DELAY_TIME)
+		outData += chr((int(delay)/2)&0xff)
+		outData += chr(checksum)
+		Ax12.port.write(outData)
+		sleep(Ax12.TX_DELAY_TIME)
+		return self.readError(id)
+
 	def lockRegister(self, id):
 		self.direction(Ax12.RPI_DIRECTION_TX)
 		Ax12.port.flushInput()
