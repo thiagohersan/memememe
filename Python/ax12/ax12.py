@@ -101,6 +101,7 @@ class Ax12:
 	AX_MOVING_LENGTH = 4
 	AX_RWS_LENGTH = 4
 	AX_VOLT_LENGTH = 4
+	AX_LOAD_LENGTH = 4
 	AX_LED_LENGTH = 4
 	AX_TORQUE_LENGTH = 4
 	AX_POS_LENGTH = 4
@@ -112,7 +113,7 @@ class Ax12:
 
 	# /////////////////////////////////////////////////////////////// Specials
 	AX_BYTE_READ = 1
-	AX_BYTE_READ_POS = 2
+	AX_INT_READ = 2
 	AX_ACTION_CHECKSUM = 250
 	AX_BROADCAST_ID = 254
 	AX_START = 255
@@ -166,7 +167,7 @@ class Ax12:
 		GPIO.output(Ax12.RPI_DIRECTION_PIN, d)
 		sleep(Ax12.RPI_DIRECTION_SWITCH_DELAY)
 
-	def readError(self,id):
+	def readData(self,id):
 		self.direction(Ax12.RPI_DIRECTION_RX)
 		try:
 			h1 = Ax12.port.read()
@@ -178,12 +179,20 @@ class Ax12:
 		try :
 			h2 = Ax12.port.read() # 0xff
 			origin = Ax12.port.read() # id
-			length = ord(Ax12.port.read()) - 1
+			length = ord(Ax12.port.read()) - 2
 			error = ord(Ax12.port.read())
 
-			if error != 0 :
+			if(error != 0):
 				print "Error from servo: " + Ax12.dictErrors[error] + ' (code  ' + hex(error) + ')'
-			return error
+				return -error
+			# just reading error bit
+			else if(length == 0):
+				return error
+			else:
+				returnValue = ord(Ax12.port.read())
+				if(length > 1):
+					returnValue += (int(ord(Ax12.port.read()))<<8)
+				return returnValue
 		except Exception, detail:
 			raise Ax12.axError(detail)
 
@@ -199,7 +208,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def reset(self,id):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -213,7 +222,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def setID(self, id, newId):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -229,7 +238,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def setBaudRate(self, id, baudRate):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -246,7 +255,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def setStatusReturnLevel(self, id, level):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -262,7 +271,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def setReturnDelayTime(self, id, delay):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -278,7 +287,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def lockRegister(self, id):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -294,7 +303,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def move(self, id, position):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -312,7 +321,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def moveSpeed(self, id, position, speed):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -333,7 +342,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def moveRW(self, id, position):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -351,7 +360,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def moveSpeedRW(self, id, position, speed):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -372,7 +381,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def action(self):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -401,7 +410,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def setLedStatus(self, id, status):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -418,7 +427,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def setTemperatureLimit(self, id, temp):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -434,7 +443,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def setVoltageLimit(self, id, lowVolt, highVolt):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -451,7 +460,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def setAngleLimit(self, id, cwLimit, ccwLimit):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -472,7 +481,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def setTorqueLimit(self, id, torque):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -490,7 +499,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def setPunchLimit(self, id, punch):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -508,7 +517,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def setCompliance(self, id, cwMargin, ccwMargin, cwSlope, ccwSlope):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -527,7 +536,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def setLedAlarm(self, id, alarm):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -543,7 +552,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 	def setShutdownAlarm(self, id, alarm):
 		self.direction(Ax12.RPI_DIRECTION_TX)
@@ -559,7 +568,7 @@ class Ax12:
 		outData += chr(checksum)
 		Ax12.port.write(outData)
 		sleep(Ax12.TX_DELAY_TIME)
-		return self.readError(id)
+		return self.readData(id)
 
 
 def learnServos(minValue=1, maxValue=32, timeout=0.25, verbose=False) :
