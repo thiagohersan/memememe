@@ -186,7 +186,7 @@ class Ax12:
 				print "Error from servo: " + Ax12.dictErrors[error] + ' (code  ' + hex(error) + ')'
 				return -error
 			# just reading error bit
-			else if(length == 0):
+			elif(length == 0):
 				return error
 			else:
 				returnValue = ord(Ax12.port.read())
