@@ -42,6 +42,7 @@ void setup() {
       .setSize(180, 40).setRange(-1, 1);
 
   cp5.setAutoDraw(false);
+  camera.setActive(true);
 }
 
 void draw() {
