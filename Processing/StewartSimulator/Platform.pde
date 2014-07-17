@@ -5,14 +5,14 @@ class Platform {
 
   public Platform(float s) {
     translation = new PVector();
-    initialHeight = new PVector(0, 0, s/2);
+    initialHeight = new PVector(0, 0, 1.5*s);
     rotation = new PVector();
     baseJoints = new PVector[6];
     phoneJoints = new PVector[6];
     q = new PVector[6];
     l = new PVector[6];
     baseRadius = s;
-    phoneRadius = s/3;
+    phoneRadius = 0.2*s;
 
     for (int i=0; i<6; i++) {
       float mx = baseRadius*cos(PI/3*i);
