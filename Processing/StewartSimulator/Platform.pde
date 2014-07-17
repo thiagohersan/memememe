@@ -74,8 +74,13 @@ class Platform {
       float L = l[i].magSq()-(legLength*legLength)+(hornLength*hornLength);
       float M = 2*hornLength*(phoneJoint[i].z-baseJoint[i].z);
       float N = 2*hornLength*(cos(beta[i])*(phoneJoint[i].x-baseJoint[i].x) + sin(beta[i])*(phoneJoint[i].y-baseJoint[i].y));
-      alpha[i] = asin(L/sqrt(M*M+N*N)) - atan2(N,M);
-      println(i+":"+alpha[i]);
+      alpha[i] = asin(L/sqrt(M*M+N*N)) - atan2(N, M);
+
+      float xpxb = (phoneJoint[i].x-baseJoint[i].x);
+      float ypyb = (phoneJoint[i].y-baseJoint[i].y);
+      float h0 = sqrt((legLength*legLength)+(hornLength*hornLength)-(xpxb*xpxb)-(ypyb*ypyb)) - phoneJoint[i].z;
+
+      println(i+":"+alpha[i]+"  h0:"+h0);
     }
   }
 
