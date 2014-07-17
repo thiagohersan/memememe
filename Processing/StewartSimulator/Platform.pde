@@ -15,8 +15,8 @@ class Platform {
     phoneRadius = 0.2*s;
 
     for (int i=0; i<6; i++) {
-      float mx = baseRadius*cos(PI/3*i);
-      float my = baseRadius*sin(PI/3*i);
+      float mx = baseRadius*cos((PI/3*i)+((i%2==1)?PI/12:-PI/12));
+      float my = baseRadius*sin((PI/3*i)+((i%2==1)?PI/12:-PI/12));
       baseJoints[i] = new PVector(mx, my, 0);
     }
 
