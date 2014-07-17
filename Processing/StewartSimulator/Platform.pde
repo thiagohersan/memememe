@@ -1,22 +1,23 @@
 class Platform {
   private PVector translation, rotation, initialHeight;
   private PVector[] baseJoint, phoneJoint, q, l;
-  private float[] beta;
+  private float[] alpha, beta;
   private float baseRadius, phoneRadius, hornLength, legLength;
 
   public Platform(float s) {
     translation = new PVector();
-    initialHeight = new PVector(0, 0, 1.5*s);
+    initialHeight = new PVector(0, 0, 1.625*s);
     rotation = new PVector();
     baseJoint = new PVector[6];
     phoneJoint = new PVector[6];
+    alpha = new float[6];
     beta = new float[6];
     q = new PVector[6];
     l = new PVector[6];
     baseRadius = s;
     phoneRadius = 0.2*s;
-    hornLength = 0.25*s;
-    legLength = 1.75*s;
+    hornLength = 0.375*s;
+    legLength = 1.875*s;
 
     for (int i=0; i<6; i++) {
       float mx = baseRadius*cos((PI/3*i)+((i%2==1)?PI/12:-PI/12));
@@ -65,6 +66,7 @@ class Platform {
       q[i].add(PVector.add(translation, initialHeight));
       l[i] = PVector.sub(q[i], baseJoint[i]);
     }
+    calcAlpha();
   }
 
   private void calcAlpha() {
@@ -72,6 +74,8 @@ class Platform {
       float L = l[i].magSq()-(legLength*legLength)+(hornLength*hornLength);
       float M = 2*hornLength*(phoneJoint[i].z-baseJoint[i].z);
       float N = 2*hornLength*(cos(beta[i])*(phoneJoint[i].x-baseJoint[i].x) + sin(beta[i])*(phoneJoint[i].y-baseJoint[i].y));
+      alpha[i] = asin(L/sqrt(M*M+N*N)) - atan2(N,M);
+      println(i+":"+alpha[i]);
     }
   }
 
