@@ -8,7 +8,7 @@ ControlP5 cp5;
 PeasyCam camera;
 Platform p;
 
-float posX, posY, posZ, rotX, rotY, rotZ;
+float posX=0, posY=0, posZ=0, rotX=0, rotY=0, rotZ=0;
 
 void setup() {
   size(1024, 768, P3D);
