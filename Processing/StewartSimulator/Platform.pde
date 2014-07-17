@@ -62,14 +62,14 @@ class Platform {
 
   public void draw() {
     // draw Base
-    stroke(0);
-    fill(255, 100, 100);
+    noStroke();
+    fill(128);
     ellipse(0, 0, 2*baseRadius, 2*baseRadius);
     for (int i=0; i<6; i++) {
       pushMatrix();
       translate(baseJoints[i].x, baseJoints[i].y, baseJoints[i].z);
       noStroke();
-      fill(255, 0, 0);
+      fill(0);
       ellipse(0, 0, 5, 5);
       popMatrix();
     }
@@ -79,11 +79,12 @@ class Platform {
       pushMatrix();
       translate(q[i].x, q[i].y, q[i].z);
       noStroke();
-      fill(0, 0, 255);
+      fill(0);
       ellipse(0, 0, 5, 5);
       popMatrix();
 
-      stroke(255, 0, 255);
+      stroke(100);
+      strokeWeight(3);
       line(baseJoints[i].x, baseJoints[i].y, baseJoints[i].z, q[i].x, q[i].y, q[i].z);
     }
 
@@ -94,7 +95,7 @@ class Platform {
     rotateZ(rotation.z);
     rotateY(rotation.y);
     rotateX(rotation.x);
-    stroke(0);
+    stroke(245);
     noFill();
     ellipse(0, 0, 2*phoneRadius, 2*phoneRadius);
     popMatrix();
