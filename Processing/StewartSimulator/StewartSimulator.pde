@@ -1,23 +1,25 @@
 import peasy.*;
 import controlP5.*;
 
+float MAX_TRANSLATION = 40;
+float MAX_ROTATION = PI/4;
+
 ControlP5 cp5;
 PeasyCam camera;
-
 Platform p;
 
 float posX, posY, posZ, rotX, rotY, rotZ;
-float MAX_TRANSLATION = 40;
-float MAX_ROTATION = PI/4;
 
 void setup() {
   size(1024, 768, P3D);
   smooth();
-  cp5 = new ControlP5(this);
+
   camera = new PeasyCam(this, 400);
 
   p = new Platform(200);
   p.applyRotation(new PVector()).applyTranslation(new PVector());
+
+  cp5 = new ControlP5(this);
 
   cp5.addSlider("posX")
     .setPosition(20, 20)
@@ -53,5 +55,13 @@ void draw() {
   cp5.draw();
   camera.endHUD();
   hint(ENABLE_DEPTH_TEST);
+}
+
+void controlEvent(ControlEvent theEvent) {
+  camera.setActive(false);
+}
+
+void mouseReleased() {
+  camera.setActive(true);
 }
 
