@@ -80,7 +80,11 @@ class Platform {
       float ypyb = (phoneJoint[i].y-baseJoint[i].y);
       float h0 = sqrt((legLength*legLength)+(hornLength*hornLength)-(xpxb*xpxb)-(ypyb*ypyb)) - phoneJoint[i].z;
 
-      println(i+":"+alpha[i]+"  h0:"+h0);
+      float L0 = 2*hornLength*hornLength;
+      float M0 = 2*hornLength*(h0+phoneJoint[i].z);
+      float a0 = asin(L0/sqrt(M0*M0+N*N)) - atan2(N, M0);
+
+      println(i+":"+alpha[i]+"  h0:"+h0+"  a0:"+a0);
     }
   }
 
