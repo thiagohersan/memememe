@@ -19,7 +19,7 @@ void setup() {
   camera.lookAt(8.0, -50.0, 80.0);
 
   p = new Platform(200);
-  p.applyRotation(new PVector()).applyTranslation(new PVector());
+  p.applyTranslationAndRotation(new PVector(), new PVector());
 
   cp5 = new ControlP5(this);
 
@@ -49,9 +49,9 @@ void setup() {
 
 void draw() {
   background(200);
-  p.applyRotation(PVector.mult(new PVector(rotX, rotY, rotZ), MAX_ROTATION))
-    .applyTranslation(PVector.mult(new PVector(posX, posY, posZ), MAX_TRANSLATION))
-      .draw();
+  p.applyTranslationAndRotation(PVector.mult(new PVector(posX, posY, posZ), MAX_TRANSLATION),
+                                PVector.mult(new PVector(rotX, rotY, rotZ), MAX_ROTATION));
+  p.draw();
 
   hint(DISABLE_DEPTH_TEST);
   camera.beginHUD();

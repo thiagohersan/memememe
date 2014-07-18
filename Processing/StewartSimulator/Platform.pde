@@ -39,15 +39,11 @@ class Platform {
     calcQ();
   }
 
-  public Platform applyTranslation(PVector t) {
+  public void applyTranslationAndRotation(PVector t, PVector r) {
+    rotation.set(r);
     translation.set(t);
     calcQ();
-    return this;
-  }
-  public Platform applyRotation(PVector r) {
-    rotation.set(r);
-    calcQ();
-    return this;
+    calcAlpha();
   }
 
   private void calcQ() {
@@ -69,7 +65,6 @@ class Platform {
       q[i].add(PVector.add(translation, initialHeight));
       l[i] = PVector.sub(q[i], baseJoint[i]);
     }
-    calcAlpha();
   }
 
   private void calcAlpha() {
