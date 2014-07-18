@@ -78,9 +78,9 @@ class Platform {
       hornLength*cos(alpha[i])*sin(beta[i]) + baseJoint[i].y,
       hornLength*sin(alpha[i]) + baseJoint[i].z);
 
-      float xpxb = (phoneJoint[i].x-baseJoint[i].x);
-      float ypyb = (phoneJoint[i].y-baseJoint[i].y);
-      float h0 = sqrt((legLength*legLength)+(hornLength*hornLength)-(xpxb*xpxb)-(ypyb*ypyb)) - phoneJoint[i].z;
+      float xqxb = (q[i].x-baseJoint[i].x);
+      float yqyb = (q[i].y-baseJoint[i].y);
+      float h0 = sqrt((legLength*legLength)+(hornLength*hornLength)-(xqxb*xqxb)-(yqyb*yqyb)) - q[i].z;
 
       float L0 = 2*hornLength*hornLength;
       float M0 = 2*hornLength*(h0+phoneJoint[i].z);
