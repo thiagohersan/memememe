@@ -70,8 +70,8 @@ class Platform {
   private void calcAlpha() {
     for (int i=0; i<6; i++) {
       float L = l[i].magSq()-(legLength*legLength)+(hornLength*hornLength);
-      float M = 2*hornLength*(phoneJoint[i].z-baseJoint[i].z);
-      float N = 2*hornLength*(cos(beta[i])*(phoneJoint[i].x-baseJoint[i].x) + sin(beta[i])*(phoneJoint[i].y-baseJoint[i].y));
+      float M = 2*hornLength*(q[i].z-baseJoint[i].z);
+      float N = 2*hornLength*(cos(beta[i])*(q[i].x-baseJoint[i].x) + sin(beta[i])*(q[i].y-baseJoint[i].y));
       alpha[i] = asin(L/sqrt(M*M+N*N)) - atan2(N, M);
 
       A[i].set(hornLength*cos(alpha[i])*cos(beta[i]) + baseJoint[i].x,
@@ -101,23 +101,18 @@ class Platform {
       noStroke();
       fill(0);
       ellipse(0, 0, 5, 5);
+      text(degrees(alpha[i]), 5,5,5);
+      popMatrix();
 
-      pushMatrix();
-      rotateZ(beta[i]);
       stroke(245);
-      line(0, 0, hornLength, 0);
-      popMatrix();
-
-      popMatrix();
-
-      stroke(255, 0, 0);
       line(baseJoint[i].x, baseJoint[i].y, baseJoint[i].z, A[i].x, A[i].y, A[i].z);
 
       PVector rod = PVector.sub(q[i], A[i]);
       rod.setMag(legLength);
       rod.add(A[i]);
 
-      stroke(255, 0, 255);
+      stroke(100);
+      strokeWeight(3);
       line(A[i].x, A[i].y, A[i].z, rod.x, rod.y, rod.z);
     }
 

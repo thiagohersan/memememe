@@ -13,6 +13,7 @@ float posX=0, posY=0, posZ=0, rotX=0, rotY=0, rotZ=0;
 void setup() {
   size(1024, 768, P3D);
   smooth();
+  textSize(20);
 
   camera = new PeasyCam(this, 666);
   camera.setRotations(-1.0, 0.0, 0.0);
