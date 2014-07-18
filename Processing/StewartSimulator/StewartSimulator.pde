@@ -1,8 +1,8 @@
 import peasy.*;
 import controlP5.*;
 
-float MAX_TRANSLATION = 40;
-float MAX_ROTATION = PI/4;
+float MAX_TRANSLATION = 20;
+float MAX_ROTATION = PI/12;
 
 ControlP5 cp5;
 PeasyCam camera;
