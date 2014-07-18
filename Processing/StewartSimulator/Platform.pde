@@ -91,7 +91,7 @@ class Platform {
       float M0 = 2*hornLength*(h0+phoneJoint[i].z);
       float a0 = asin(L0/sqrt(M0*M0+N*N)) - atan2(N, M0);
 
-      println(i+":"+alpha[i]+"  h0:"+h0+"  a0:"+a0);
+      //println(i+":"+alpha[i]+"  h0:"+h0+"  a0:"+a0);
     }
   }
 
@@ -115,8 +115,15 @@ class Platform {
 
       popMatrix();
 
-      stroke(255,0,0);
+      stroke(255, 0, 0);
       line(baseJoint[i].x, baseJoint[i].y, baseJoint[i].z, A[i].x, A[i].y, A[i].z);
+
+      PVector rod = PVector.sub(q[i], A[i]);
+      rod.setMag(legLength);
+      rod.add(A[i]);
+
+      stroke(255, 0, 255);
+      line(A[i].x, A[i].y, A[i].z, rod.x, rod.y, rod.z);
     }
 
     // draw phone jointss and rods
