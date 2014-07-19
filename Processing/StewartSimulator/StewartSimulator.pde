@@ -1,8 +1,8 @@
 import peasy.*;
 import controlP5.*;
 
-float MAX_TRANSLATION = 20;
-float MAX_ROTATION = PI/12;
+float MAX_TRANSLATION = 100;
+float MAX_ROTATION = PI/8;
 
 ControlP5 cp5;
 PeasyCam camera;
@@ -13,16 +13,14 @@ float posX=0, posY=0, posZ=0, rotX=0, rotY=0, rotZ=0;
 void setup() {
   size(1024, 768, P3D);
   smooth();
+  textSize(20);
 
-  camera = new PeasyCam(this, -0.8, 0, 0,700);
-
-  camera.setDistance(700);
-  camera.setRotations(-0.8, 0, 0);
-
+  camera = new PeasyCam(this, 666);
+  camera.setRotations(-1.0, 0.0, 0.0);
+  camera.lookAt(8.0, -50.0, 80.0);
 
   p = new Platform(1);
-  
-  p.applyRotation(new PVector()).applyTranslation(new PVector());
+  p.applyTranslationAndRotation(new PVector(), new PVector());
 
   cp5 = new ControlP5(this);
 
@@ -52,9 +50,9 @@ void setup() {
 
 void draw() {
   background(200);
-  p.applyRotation(PVector.mult(new PVector(rotX, rotY, rotZ), MAX_ROTATION))
-    .applyTranslation(PVector.mult(new PVector(posX, posY, posZ), MAX_TRANSLATION))
-      .draw();
+  p.applyTranslationAndRotation(PVector.mult(new PVector(posX, posY, posZ), MAX_TRANSLATION),
+                                PVector.mult(new PVector(rotX, rotY, rotZ), MAX_ROTATION));
+  p.draw();
 
   hint(DISABLE_DEPTH_TEST);
   camera.beginHUD();
@@ -72,10 +70,10 @@ void mouseReleased() {
 }
 
 void keyPressed() {
-
   if (key == ' ') {
-    camera.setDistance(700);
-    camera.setRotations(-0.8, 0, 0);
+    camera.setRotations(-1.0, 0.0, 0.0);
+    camera.lookAt(8.0, -50.0, 80.0);
+    camera.setDistance(666);
   }
 }
 

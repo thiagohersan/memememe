@@ -17,7 +17,7 @@ class Platform {
 
   public Platform(float s) {
     translation = new PVector();
-    initialHeight = new PVector(0, 0, 328*s);
+    initialHeight = new PVector(0, 0, 250*s);
     rotation = new PVector();
     baseJoint = new PVector[6];
     phoneJoint = new PVector[6];
@@ -61,15 +61,11 @@ class Platform {
     calcQ();
   }
 
-  public Platform applyTranslation(PVector t) {
+  public void applyTranslationAndRotation(PVector t, PVector r) {
+    rotation.set(r);
     translation.set(t);
     calcQ();
-    return this;
-  }
-  public Platform applyRotation(PVector r) {
-    rotation.set(r);
-    calcQ();
-    return this;
+    calcAlpha();
   }
 
   private void calcQ() {
@@ -91,29 +87,28 @@ class Platform {
       q[i].add(PVector.add(translation, initialHeight));
       l[i] = PVector.sub(q[i], baseJoint[i]);
     }
-    calcAlpha();
   }
 
   private void calcAlpha() {
     for (int i=0; i<6; i++) {
       float L = l[i].magSq()-(legLength*legLength)+(hornLength*hornLength);
-      float M = 2*hornLength*(phoneJoint[i].z-baseJoint[i].z);
-      float N = 2*hornLength*(cos(beta[i])*(phoneJoint[i].x-baseJoint[i].x) + sin(beta[i])*(phoneJoint[i].y-baseJoint[i].y));
+      float M = 2*hornLength*(q[i].z-baseJoint[i].z);
+      float N = 2*hornLength*(cos(beta[i])*(q[i].x-baseJoint[i].x) + sin(beta[i])*(q[i].y-baseJoint[i].y));
       alpha[i] = asin(L/sqrt(M*M+N*N)) - atan2(N, M);
 
       A[i].set(hornLength*cos(alpha[i])*cos(beta[i]) + baseJoint[i].x, 
       hornLength*cos(alpha[i])*sin(beta[i]) + baseJoint[i].y, 
       hornLength*sin(alpha[i]) + baseJoint[i].z);
 
-      float xpxb = (phoneJoint[i].x-baseJoint[i].x);
-      float ypyb = (phoneJoint[i].y-baseJoint[i].y);
-      float h0 = sqrt((legLength*legLength)+(hornLength*hornLength)-(xpxb*xpxb)-(ypyb*ypyb)) - phoneJoint[i].z;
+      float xqxb = (q[i].x-baseJoint[i].x);
+      float yqyb = (q[i].y-baseJoint[i].y);
+      float h0 = sqrt((legLength*legLength)+(hornLength*hornLength)-(xqxb*xqxb)-(yqyb*yqyb)) - q[i].z;
 
       float L0 = 2*hornLength*hornLength;
       float M0 = 2*hornLength*(h0+phoneJoint[i].z);
       float a0 = asin(L0/sqrt(M0*M0+N*N)) - atan2(N, M0);
 
-      println(i+":"+alpha[i]+"  h0:"+h0+"  a0:"+a0);
+      //println(i+":"+alpha[i]+"  h0:"+h0+"  a0:"+a0);
     }
   }
 
@@ -128,17 +123,21 @@ class Platform {
       noStroke();
       fill(0);
       ellipse(0, 0, 5, 5);
+      text(degrees(alpha[i]), 5,5,5);
+      popMatrix();
 
-      pushMatrix();
-      rotateZ(beta[i]);
       stroke(245);
-      line(0, 0, hornLength, 0);
-      popMatrix();
+      line(baseJoint[i].x, baseJoint[i].y, baseJoint[i].z, A[i].x, A[i].y, A[i].z);
 
-      popMatrix();
+      PVector rod = PVector.sub(q[i], A[i]);
+      rod.setMag(legLength);
+      rod.add(A[i]);
 
       stroke(255, 0, 0);
       line(baseJoint[i].x, baseJoint[i].y, baseJoint[i].z, A[i].x, A[i].y, A[i].z);
+      stroke(100);
+      strokeWeight(3);
+      line(A[i].x, A[i].y, A[i].z, rod.x, rod.y, rod.z);
     }
 
     // draw phone jointss and rods

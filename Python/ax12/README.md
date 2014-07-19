@@ -1,4 +1,4 @@
-AX-12
+###AX-12 Python Library (for RaspberryPi)
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -42,6 +42,6 @@ Edit /etc/inittab and comment out any lines mentioning ttyAMA0.
 Add the following line to ~/.bashrc:  
 sudo stty -F /dev/ttyAMA0 1000000  
 
-Dependencies:
-[pySerial](http://pyserial.sourceforge.net/)  
-[RPi.GPIO](https://pypi.python.org/pypi/RPi.GPIO)  
+###Dependencies:  
+- [pySerial](http://pyserial.sourceforge.net/)  
+- [RPi.GPIO](https://pypi.python.org/pypi/RPi.GPIO)  
