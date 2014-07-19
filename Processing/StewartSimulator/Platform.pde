@@ -1,8 +1,8 @@
 class Platform {
   private PVector translation, rotation, initialHeight;
-  private PVector[] baseJoint, phoneJoint, q, l, A;
+  private PVector[] baseJoint, platformJoint, q, l, A;
   private float[] alpha, beta;
-  private float baseRadius, phoneRadius, hornLength, legLength;
+  private float baseRadius, platformRadius, hornLength, legLength;
 
   // REAL ANGLES
   private final float baseAngles[] = {
@@ -23,14 +23,14 @@ class Platform {
     initialHeight = new PVector(0, 0, s*SCALE_INITIAL_HEIGHT);
     rotation = new PVector();
     baseJoint = new PVector[6];
-    phoneJoint = new PVector[6];
+    platformJoint = new PVector[6];
     alpha = new float[6];
     beta = new float[6];
     q = new PVector[6];
     l = new PVector[6];
     A = new PVector[6];
     baseRadius = s*SCALE_BASE_RADIUS;
-    phoneRadius = s*SCALE_PLATFORM_RADIUS;
+    platformRadius = s*SCALE_PLATFORM_RADIUS;
     hornLength = s*SCALE_HORN_LENGTH;
     legLength = s*SCALE_LEG_LENGTH;
 
@@ -46,12 +46,12 @@ class Platform {
     }
 
     for (int i=0; i<6; i++) {
-     //float mx = phoneRadius*cos((PI/3*i)+((i%2==0)?PI/12:-PI/12));
-     //float my = phoneRadius*sin((PI/3*i)+((i%2==0)?PI/12:-PI/12));
-     float mx = phoneRadius*cos(radians(platAngles[i]));
-     float my = phoneRadius*sin(radians(platAngles[i]));
+     //float mx = platformRadius*cos((PI/3*i)+((i%2==0)?PI/12:-PI/12));
+     //float my = platformRadius*sin((PI/3*i)+((i%2==0)?PI/12:-PI/12));
+     float mx = platformRadius*cos(radians(platAngles[i]));
+     float my = platformRadius*sin(radians(platAngles[i]));
 
-      phoneJoint[i] = new PVector(mx, my, 0);
+      platformJoint[i] = new PVector(mx, my, 0);
       q[i] = new PVector(0, 0, 0);
       l[i] = new PVector(0, 0, 0);
       A[i] = new PVector(0, 0, 0);
@@ -69,17 +69,17 @@ class Platform {
   private void calcQ() {
     for (int i=0; i<6; i++) {
       // rotation
-      q[i].x = cos(rotation.z)*cos(rotation.y)*phoneJoint[i].x + 
-        (-sin(rotation.z)*cos(rotation.x)+cos(rotation.z)*sin(rotation.y)*sin(rotation.x))*phoneJoint[i].y + 
-        (sin(rotation.z)*sin(rotation.x)+cos(rotation.z)*sin(rotation.y)*cos(rotation.x))*phoneJoint[i].z;
+      q[i].x = cos(rotation.z)*cos(rotation.y)*platformJoint[i].x +
+        (-sin(rotation.z)*cos(rotation.x)+cos(rotation.z)*sin(rotation.y)*sin(rotation.x))*platformJoint[i].y +
+        (sin(rotation.z)*sin(rotation.x)+cos(rotation.z)*sin(rotation.y)*cos(rotation.x))*platformJoint[i].z;
 
-      q[i].y = sin(rotation.z)*cos(rotation.y)*phoneJoint[i].x + 
-        (cos(rotation.z)*cos(rotation.x)+sin(rotation.z)*sin(rotation.y)*sin(rotation.x))*phoneJoint[i].y + 
-        (-cos(rotation.z)*sin(rotation.x)+sin(rotation.z)*sin(rotation.y)*cos(rotation.x))*phoneJoint[i].z;
+      q[i].y = sin(rotation.z)*cos(rotation.y)*platformJoint[i].x +
+        (cos(rotation.z)*cos(rotation.x)+sin(rotation.z)*sin(rotation.y)*sin(rotation.x))*platformJoint[i].y +
+        (-cos(rotation.z)*sin(rotation.x)+sin(rotation.z)*sin(rotation.y)*cos(rotation.x))*platformJoint[i].z;
 
-      q[i].z = -sin(rotation.y)*phoneJoint[i].x + 
-        cos(rotation.y)*sin(rotation.x)*phoneJoint[i].y + 
-        cos(rotation.y)*cos(rotation.x)*phoneJoint[i].z;
+      q[i].z = -sin(rotation.y)*platformJoint[i].x +
+        cos(rotation.y)*sin(rotation.x)*platformJoint[i].y +
+        cos(rotation.y)*cos(rotation.x)*platformJoint[i].z;
 
       // translation
       q[i].add(PVector.add(translation, initialHeight));
@@ -103,7 +103,7 @@ class Platform {
       float h0 = sqrt((legLength*legLength)+(hornLength*hornLength)-(xqxb*xqxb)-(yqyb*yqyb)) - q[i].z;
 
       float L0 = 2*hornLength*hornLength;
-      float M0 = 2*hornLength*(h0+phoneJoint[i].z);
+      float M0 = 2*hornLength*(h0+q[i].z);
       float a0 = asin(L0/sqrt(M0*M0+N*N)) - atan2(N, M0);
 
       //println(i+":"+alpha[i]+"  h0:"+h0+"  a0:"+a0);
@@ -159,7 +159,7 @@ class Platform {
     rotateX(rotation.x);
     stroke(245);
     noFill();
-    ellipse(0, 0, 2*phoneRadius, 2*phoneRadius);
+    ellipse(0, 0, 2*platformRadius, 2*platformRadius);
     popMatrix();
   }
 }
