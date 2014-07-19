@@ -4,20 +4,23 @@ class Platform {
   private float[] alpha, beta;
   private float baseRadius, phoneRadius, hornLength, legLength;
 
-  //REAL ANGULES
-  
-  private final  float baseAngles[] = {  
-   351.5, 68.5, 111.5, 188.5, 231.5,  308.5
-  };
+  // REAL ANGLES
+  private final float baseAngles[] = {
+   351.5, 68.5, 111.5, 188.5, 231.5,  308.5};
 
-  private final  float platAngles[]  = {
+  private final float platAngles[]  = {
    13.9, 46.1,  133.9, 166.1,   253.9, 286.10}; 
-  
-  
+
+  // REAL MEASUREMENTS
+  private final float SCALE_INITIAL_HEIGHT = 250;
+  private final float SCALE_BASE_RADIUS = 140;
+  private final float SCALE_PLATFORM_RADIUS = 32;
+  private final float SCALE_HORN_LENGTH = 36;
+  private final float SCALE_LEG_LENGTH = 270;
 
   public Platform(float s) {
     translation = new PVector();
-    initialHeight = new PVector(0, 0, 250*s);
+    initialHeight = new PVector(0, 0, s*SCALE_INITIAL_HEIGHT);
     rotation = new PVector();
     baseJoint = new PVector[6];
     phoneJoint = new PVector[6];
@@ -26,33 +29,28 @@ class Platform {
     q = new PVector[6];
     l = new PVector[6];
     A = new PVector[6];
-    baseRadius = 140*s;
-    phoneRadius = 32*s;
-    hornLength = 36*s;
-    legLength = 270*s;
-
-
+    baseRadius = s*SCALE_BASE_RADIUS;
+    phoneRadius = s*SCALE_PLATFORM_RADIUS;
+    hornLength = s*SCALE_HORN_LENGTH;
+    legLength = s*SCALE_LEG_LENGTH;
 
     for (int i=0; i<6; i++) {
       //float mx = baseRadius*cos((PI/3*i)+((i%2==1)?PI/12:-PI/12));
       //float my = baseRadius*sin((PI/3*i)+((i%2==1)?PI/12:-PI/12));
-      
       float mx = baseRadius*cos(radians(baseAngles[i]));
       float my = baseRadius*sin(radians(baseAngles[i]));
-      
+
       baseJoint[i] = new PVector(mx, my, 0);
       // magik !!
       beta[i] = ((i%2==1)?((i-1)*(-TWO_PI/3)):(i*(-TWO_PI/3)+(PI/3)));
     }
 
     for (int i=0; i<6; i++) {
-     
      //float mx = phoneRadius*cos((PI/3*i)+((i%2==0)?PI/12:-PI/12));
      //float my = phoneRadius*sin((PI/3*i)+((i%2==0)?PI/12:-PI/12));
-     
      float mx = phoneRadius*cos(radians(platAngles[i]));
      float my = phoneRadius*sin(radians(platAngles[i]));
-     
+
       phoneJoint[i] = new PVector(mx, my, 0);
       q[i] = new PVector(0, 0, 0);
       l[i] = new PVector(0, 0, 0);
@@ -133,8 +131,6 @@ class Platform {
       rod.setMag(legLength);
       rod.add(A[i]);
 
-      stroke(255, 0, 0);
-      line(baseJoint[i].x, baseJoint[i].y, baseJoint[i].z, A[i].x, A[i].y, A[i].z);
       stroke(100);
       strokeWeight(3);
       line(A[i].x, A[i].y, A[i].z, rod.x, rod.y, rod.z);
