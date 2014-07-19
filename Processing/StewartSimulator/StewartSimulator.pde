@@ -14,9 +14,14 @@ void setup() {
   size(1024, 768, P3D);
   smooth();
 
-  camera = new PeasyCam(this, 400);
+  camera = new PeasyCam(this, -0.8, 0, 0,700);
 
-  p = new Platform(200);
+  camera.setDistance(700);
+  camera.setRotations(-0.8, 0, 0);
+
+
+  p = new Platform(1);
+  
   p.applyRotation(new PVector()).applyTranslation(new PVector());
 
   cp5 = new ControlP5(this);
@@ -64,5 +69,13 @@ void controlEvent(ControlEvent theEvent) {
 
 void mouseReleased() {
   camera.setActive(true);
+}
+
+void keyPressed() {
+
+  if (key == ' ') {
+    camera.setDistance(700);
+    camera.setRotations(-0.8, 0, 0);
+  }
 }
 
