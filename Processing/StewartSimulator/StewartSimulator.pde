@@ -1,7 +1,7 @@
 import peasy.*;
 import controlP5.*;
 
-float MAX_TRANSLATION = 90;
+float MAX_TRANSLATION = 100;
 float MAX_ROTATION = PI/8;
 
 ControlP5 cp5;
@@ -19,7 +19,7 @@ void setup() {
   camera.setRotations(-1.0, 0.0, 0.0);
   camera.lookAt(8.0, -50.0, 80.0);
 
-  p = new Platform(200);
+  p = new Platform(1);
   p.applyTranslationAndRotation(new PVector(), new PVector());
 
   cp5 = new ControlP5(this);
