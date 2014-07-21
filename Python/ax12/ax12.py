@@ -689,23 +689,18 @@ class Ax12:
         return self.readData(id)
 
 
-    def learnServos(self,minValue=1, maxValue=6, timeout=0.25, verbose=False) :
-        '''
-        Step through the possible servos and ping them
-        Add the found servos to a list and return it
-        '''
-        servoList = []                  # Init an empty list
-        for i in range(minValue, maxValue + 1) :    # loop through possible servos
+    def learnServos(self,minValue=1, maxValue=6, verbose=False) :
+        servoList = []
+        for i in range(minValue, maxValue + 1):
             try :
-                temp = self.ping(i)          # Request a pingt packet
-                servoList.append(i)     # No errors happened so we assume it's a good ID
+                temp = self.ping(i)
+                servoList.append(i)
                 if verbose: print "Found servo #" + str(i)
-                time.sleep(.1)          # A wee bit of sleep to keep from pounding the bus
+                time.sleep(0.1)
 
             except Exception, detail:
                 if verbose : print "Error pinging servo #" + str(i) + ': ' + str(detail)
                 pass
-
         return servoList
 
 #
