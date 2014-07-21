@@ -123,7 +123,7 @@ class Ax12:
     LEFT = 0
     RIGTH = 1
     RX_TIME_OUT = 10
-    TX_DELAY_TIME = 0.0005
+    TX_DELAY_TIME = 0.00002
 
     # RPi constants
     RPI_DIRECTION_PIN = 18
@@ -137,7 +137,7 @@ class Ax12:
 
     def __init__(self):
         if(Ax12.port == None):
-            Ax12.port = Serial("/dev/ttyAMA0", baudrate=1000000, timeout=1.0)
+            Ax12.port = Serial("/dev/ttyAMA0", baudrate=1000000, timeout=0.5)
         if(not Ax12.gpioSet):
             GPIO.setwarnings(False)
             GPIO.setmode(GPIO.BCM)
@@ -195,6 +195,8 @@ class Ax12:
                 return returnValue
         except Exception, detail:
             raise Ax12.axError(detail)
+        self.direction(Ax12.RPI_DIRECTION_TX)
+        sleep(Ax12.TX_DELAY_TIME)
 
     def ping(self,id):
         self.direction(Ax12.RPI_DIRECTION_TX)
