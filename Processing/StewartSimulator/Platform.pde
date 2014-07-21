@@ -1,15 +1,18 @@
 class Platform {
   private PVector translation, rotation, initialHeight;
   private PVector[] baseJoint, platformJoint, q, l, A;
-  private float[] alpha, beta;
+  private float[] alpha;
   private float baseRadius, platformRadius, hornLength, legLength;
 
   // REAL ANGLES
   private final float baseAngles[] = {
-   351.5, 68.5, 111.5, 188.5, 231.5,  308.5};
+   308.5, 351.5, 68.5, 111.5, 188.5, 231.5 };
 
-  private final float platAngles[]  = {
-   13.9, 46.1,  133.9, 166.1,   253.9, 286.10}; 
+  private final float platformAngles[]  = {
+   286.10, 13.9, 46.1,  133.9, 166.1, 253.9};
+
+   private final float beta[] = {
+   -8*PI/3, PI/3, 0, -PI, -4*PI/3, -7*PI/3};
 
   // REAL MEASUREMENTS
   private final float SCALE_INITIAL_HEIGHT = 250;
@@ -25,7 +28,6 @@ class Platform {
     baseJoint = new PVector[6];
     platformJoint = new PVector[6];
     alpha = new float[6];
-    beta = new float[6];
     q = new PVector[6];
     l = new PVector[6];
     A = new PVector[6];
@@ -35,21 +37,14 @@ class Platform {
     legLength = s*SCALE_LEG_LENGTH;
 
     for (int i=0; i<6; i++) {
-      //float mx = baseRadius*cos((PI/3*i)+((i%2==1)?PI/12:-PI/12));
-      //float my = baseRadius*sin((PI/3*i)+((i%2==1)?PI/12:-PI/12));
       float mx = baseRadius*cos(radians(baseAngles[i]));
       float my = baseRadius*sin(radians(baseAngles[i]));
-
       baseJoint[i] = new PVector(mx, my, 0);
-      // magik !!
-      beta[i] = ((i%2==1)?((i-1)*(-TWO_PI/3)):(i*(-TWO_PI/3)+(PI/3)));
     }
 
     for (int i=0; i<6; i++) {
-     //float mx = platformRadius*cos((PI/3*i)+((i%2==0)?PI/12:-PI/12));
-     //float my = platformRadius*sin((PI/3*i)+((i%2==0)?PI/12:-PI/12));
-     float mx = platformRadius*cos(radians(platAngles[i]));
-     float my = platformRadius*sin(radians(platAngles[i]));
+     float mx = platformRadius*cos(radians(platformAngles[i]));
+     float my = platformRadius*sin(radians(platformAngles[i]));
 
       platformJoint[i] = new PVector(mx, my, 0);
       q[i] = new PVector(0, 0, 0);
@@ -121,7 +116,7 @@ class Platform {
       noStroke();
       fill(0);
       ellipse(0, 0, 5, 5);
-      text(degrees(alpha[i]), 5,5,5);
+      text(String.format("%.2f", degrees(alpha[i])), 5,5,5);
       popMatrix();
 
       stroke(245);
