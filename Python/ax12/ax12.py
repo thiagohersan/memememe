@@ -210,19 +210,23 @@ class Ax12:
         sleep(Ax12.TX_DELAY_TIME)
         return self.readData(id)
 
-    def reset(self,id):
-        self.direction(Ax12.RPI_DIRECTION_TX)
-        Ax12.port.flushInput()
-        checksum = (~(id + Ax12.AX_RESET_LENGTH + Ax12.AX_RESET))&0xff
-        outData = chr(Ax12.AX_START)
-        outData += chr(Ax12.AX_START)
-        outData += chr(id)
-        outData += chr(Ax12.AX_RESET_LENGTH)
-        outData += chr(Ax12.AX_RESET)
-        outData += chr(checksum)
-        Ax12.port.write(outData)
-        sleep(Ax12.TX_DELAY_TIME)
-        return self.readData(id)
+    def factoryReset(self,id, confirm = False):
+        if(confirm):
+            self.direction(Ax12.RPI_DIRECTION_TX)
+            Ax12.port.flushInput()
+            checksum = (~(id + Ax12.AX_RESET_LENGTH + Ax12.AX_RESET))&0xff
+            outData = chr(Ax12.AX_START)
+            outData += chr(Ax12.AX_START)
+            outData += chr(id)
+            outData += chr(Ax12.AX_RESET_LENGTH)
+            outData += chr(Ax12.AX_RESET)
+            outData += chr(checksum)
+            Ax12.port.write(outData)
+            sleep(Ax12.TX_DELAY_TIME)
+            return self.readData(id)
+        else:
+            print "nothing done, please send confirm = True as this fuction reset to the factory default value, i.e reset the motor ID"
+            return
 
     def setID(self, id, newId):
         self.direction(Ax12.RPI_DIRECTION_TX)
@@ -683,62 +687,59 @@ class Ax12:
         return self.readData(id)
 
 
-def learnServos(minValue=1, maxValue=32, timeout=0.25, verbose=False) :
-    '''
-    Step through the possible servos and ping them
-    Add the found servos to a list and return it
-    '''
-    oldTimeout = port.timeout       # Save the original timeout
-    port.timeout = timeout          # set timeout to something fast
-    servoList = []                  # Init an empty list
-    for i in range(minValue, maxValue + 1) :    # loop through possible servos
-        try :
-            temp = ping(i)          # Request a pingt packet
-            servoList.append(i)     # No errors happened so we assume it's a good ID
-            if verbose: print "Found servo #" + str(i)
-            time.sleep(.1)          # A wee bit of sleep to keep from pounding the bus
+    def learnServos(self,minValue=1, maxValue=6, timeout=0.25, verbose=False) :
+        '''
+        Step through the possible servos and ping them
+        Add the found servos to a list and return it
+        '''
+        servoList = []                  # Init an empty list
+        for i in range(minValue, maxValue + 1) :    # loop through possible servos
+            try :
+                temp = self.ping(i)          # Request a pingt packet
+                servoList.append(i)     # No errors happened so we assume it's a good ID
+                if verbose: print "Found servo #" + str(i)
+                time.sleep(.1)          # A wee bit of sleep to keep from pounding the bus
 
-        except Exception, detail:
-            if verbose : print "Error pinging servo #" + str(i) + ': ' + str(detail)
-            pass
+            except Exception, detail:
+                if verbose : print "Error pinging servo #" + str(i) + ': ' + str(detail)
+                pass
 
-    port.timeout = oldTimeout       # set the timeout to the original
-    return servoList
+        return servoList
 
-def playPose() :
-    '''
-    Open a file and move the servos to specified positions in a group move
-    '''
-    infile=open(Arguments.playpose, 'r')    # Open the file
-    poseDict = {}                           # Dictionary to hold poses and positions
-    if Arguments.verbose : print "Reading pose from", Arguments.playpose
-    for line in infile.readlines() :        # Read the file and step through it
-        servo = int(line.split(':')[0])     # Servo is first
-        position = int(line.split(':')[1])  # Position is second
-        poseDict[servo]=position            # add the servo to the Dictionary
-
-    groupMove2(poseDict)
-
-
-
-def writePose() :
-    '''
-    Read the servos and save the positions to a file
-    '''
-    of = open(Arguments.savepose, 'w')      # open the output file
-    pose = getPose2(connectedServos)        # get the positions
-    if Arguments.verbose :
-        print "Servo Positions"
-        print "---------------"
-
-    for key in  pose.keys():                # step through the keys, writing to the file
-        if Arguments.verbose : print "Servo " + str(key), pose[key]
-        of.write(str(key) + ':' + str(pose[key]) + '\n')    # Write to the file
-
-    if Arguments.verbose :
-        print "Wrote pose to " + Arguments.savepose
-        print
-
-    of.close()      # close the file
-
-
+#
+#def playPose() :
+#    '''
+#    Open a file and move the servos to specified positions in a group move
+#    '''
+#    infile=open(Arguments.playpose, 'r')    # Open the file
+#    poseDict = {}                           # Dictionary to hold poses and positions
+#    if Arguments.verbose : print "Reading pose from", Arguments.playpose
+#    for line in infile.readlines() :        # Read the file and step through it
+#        servo = int(line.split(':')[0])     # Servo is first
+#        position = int(line.split(':')[1])  # Position is second
+#        poseDict[servo]=position            # add the servo to the Dictionary
+#
+#    groupMove2(poseDict)
+#
+#
+#
+#def writePose() :
+#    '''
+#    Read the servos and save the positions to a file
+#    '''
+#    of = open(Arguments.savepose, 'w')      # open the output file
+#    pose = getPose2(connectedServos)        # get the positions
+#    if Arguments.verbose :
+#        print "Servo Positions"
+#        print "---------------"
+#
+#    for key in  pose.keys():                # step through the keys, writing to the file
+#        if Arguments.verbose : print "Servo " + str(key), pose[key]
+#        of.write(str(key) + ':' + str(pose[key]) + '\n')    # Write to the file
+#
+#    if Arguments.verbose :
+#        print "Wrote pose to " + Arguments.savepose
+#        print
+#
+#    of.close()      # close the file
+#
