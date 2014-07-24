@@ -104,6 +104,10 @@ class Platform {
       //println(i+":"+alpha[i]+"  h0:"+h0+"  a0:"+a0);
     }
   }
+  
+  public float[] getAlpha(){
+    return alpha; 
+  }
 
   public void draw() {
     // draw Base
