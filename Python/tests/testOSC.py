@@ -1,10 +1,12 @@
-import ax12
 from time import sleep
 from random import random
 import math
 import OSC
 from OSC import OSCServer
 import time, threading
+import sys
+sys.path.append("../")
+from ax12 import ax12
 
 server = OSC.ThreadingOSCServer( ("meme00.local", 8888))
 

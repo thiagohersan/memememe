@@ -1,9 +1,10 @@
 from liblo import *
 import sys
-import ax12
 from time import sleep
 from random import random
 import math
+sys.path.append("..")
+from ax12 import ax12
 
 class MyServer(ServerThread):
     def __init__(self):
@@ -85,3 +86,5 @@ if __name__=="__main__":
         except KeyboardInterrupt :
             print  "\nStoping OSCServer."
             server.stop()
+            sys.exit()
+
