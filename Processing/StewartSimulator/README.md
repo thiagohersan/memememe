@@ -6,3 +6,4 @@ Math based on [this document](http://www.wokinghamu3a.org.uk/Maths%20of%20the%20
 ###Dependencie:  
 - [peasycam](http://mrfeinberg.com/peasycam/)  
 - [controlP5](http://www.sojamo.de/libraries/controlP5/)  
+- [oscP5](http://www.sojamo.de/libraries/oscP5/)

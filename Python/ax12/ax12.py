@@ -168,6 +168,7 @@ class Ax12:
         sleep(Ax12.RPI_DIRECTION_SWITCH_DELAY)
 
     def readData(self,id):
+        sleep(Ax12.TX_DELAY_TIME)
         self.direction(Ax12.RPI_DIRECTION_RX)
         try:
             h1 = Ax12.port.read()
@@ -195,8 +196,6 @@ class Ax12:
                 return returnValue
         except Exception, detail:
             raise Ax12.axError(detail)
-        self.direction(Ax12.RPI_DIRECTION_TX)
-        sleep(Ax12.TX_DELAY_TIME)
 
     def ping(self,id):
         self.direction(Ax12.RPI_DIRECTION_TX)
