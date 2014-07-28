@@ -129,7 +129,7 @@ class Ax12:
     RPI_DIRECTION_PIN = 18
     RPI_DIRECTION_TX = GPIO.HIGH
     RPI_DIRECTION_RX = GPIO.LOW
-    RPI_DIRECTION_SWITCH_DELAY = 0.0005
+    RPI_DIRECTION_SWITCH_DELAY = 0.00005
 
     # static variables
     port = None
@@ -137,7 +137,7 @@ class Ax12:
 
     def __init__(self):
         if(Ax12.port == None):
-            Ax12.port = Serial("/dev/ttyAMA0", baudrate=1000000, timeout=0.5)
+            Ax12.port = Serial("/dev/ttyAMA0", baudrate=1000000, timeout=0.001)
         if(not Ax12.gpioSet):
             GPIO.setwarnings(False)
             GPIO.setmode(GPIO.BCM)
@@ -168,7 +168,6 @@ class Ax12:
         sleep(Ax12.RPI_DIRECTION_SWITCH_DELAY)
 
     def readData(self,id):
-        sleep(Ax12.TX_DELAY_TIME)
         self.direction(Ax12.RPI_DIRECTION_RX)
         try:
             h1 = Ax12.port.read()
@@ -398,7 +397,7 @@ class Ax12:
         outData += chr(Ax12.AX_ACTION)
         outData += chr(Ax12.AX_ACTION_CHECKSUM)
         Ax12.port.write(outData)
-        sleep(Ax12.TX_DELAY_TIME)
+        #sleep(Ax12.TX_DELAY_TIME)
 
     def setTorqueStatus(self, id, status):
         self.direction(Ax12.RPI_DIRECTION_TX)
