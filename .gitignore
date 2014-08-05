@@ -3,3 +3,4 @@ Android/*/bin
 Android/*/gen
 Android/*/proguard.cfg
 *.pyc
+Processing/**/*cropped
