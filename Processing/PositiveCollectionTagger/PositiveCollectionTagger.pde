@@ -132,6 +132,10 @@ void keyPressed() {
   }
   if ((key == 's') && (currentFile == imgFiles.size())) {
     // save string to file
+    PrintWriter output = createWriter(dataPath(IMG_DIR+".txt"));
+    output.println(outputBuffer);
+    output.flush();
+    output.close();
   }
 }
 
