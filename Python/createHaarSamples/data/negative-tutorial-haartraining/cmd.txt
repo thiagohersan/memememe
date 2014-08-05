@@ -1,0 +1,1 @@
+wget -nd -r -A "UMD*.jpg" http://tutorial-haartraining.googlecode.com/svn/trunk/data/negatives/
