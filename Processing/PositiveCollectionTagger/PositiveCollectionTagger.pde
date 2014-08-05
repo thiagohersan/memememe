@@ -41,6 +41,10 @@ void draw() {
     stroke(0);
     fill(255, 100, 100, 100);
     rect(selectedRegion[0].x, selectedRegion[0].y, selectedRegion[1].x-selectedRegion[0].x, selectedRegion[1].y-selectedRegion[0].y);
+    float aspectRatio = (selectedRegion[1].x-selectedRegion[0].x)/(selectedRegion[1].y-selectedRegion[0].y);
+    fill(0);
+    textSize(32);
+    text(aspectRatio, selectedRegion[1].x+10, selectedRegion[0].y-10);
   }
   else {
     // some text about saving
@@ -49,7 +53,7 @@ void draw() {
 
 void initialGuess() {
   currentImg.loadPixels();
-  selectedRegion[0].set(currentImg.width,currentImg.height);
+  selectedRegion[0].set(currentImg.width, currentImg.height);
   selectedRegion[1].set(0, 0);
 
   for (int y=0; y<currentImg.height; y++) {
@@ -62,6 +66,16 @@ void initialGuess() {
         selectedRegion[1].y = max(selectedRegion[1].y, y);
       }
     }
+  }
+  // make it a square, centered on the found object
+  PVector size = PVector.sub(selectedRegion[1], selectedRegion[0]);
+  if (size.x > size.y) {
+    selectedRegion[0].y -= (size.x - size.y)/2;
+    selectedRegion[1].y += (size.x - size.y)/2;
+  }
+  else {
+    selectedRegion[0].x -= (size.y - size.x)/2;
+    selectedRegion[1].x += (size.y - size.x)/2;
   }
 }
 
@@ -92,6 +106,7 @@ void mouseDragged() {
 void mouseReleased() {
   if (!moveSelectedRegion) {
     selectedRegion[1].set(mouseX, mouseY);
+    // make sure selectedRegion[0] is always the top-left
     if (selectedRegion[1].x < selectedRegion[0].x) {
       selectedRegion[1].x = selectedRegion[0].x;
       selectedRegion[0].x = mouseX;
