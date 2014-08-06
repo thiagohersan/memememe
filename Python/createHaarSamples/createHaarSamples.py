@@ -2,7 +2,7 @@ from os import listdir, path, makedirs, remove
 from re import sub
 from subprocess import check_call
 from time import sleep
-from random import random
+from shutil import rmtree
 
 PATH_POS_IMAGES = "../../Processing/PositiveCollectionTagger/data/positive-clean-00_cropped"
 PATH_NEG_IMAGES = "data/negative-tutorial-haartraining"
@@ -56,9 +56,11 @@ if __name__=="__main__":
     check_call(["opencv_createsamples",
         "-info", posImageCollectionFilename,
         "-vec", sub("(?i)txt","vec",posImageCollectionFilename),
+        "-num", str(sum(1 for line in open(posImageCollectionFilename))),
         "-w", "48",
         "-h", "48"])
     sleep(1)
 
     remove(negImageCollectionFilename)
     remove(posImageCollectionFilename)
+    rmtree(PATH_SAMPLE_IMAGES)
