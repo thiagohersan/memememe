@@ -53,14 +53,32 @@ if __name__=="__main__":
         remove(path.join(PATH_SAMPLE_IMAGES,f))
     posImageCollectionFile.close()
 
+    vecFileName = sub("(?i)txt","vec",posImageCollectionFilename)
     check_call(["opencv_createsamples",
         "-info", posImageCollectionFilename,
-        "-vec", sub("(?i)txt","vec",posImageCollectionFilename),
+        "-vec", vecFileName,
         "-num", str(sum(1 for line in open(posImageCollectionFilename))),
         "-w", "48",
         "-h", "48"])
     sleep(1)
 
-    remove(negImageCollectionFilename)
-    remove(posImageCollectionFilename)
-    rmtree(PATH_SAMPLE_IMAGES)
+    dataFileName = "data/"+'-'.join(PATH_POS_IMAGES.split('/')[-1].split('-')[1:])+".dat"
+    check_call(["opencv_traincascade",
+        "-data", dataFileName,
+        "-vec", vecFileName,
+        "-bg", negImageCollectionFilename,
+        "-numPos", str(sum(1 for line in open(posImageCollectionFilename))),
+        "-numNeg", str(sum(1 for line in open(negImageCollectionFilename))),
+        "-numStages", "20",
+        "-precalcValBufSize", "512",
+        "-precalcIdxBufSize", "512",
+        "-featureType", "HAAR",
+        "-w", "48",
+        "-h", "48",
+        "-minHitRate", "0.995",
+        "-maxFalseAlarmRate", "0.5"])
+    sleep(1)
+
+    #remove(negImageCollectionFilename)
+    #remove(posImageCollectionFilename)
+    #rmtree(PATH_SAMPLE_IMAGES)
