@@ -30,7 +30,7 @@ if __name__=="__main__":
             "-img", path.join(PATH_POS_IMAGES,f),
             "-bg", negImageCollectionFilename,
             "-info", path.join(PATH_SAMPLE_IMAGES,sub("(?i)jpg","txt",f)),
-            "-num", "2",
+            "-num", "30",
             "-maxxangle", "0.0",
             "-maxyangle", "0.0",
             "-maxzangle", "0.4",
