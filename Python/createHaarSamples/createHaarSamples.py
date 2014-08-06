@@ -62,9 +62,12 @@ if __name__=="__main__":
         "-h", "48"])
     sleep(1)
 
-    dataFileName = "data/"+'-'.join(PATH_POS_IMAGES.split('/')[-1].split('-')[1:])+".dat"
+    dataDirName = "data/"+'-'.join(PATH_POS_IMAGES.split('/')[-1].split('-')[1:])+"_haar_data"
+    if(not path.isdir(dataDirName)):
+        makedirs(dataDirName)
+
     check_call(["opencv_traincascade",
-        "-data", dataFileName,
+        "-data", dataDirName,
         "-vec", vecFileName,
         "-bg", negImageCollectionFilename,
         "-numPos", str(sum(1 for line in open(posImageCollectionFilename))),
