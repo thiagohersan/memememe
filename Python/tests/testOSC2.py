@@ -1,6 +1,6 @@
 from liblo import *
 import sys
-from time import sleep
+from time import sleep,time
 from random import random
 import math
 sys.path.append("..")
@@ -12,11 +12,12 @@ class MyServer(ServerThread):
 
     @make_method('/angles', 'ffffff')
     def foo_callback(self, path, args):
-        print args
+        #print args
+        #print map(lambda x:math.degrees(x),args)
         anglesData.append(args)
 
 def moveMotors():
-    print "wrinting on the motors..."
+    #print "wrinting on the motors..."
     angles = anglesData[0]
 
     del anglesData[0]
@@ -33,10 +34,13 @@ def moveMotors():
         try:
             servos.moveSpeedRW(i+1,angPos,1023)
         except:
-            pass
-        sleep(0.03)
+            try:
+                servos.moveSpeedRW(i+1,angPos,1023)
+            except:
+                print "3rd time c.p."
+                pass
+
     servos.action()
-    sleep(0.02)
 
 
 def initMotors():
@@ -47,7 +51,7 @@ def initMotors():
     for i in range(2):
         for mt in range(1,6+1):
             pp = p if mt%2==0 else 1024-p
-            servos.moveSpeedRW(mt,pp,50)
+            servos.moveSpeedRW(mt,pp,450)
             sleep(0.01)
         servos.action()
         p = 1320 - p
@@ -76,15 +80,24 @@ def setup():
 
 if __name__=="__main__":
     setup()
-    while(1):
-        try :
-           while 1:
-            if(anglesData):
-                moveMotors()
-            sleep(0.1)
+    timeAverage = 0
+    count = 0
+    try :
+       while 1:
+        lastTime = time()
+        if(anglesData):
+            moveMotors()
+        if(time()-lastTime > 0.001):
+            print "%f" % (time()-lastTime)
+        timeAverage += (time()-lastTime)
+        count +=1
+        if count >= 100:
+           # print "%f" % (timeAverage/100)
+            timeAverage = 0
+            count = 0
 
-        except KeyboardInterrupt :
-            print  "\nStoping OSCServer."
-            server.stop()
-            sys.exit()
+    except KeyboardInterrupt :
+        print  "\nStoping OSCServer."
+        server.stop()
+        sys.exit()
 
