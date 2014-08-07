@@ -4,7 +4,7 @@ from os import listdir, path, makedirs, remove
 from re import sub
 from subprocess import check_call
 from time import sleep
-from shutil import rmtree
+from shutil import rmtree, copytree
 
 PATH_POS_IMAGES = "../../Processing/PositiveCollectionTagger/data/positive-clean-cropped"
 PATH_NEG_IMAGES = "data/negative-tutorial-haartraining"
@@ -59,6 +59,11 @@ if __name__=="__main__":
     vecFileName = sub("(?i)txt","vec",posImageCollectionFilename)
 
     if(createVec):
+        if(not posImageCollectionFilenames):
+            rmtree(PATH_SAMPLE_IMAGES)
+            copytree(sub("-cropped","",PATH_POS_IMAGES), PATH_SAMPLE_IMAGES)
+            posImageCollectionFilenames = [f for f in listdir(PATH_SAMPLE_IMAGES) if path.isfile(path.join(PATH_SAMPLE_IMAGES,f)) and f.lower().endswith("txt")]
+
         posImageCollectionFile = open(posImageCollectionFilename, "w")
         for f in posImageCollectionFilenames:
             lines = open(path.join(PATH_SAMPLE_IMAGES,f), "r")
