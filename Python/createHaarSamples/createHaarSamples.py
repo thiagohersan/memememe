@@ -43,10 +43,10 @@ if __name__=="__main__":
                 "-img", path.join(PATH_POS_IMAGES,f),
                 "-bg", negImageCollectionFilename,
                 "-info", path.join(PATH_SAMPLE_IMAGES,sub("(?i)jpg","txt",f)),
-                "-num", "30",
+                "-num", "128",
                 "-maxxangle", "0.0",
                 "-maxyangle", "0.0",
-                "-maxzangle", "0.4",
+                "-maxzangle", "0.3",
                 "-bgcolor", "255",
                 "-bgthresh", "8",
                 "-w", "48",
@@ -59,23 +59,25 @@ if __name__=="__main__":
     vecFileName = sub("(?i)txt","vec",posImageCollectionFilename)
 
     if(createVec):
-        if(not posImageCollectionFilenames):
+        if((not posImageCollectionFilenames) and (not path.isfile(posImageCollectionFilename))):
             rmtree(PATH_SAMPLE_IMAGES)
             copytree(sub("-cropped","",PATH_POS_IMAGES), PATH_SAMPLE_IMAGES)
             posImageCollectionFilenames = [f for f in listdir(PATH_SAMPLE_IMAGES) if path.isfile(path.join(PATH_SAMPLE_IMAGES,f)) and f.lower().endswith("txt")]
 
-        posImageCollectionFile = open(posImageCollectionFilename, "w")
-        for f in posImageCollectionFilenames:
-            lines = open(path.join(PATH_SAMPLE_IMAGES,f), "r")
-            for l in lines:
-                posImageCollectionFile.write(PATH_SAMPLE_IMAGES.split('/')[-1]+"/"+l)
-            lines.close()
-            remove(path.join(PATH_SAMPLE_IMAGES,f))
-        posImageCollectionFile.close()
+        if(not path.isfile(posImageCollectionFilename)):
+            posImageCollectionFile = open(posImageCollectionFilename, "w")
+            for f in posImageCollectionFilenames:
+                lines = open(path.join(PATH_SAMPLE_IMAGES,f), "r")
+                for l in lines:
+                    posImageCollectionFile.write(PATH_SAMPLE_IMAGES.split('/')[-1]+"/"+l)
+                lines.close()
+                remove(path.join(PATH_SAMPLE_IMAGES,f))
+            posImageCollectionFile.close()
 
         check_call(["opencv_createsamples",
             "-info", posImageCollectionFilename,
             "-vec", vecFileName,
+            "-bg", negImageCollectionFilename,
             "-num", str(sum(1 for line in open(posImageCollectionFilename))),
             "-w", "48",
             "-h", "48"])
