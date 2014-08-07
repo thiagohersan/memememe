@@ -121,7 +121,7 @@ void mouseReleased() {
 
 void keyPressed() {
   if ((key == ' ') && currentFile < imgFiles.size()) {
-    outputBuffer += imgFiles.get(currentFile);
+    outputBuffer += imgFiles.get(currentFile).replace(IMG_DIR+"/","");
     outputBuffer += " 1 ";
     outputBuffer += (int)selectedRegion[0].x+" "+(int)selectedRegion[0].y+" ";
     outputBuffer += (int)(selectedRegion[1].x-selectedRegion[0].x)+" "+(int)(selectedRegion[1].y-selectedRegion[0].y);
@@ -135,8 +135,8 @@ void keyPressed() {
   }
   if ((key == 's') && (currentFile == imgFiles.size())) {
     // save string to file
-    PrintWriter output = createWriter(dataPath(IMG_DIR+".txt"));
-    output.println(outputBuffer);
+    PrintWriter output = createWriter(dataPath(IMG_DIR+"/"+IMG_DIR+".txt"));
+    output.print(outputBuffer);
     output.flush();
     output.close();
   }
