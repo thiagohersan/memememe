@@ -1,6 +1,6 @@
 import java.io.File;
 
-String IMG_DIR = "positive00-clean";
+String IMG_DIR = "positive-clean";
 ArrayList<String> imgFiles;
 int currentFile;
 String outputBuffer;
@@ -128,7 +128,7 @@ void keyPressed() {
     outputBuffer += "\n";
     PImage toSave = createImage((int)(selectedRegion[1].x-selectedRegion[0].x), (int)(selectedRegion[1].x-selectedRegion[0].x), RGB);
     toSave.copy(currentImg, (int)selectedRegion[0].x, (int)selectedRegion[0].y, toSave.width, toSave.height, 0,0, toSave.width, toSave.height);
-    toSave.save(dataPath(IMG_DIR+"_cropped/"+imgFiles.get(currentFile).replace(IMG_DIR+"/","")));
+    toSave.save(dataPath(IMG_DIR+"-cropped/"+imgFiles.get(currentFile).replace(IMG_DIR+"/","")));
     currentImg = loadImage(imgFiles.get((currentFile+1)%imgFiles.size()));
     initialGuess();
     currentFile++;
