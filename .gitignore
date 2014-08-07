@@ -4,4 +4,5 @@ Android/*/gen
 Android/*/proguard.cfg
 *.pyc
 Processing/**/*cropped
+Processing/**/positive01*
 Python/**/*.vec
