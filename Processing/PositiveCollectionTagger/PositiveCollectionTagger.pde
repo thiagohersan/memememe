@@ -1,6 +1,6 @@
 import java.io.File;
 
-String IMG_DIR = "positive-clean-00";
+String IMG_DIR = "positive00-clean";
 ArrayList<String> imgFiles;
 int currentFile;
 String outputBuffer;
