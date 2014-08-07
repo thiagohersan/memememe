@@ -6,3 +6,6 @@ Android/*/proguard.cfg
 Processing/**/*cropped
 Processing/**/positive01*
 Python/**/*.vec
+Python/**/data/*.txt
+Python/**/data/*samples
+Python/**/data/**/neg*jpg
