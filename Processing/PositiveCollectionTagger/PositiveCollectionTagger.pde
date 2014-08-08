@@ -10,7 +10,7 @@ PVector lastMousePressed;
 boolean moveSelectedRegion;
 
 void setup() {
-  size(1024, 683);
+  size(1024, 700);
 
   // populate
   imgFiles = new ArrayList<String>();
@@ -45,9 +45,15 @@ void draw() {
     fill(0);
     textSize(32);
     text(aspectRatio, selectedRegion[1].x+10, selectedRegion[0].y-10);
+    noStroke();
+    rect(0,0,width,48);
+    fill(255);
+    text("Press Space Bar To Advance to Next Image", 10, 32);
   }
   else {
-    // some text about saving
+    String s = "Press 's' To Save Collection File";
+    fill(255);
+    text(s, (width-textWidth(s))/2, height/2);
   }
 }
 
@@ -139,6 +145,7 @@ void keyPressed() {
     output.print(outputBuffer);
     output.flush();
     output.close();
+    exit();
   }
 }
 
