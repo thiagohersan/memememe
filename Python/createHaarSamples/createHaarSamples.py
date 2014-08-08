@@ -14,8 +14,8 @@ DIR_NEG_IMAGES = DIR_DATA+"/negative-tutorial-haartraining"
 DIR_SAMPLE_IMAGES = DIR_DATA+"/positive-clean-cropped-samples"
 DIR_HAAR_DATA = DIR_DATA+"/clean-cropped-haardata"
 
-FILE_NEG_COLLECTION = DIR_NEG_IMAGES+DIR_NEG_IMAGES.split("/")[-1]+".txt"
-FILE_SAMPLE_COLLECTION = DIR_SAMPLE_IMAGES+DIR_SAMPLE_IMAGES.split("/")[-1]+".txt"
+FILE_NEG_COLLECTION = DIR_NEG_IMAGES+"/"+DIR_NEG_IMAGES.split("/")[-1]+".txt"
+FILE_SAMPLE_COLLECTION = DIR_SAMPLE_IMAGES+"/"+DIR_SAMPLE_IMAGES.split("/")[-1]+".txt"
 FILE_SAMPLE_VEC = DIR_SAMPLE_IMAGES+".vec"
 
 if __name__=="__main__":
