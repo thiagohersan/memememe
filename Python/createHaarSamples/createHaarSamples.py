@@ -6,9 +6,17 @@ from subprocess import check_call
 from time import sleep
 from shutil import rmtree, copytree
 
-PATH_POS_IMAGES = "../../Processing/PositiveCollectionTagger/data/positive-clean-cropped"
-PATH_NEG_IMAGES = "data/negative-tutorial-haartraining"
-PATH_SAMPLE_IMAGES = "data/"+PATH_POS_IMAGES.split('/')[-1]+"-samples"
+DIR_PROCESSING_DATA = "../../Processing/PositiveCollectionTagger/data"
+DIR_POS_IMAGES = DIR_PROCESSING_DATA+"/positive-clean"
+DIR_POS_IMAGES_CROPPED = DIR_PROCESSING_DATA+"/positive-clean-cropped"
+DIR_DATA = "data"
+DIR_NEG_IMAGES = DIR_DATA+"/negative-tutorial-haartraining"
+DIR_SAMPLE_IMAGES = DIR_DATA+"/positive-clean-cropped-samples"
+DIR_HAAR_DATA = DIR_DATA+"/clean-cropped-haardata"
+
+FILE_NEG_COLLECTION = DIR_NEG_IMAGES+DIR_NEG_IMAGES.split("/")[-1]+".txt"
+FILE_SAMPLE_COLLECTION = DIR_SAMPLE_IMAGES+DIR_SAMPLE_IMAGES.split("/")[-1]+".txt"
+FILE_SAMPLE_VEC = DIR_SAMPLE_IMAGES+".vec"
 
 if __name__=="__main__":
     (createSamples, createVec, trainCascade) = (False, False, False)
@@ -22,27 +30,26 @@ if __name__=="__main__":
             trainCascade = True
 
     # make sure output dir exists
-    if(not path.isdir(PATH_SAMPLE_IMAGES)):
-        makedirs(PATH_SAMPLE_IMAGES)
+    if(not path.isdir(DIR_SAMPLE_IMAGES)):
+        makedirs(DIR_SAMPLE_IMAGES)
 
     # get list of negative images
-    negImageCollectionFilename = PATH_NEG_IMAGES+".txt"
-    negImageCollectionFile = open(negImageCollectionFilename, "w")
-    negImageFilenames = [f for f in listdir(PATH_NEG_IMAGES) if path.isfile(path.join(PATH_NEG_IMAGES,f)) and f.lower().endswith("jpg")]
+    negImageCollectionFile = open(FILE_NEG_COLLECTION, "w")
+    negImageFilenames = [f for f in listdir(DIR_NEG_IMAGES) if path.isfile(path.join(DIR_NEG_IMAGES,f)) and f.lower().endswith("jpg")]
     for f in negImageFilenames:
-        negImageCollectionFile.write(PATH_NEG_IMAGES.split('/')[-1]+"/"+f)
+        negImageCollectionFile.write(f)
         negImageCollectionFile.write("\n")
     negImageCollectionFile.close()
 
     # get list of positive image files
-    posImageFilenames = [f for f in listdir(PATH_POS_IMAGES) if path.isfile(path.join(PATH_POS_IMAGES,f))]
+    posImageFilenames = [f for f in listdir(DIR_POS_IMAGES_CROPPED) if path.isfile(path.join(DIR_POS_IMAGES_CROPPED,f))]
     if(createSamples):
         # run the create command for each image
         for f in posImageFilenames:
             check_call(["opencv_createsamples",
-                "-img", path.join(PATH_POS_IMAGES,f),
-                "-bg", negImageCollectionFilename,
-                "-info", path.join(PATH_SAMPLE_IMAGES,sub("(?i)jpg","txt",f)),
+                "-img", path.join(DIR_POS_IMAGES_CROPPED,f),
+                "-bg", FILE_NEG_COLLECTION,
+                "-info", path.join(DIR_SAMPLE_IMAGES,sub("(?i)jpg","txt",f)),
                 "-num", "128",
                 "-maxxangle", "0.0",
                 "-maxyangle", "0.0",
@@ -53,47 +60,44 @@ if __name__=="__main__":
                 "-h", "48"])
             sleep(1)
 
-    # get mega list of sample images
-    posImageCollectionFilename = PATH_SAMPLE_IMAGES+".txt"
-    posImageCollectionFilenames = [f for f in listdir(PATH_SAMPLE_IMAGES) if path.isfile(path.join(PATH_SAMPLE_IMAGES,f)) and f.lower().endswith("txt")]
-    vecFileName = sub("(?i)txt","vec",posImageCollectionFilename)
-
     if(createVec):
-        if((not posImageCollectionFilenames) and (not path.isfile(posImageCollectionFilename))):
-            rmtree(PATH_SAMPLE_IMAGES)
-            copytree(sub("-cropped","",PATH_POS_IMAGES), PATH_SAMPLE_IMAGES)
-            posImageCollectionFilenames = [f for f in listdir(PATH_SAMPLE_IMAGES) if path.isfile(path.join(PATH_SAMPLE_IMAGES,f)) and f.lower().endswith("txt")]
+        # get mega list of sample images
+        posImageCollectionFilenames = [f for f in listdir(DIR_SAMPLE_IMAGES) if path.isfile(path.join(DIR_SAMPLE_IMAGES,f)) and f.lower().endswith("txt")]
 
-        if(not path.isfile(posImageCollectionFilename)):
-            posImageCollectionFile = open(posImageCollectionFilename, "w")
+        if((not posImageCollectionFilenames) and (not path.isfile(FILE_SAMPLE_COLLECTION))):
+            rmtree(DIR_SAMPLE_IMAGES)
+            copytree(DIR_POS_IMAGES, DIR_SAMPLE_IMAGES)
+            posImageCollectionFilenames = [f for f in listdir(DIR_SAMPLE_IMAGES) if path.isfile(path.join(DIR_SAMPLE_IMAGES,f)) and f.lower().endswith("txt")]
+
+        if(not path.isfile(FILE_SAMPLE_COLLECTION)):
+            posImageCollectionFile = open(FILE_SAMPLE_COLLECTION, "w")
             for f in posImageCollectionFilenames:
-                lines = open(path.join(PATH_SAMPLE_IMAGES,f), "r")
+                lines = open(path.join(DIR_SAMPLE_IMAGES,f), "r")
                 for l in lines:
-                    posImageCollectionFile.write(PATH_SAMPLE_IMAGES.split('/')[-1]+"/"+l)
+                    posImageCollectionFile.write(l)
                 lines.close()
-                remove(path.join(PATH_SAMPLE_IMAGES,f))
+                remove(path.join(DIR_SAMPLE_IMAGES,f))
             posImageCollectionFile.close()
 
         check_call(["opencv_createsamples",
-            "-info", posImageCollectionFilename,
-            "-vec", vecFileName,
-            "-bg", negImageCollectionFilename,
-            "-num", str(sum(1 for line in open(posImageCollectionFilename))),
+            "-info", FILE_SAMPLE_COLLECTION,
+            "-vec", FILE_SAMPLE_VEC,
+            "-bg", FILE_NEG_COLLECTION,
+            "-num", str(sum(1 for line in open(FILE_SAMPLE_COLLECTION))),
             "-w", "48",
             "-h", "48"])
         sleep(1)
 
     if(trainCascade):
-        dataDirName = "data/"+'-'.join(PATH_POS_IMAGES.split('/')[-1].split('-')[1:])+"-haardata"
-        if(not path.isdir(dataDirName)):
-            makedirs(dataDirName)
+        if(not path.isdir(DIR_HAAR_DATA)):
+            makedirs(DIR_HAAR_DATA)
 
         check_call(["opencv_traincascade",
-            "-data", dataDirName,
-            "-vec", vecFileName,
-            "-bg", negImageCollectionFilename,
-            "-numPos", str(min(1000, sum(1 for line in open(posImageCollectionFilename)))),
-            "-numNeg", str(min(600, sum(1 for line in open(negImageCollectionFilename)))),
+            "-data", DIR_HAAR_DATA,
+            "-vec", FILE_SAMPLE_VEC,
+            "-bg", FILE_NEG_COLLECTION,
+            "-numPos", str(min(1000, sum(1 for line in open(FILE_SAMPLE_COLLECTION)))),
+            "-numNeg", str(min(600, sum(1 for line in open(FILE_NEG_COLLECTION)))),
             "-numStages", "20",
             "-precalcValBufSize", "1024",
             "-precalcIdxBufSize", "1024",
@@ -104,6 +108,6 @@ if __name__=="__main__":
             "-maxFalseAlarmRate", "0.5"])
         sleep(1)
 
-    #remove(negImageCollectionFilename)
-    #remove(posImageCollectionFilename)
-    #rmtree(PATH_SAMPLE_IMAGES)
+    #remove(FILE_NEG_COLLECTION)
+    #remove(FILE_SAMPLE_COLLECTION)
+    #rmtree(DIR_SAMPLE_IMAGES)
