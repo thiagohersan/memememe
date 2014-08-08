@@ -9,3 +9,4 @@ Python/**/*.vec
 Python/**/data/*.txt
 Python/**/data/*samples
 Python/**/data/**/neg*jpg
+Python/**/data/**/stage*xml
