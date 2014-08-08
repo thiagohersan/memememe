@@ -44,6 +44,7 @@ void draw() {
     float aspectRatio = (selectedRegion[1].x-selectedRegion[0].x)/(selectedRegion[1].y-selectedRegion[0].y);
     fill(0);
     textSize(32);
+    textAlign(LEFT);
     text(aspectRatio, selectedRegion[1].x+10, selectedRegion[0].y-10);
     noStroke();
     rect(0,0,width,48);
@@ -51,9 +52,9 @@ void draw() {
     text("Press Space Bar To Advance to Next Image", 10, 32);
   }
   else {
-    String s = "Press 's' To Save Collection File";
     fill(255);
-    text(s, (width-textWidth(s))/2, height/2);
+    textAlign(CENTER);
+    text("Press 's' To Save Collection File", width/2, height/2);
   }
 }
 
