@@ -12,6 +12,7 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -162,7 +163,7 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 
         mRgba = inputFrame.rgba();
-        mGray = inputFrame.gray();
+        mGray = inputFrame.gray().t();
 
         if (mAbsoluteFaceSize == 0) {
             int height = mGray.rows();
@@ -189,7 +190,10 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
 
         Rect[] facesArray = faces.toArray();
         for (int i = 0; i < facesArray.length; i++)
-            Core.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), FACE_RECT_COLOR, 3);
+            Core.rectangle(mRgba,
+                    new Point(facesArray[i].tl().y, facesArray[i].tl().x),
+                    new Point(facesArray[i].br().y, facesArray[i].br().x),
+                    FACE_RECT_COLOR, 3);
 
         return mRgba;
     }
