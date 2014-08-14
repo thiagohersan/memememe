@@ -1,7 +1,8 @@
 .DS*
-Android/*/bin
-Android/*/gen
-Android/*/proguard.cfg
+Android/**/bin
+Android/**/gen
+Android/**/proguard.cfg
+Android/**/obj
 *.pyc
 Processing/**/*cropped
 Processing/**/positive01*
