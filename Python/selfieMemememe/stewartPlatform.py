@@ -63,15 +63,16 @@ class StewartPlatform:
             # translation
             self.q[i].add(self.translation + self.initialHeight)
             self.l[i] = self.q[i] - self.baseJoint[i]
-            print "%s %s %s"%(i, self.q[i], self.l[i])
 
     def calcAlpha(self):
         for i in range(6):
             L = self.l[i].magnitudeSquared()-(self.legLength**2)+(self.hornLength**2)
             M = 2*self.hornLength*(self.q[i].z-self.baseJoint[i].z)
             N = 2*self.hornLength*(cos(self.beta[i])*(self.q[i].x-self.baseJoint[i].x) + sin(self.beta[i])*(self.q[i].y-self.baseJoint[i].y))
-            print "%s %s %s"%(str(i), str(M*M+N*N), str(L/sqrt(M*M+N*N)))
-            self.alpha[i] = asin(L/sqrt(M*M+N*N)) - atan2(N,M)
+            try:
+                self.alpha[i] = asin(L/sqrt(M*M+N*N)) - atan2(N,M)
+            except ValueError:
+                self.alpha[i] = float('NaN')
 
             self.A[i].x = self.hornLength*cos(self.alpha[i])*cos(self.beta[i]) + self.baseJoint[i].x
             self.A[i].y = self.hornLength*cos(self.alpha[i])*sin(self.beta[i]) + self.baseJoint[i].y
