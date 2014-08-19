@@ -1,6 +1,8 @@
 from sys import path
 from math import radians
+from vector3 import Vector3
 from stewartplatformmath import StewartPlatformMath
+
 path.append("../ax12")
 from ax12 import Ax12
 
@@ -16,8 +18,8 @@ class StewartPlatform:
             self.rotation = Vector3()
 
     def __init__(self):
-        self.currentPosition = PlatformPosition()
-        self.targetPosition = PlatformPosition()
+        self.currentPosition = StewartPlatform.PlatformPosition()
+        self.targetPosition = StewartPlatform.PlatformPosition()
         self.servos = Ax12()
         self.angles = StewartPlatformMath()
         self.angles.applyTranslationAndRotation(self.currentPosition.translation, self.currentPosition.rotation)
