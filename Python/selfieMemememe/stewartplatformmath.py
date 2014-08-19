@@ -17,17 +17,17 @@ class StewartPlatformMath:
     def __init__(self, scale=1.0):
         self.translation = Vector3()
         self.rotation = Vector3()
-        self.initialHeight = Vector3(0, 0, scale*StewartPlatform.SCALE_INITIAL_HEIGHT)
+        self.initialHeight = Vector3(0, 0, scale*StewartPlatformMath.SCALE_INITIAL_HEIGHT)
         self.baseJoint = []
         self.platformJoint = []
         self.q = []
         self.l = []
         self.A = []
         self.alpha = []
-        self.baseRadius = scale*StewartPlatform.SCALE_BASE_RADIUS
-        self.platformRadius = scale*StewartPlatform.SCALE_PLATFORM_RADIUS
-        self.hornLength = scale*StewartPlatform.SCALE_HORN_LENGTH
-        self.legLength = scale*StewartPlatform.SCALE_LEG_LENGTH;
+        self.baseRadius = scale*StewartPlatformMath.SCALE_BASE_RADIUS
+        self.platformRadius = scale*StewartPlatformMath.SCALE_PLATFORM_RADIUS
+        self.hornLength = scale*StewartPlatformMath.SCALE_HORN_LENGTH
+        self.legLength = scale*StewartPlatformMath.SCALE_LEG_LENGTH;
 
         for i in range(6):
             mx = self.baseRadius*cos(radians(self.baseAngles[i]))
