@@ -1,5 +1,6 @@
-from sys import path
 from math import radians
+from time import sleep
+from sys import path
 from vector3 import Vector3
 from stewartplatformmath import StewartPlatformMath
 
@@ -28,9 +29,10 @@ class StewartPlatform:
             servoValue = StewartPlatform.getServoAngleValue(s, self.angles.alpha[s])
             self.servos.moveSpeedRW((s+1), servoValue, 450)
             #sleep(0.01)
-        servos.action()
+        self.servos.action()
         sleep(4)
 
+    @staticmethod
     def getServoAngleValue(servoNumber, angleRadians):
         angPos = StewartPlatform.SERVO_CENTER_ANGLE_VALUE + int(angleRadians*StewartPlatform.SCALE_RADIANS_TO_SERVO_VALUE)
         angPos = min(StewartPlatform.SERVO_MAX_ANGLE_VALUE, max(StewartPlatform.SERVO_MIN_ANGLE_VALUE, angPos))
