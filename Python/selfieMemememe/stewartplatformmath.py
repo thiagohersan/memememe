@@ -1,7 +1,7 @@
 from math import radians, pi, cos, sin, asin, atan2, sqrt
 from vector3 import Vector3
 
-class StewartPlatform:
+class StewartPlatformMath:
     # real angles from platform v1.0
     baseAngles = [308.5, 351.5, 68.5, 111.5, 188.5, 231.5 ]
     platformAngles = [286.10, 13.9, 46.1, 133.9, 166.1, 253.9]
@@ -43,8 +43,6 @@ class StewartPlatform:
             self.A.insert(i,Vector3())
             self.alpha.insert(i,0)
 
-        self.calcQ()
-
     def calcQ(self):
         for i in range(6):
             # rotation
@@ -77,16 +75,6 @@ class StewartPlatform:
             self.A[i].x = self.hornLength*cos(self.alpha[i])*cos(self.beta[i]) + self.baseJoint[i].x
             self.A[i].y = self.hornLength*cos(self.alpha[i])*sin(self.beta[i]) + self.baseJoint[i].y
             self.A[i].z = self.hornLength*sin(self.alpha[i]) + self.baseJoint[i].z
-
-            ''' # initial position for debugging
-            xqxb = self.q[i].x - self.baseJoint[i].x
-            yqyb = self.q[i].y - self.baseJoint[i].y
-            h0 = sqrt(self.legLength**2 + self.hornLength**2 - xqxb**2 - yqyb**2) - self.q[i].z
-
-            L0 = 2*self.hornLength*self.hornLength
-            M0 = 2*self.hornLength*(h0+self.q[i].z)
-            a0 = asin(L0/sqrt(M0*M0+N0*N0)) - atan2(N, M0)
-            '''
 
     def applyTranslationAndRotation(self, t=Vector3(), r=Vector3()):
         self.rotation = r.copy()
