@@ -17,8 +17,6 @@ NetAddress mOscOut; // address of the pi connected to the motors
 float posX=0, posY=0, posZ=0, rotX=0, rotY=0, rotZ=0;
 
 void setup() {
-
-
   size(1024, 768, P3D);
   smooth();
   mOscOut = new NetAddress("meme00.local", 8888);
@@ -53,7 +51,6 @@ void setup() {
   cp5.addSlider("rotZ")
     .setPosition(width-200, 120)
       .setSize(180, 40).setRange(-1, 1);
-
 
   cp5.setAutoDraw(false);
   camera.setActive(true);
