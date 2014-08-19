@@ -61,7 +61,7 @@ class StewartPlatform:
                 cos(self.rotation.y)*cos(self.rotation.x)*self.platformJoint[i].z)
 
             # translation
-            self.q[i].add(self.translation + self.initialHeight)
+            self.q[i] += (self.translation + self.initialHeight)
             self.l[i] = self.q[i] - self.baseJoint[i]
 
     def calcAlpha(self):
@@ -88,8 +88,8 @@ class StewartPlatform:
             a0 = asin(L0/sqrt(M0*M0+N0*N0)) - atan2(N, M0)
             '''
 
-    def applyTranslationAndRotation(self, t, r):
-        self.rotation.set(r)
-        self.translation.set(t)
+    def applyTranslationAndRotation(self, t=Vector3(), r=Vector3()):
+        self.rotation = r.copy()
+        self.translation = t.copy()
         self.calcQ()
         self.calcAlpha()
