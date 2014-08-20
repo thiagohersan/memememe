@@ -13,6 +13,12 @@ class StewartPlatform:
     SERVO_MIN_ANGLE_VALUE = 220
     SERVO_MAX_ANGLE_VALUE = 820
 
+    @staticmethod
+    def getServoAngleValue(servoNumber, angleRadians):
+        angPos = StewartPlatform.SERVO_CENTER_ANGLE_VALUE + int(angleRadians*StewartPlatform.SCALE_RADIANS_TO_SERVO_VALUE)
+        angPos = min(StewartPlatform.SERVO_MAX_ANGLE_VALUE, max(StewartPlatform.SERVO_MIN_ANGLE_VALUE, angPos))
+        return angPos if servoNumber%2==1 else 1024-angPos
+
     def __init__(self):
         self.currentValues = [0]*6
         self.targetValues = [0]*6
@@ -28,8 +34,3 @@ class StewartPlatform:
         self.servos.action()
         sleep(4)
 
-    @staticmethod
-    def getServoAngleValue(servoNumber, angleRadians):
-        angPos = StewartPlatform.SERVO_CENTER_ANGLE_VALUE + int(angleRadians*StewartPlatform.SCALE_RADIANS_TO_SERVO_VALUE)
-        angPos = min(StewartPlatform.SERVO_MAX_ANGLE_VALUE, max(StewartPlatform.SERVO_MIN_ANGLE_VALUE, angPos))
-        return angPos if servoNumber%2==1 else 1024-angPos
