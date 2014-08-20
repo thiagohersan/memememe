@@ -49,13 +49,13 @@ class StewartPlatform:
         # all valid angles
         for (i,angle) in enumerate(alphaAngles):
             self.targetAngle[i] = angle
-            self.currentSpeed[i] = 0
+            self.currentSpeed[i] = StewartPlatform.ANGLE_MAX_ACCELERATION/10
             self.maxSpeed[i] = 0
         return True
 
     def isAtTarget(self):
         for (i,targetAngle) in enumerate(self.targetAngle):
-            if(abs(targetAngle-self.currentAngle[i]) > StewartPlatform.ANGLE_MAX_ACCELERATION):
+            if((abs(targetAngle-self.currentAngle[i]) > self.currentSpeed[i]) and (self.currentSpeed[i] > 0)):
                 return False
         return True
 
