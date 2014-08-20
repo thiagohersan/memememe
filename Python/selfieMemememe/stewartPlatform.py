@@ -14,8 +14,8 @@ class StewartPlatform:
     SERVO_MIN_ANGLE_VALUE = 220
     SERVO_MAX_ANGLE_VALUE = 820
 
-    ANGLE_MAX_SPEED = 0.01
-    ANGLE_MAX_ACCELERATION = 0.0005
+    ANGLE_MAX_SPEED = 0.1
+    ANGLE_MAX_ACCELERATION = 0.005
 
     @staticmethod
     def getServoAngleValue(servoNumber, angleRadians):
@@ -52,17 +52,18 @@ class StewartPlatform:
     def update(self):
         for (i,targetAngle) in enumerate(self.targetAngle):
             # TODO: decel
-            self.currentSpeed[i] = max(self.currentSpeed[i]+StewartPlatform.ANGLE_MAX_ACCELERATION, StewartPlatform.ANGLE_MAX_SPEED)
+            self.currentSpeed[i] = min(self.currentSpeed[i]+StewartPlatform.ANGLE_MAX_ACCELERATION, StewartPlatform.ANGLE_MAX_SPEED)
             if(targetAngle > self.currentAngle[i]):
-                self.currentAngle[i] = max(self.currentAngle[i]+self.currentSpeed[i], targetAngle)
+                self.currentAngle[i] = min(self.currentAngle[i]+self.currentSpeed[i], targetAngle)
             elif(targetAngle < self.currentAngle[i]):
-                self.currentAngle[i] = min(self.currentAngle[i]-self.currentSpeed[i], targetAngle)
+                self.currentAngle[i] = max(self.currentAngle[i]-self.currentSpeed[i], targetAngle)
             servoValue = StewartPlatform.getServoAngleValue(i, self.currentAngle[i])
+
             try:
-                self.servos.moveSpeedRW((i+1), servoValue, 450)
+                self.servos.moveSpeedRW((i+1), servoValue, 256)
             except:
                 try:
-                    self.servos.moveSpeedRW((i+1), servoValue, 450)
+                    self.servos.moveSpeedRW((i+1), servoValue, 256)
                 except:
                     print "3rd time. oooops."
             
