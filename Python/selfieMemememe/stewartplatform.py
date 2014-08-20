@@ -52,8 +52,18 @@ class StewartPlatform:
     def update(self):
         for (i,targetAngle) in enumerate(self.targetAngle):
             # TODO: decel
-            self.currentSpeed[i] = max(self.currentSpeed+ANGLE_MAX_ACCELERATION, ANGLE_MAX_SPEED)
+            self.currentSpeed[i] = max(self.currentSpeed[i]+StewartPlatform.ANGLE_MAX_ACCELERATION, StewartPlatform.ANGLE_MAX_SPEED)
             if(targetAngle > self.currentAngle[i]):
                 self.currentAngle[i] = max(self.currentAngle[i]+self.currentSpeed[i], targetAngle)
             elif(targetAngle < self.currentAngle[i]):
                 self.currentAngle[i] = min(self.currentAngle[i]-self.currentSpeed[i], targetAngle)
+            servoValue = StewartPlatform.getServoAngleValue(i, self.currentAngle[i])
+            try:
+                self.servos.moveSpeedRW((i+1), servoValue, 450)
+            except:
+                try:
+                    self.servos.moveSpeedRW((i+1), servoValue, 450)
+                except:
+                    print "3rd time. oooops."
+            
+        self.servos.action()
