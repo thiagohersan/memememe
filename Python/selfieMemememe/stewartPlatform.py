@@ -51,6 +51,12 @@ class StewartPlatform:
             self.currentSpeed[i] = 0
             self.maxSpeed[i] = 0
 
+    def atTarget(self):
+        for (i,targetAngle) in enumerate(self.targetAngle):
+            if(abs(targetAngle-self.currentAngle[i]) > StewartPlatform.ANGLE_MAX_ACCELERATION):
+                return False
+        return True
+
     def update(self):
         for (i,targetAngle) in enumerate(self.targetAngle):
             if(abs(targetAngle - self.currentAngle[i]) <= (self.maxSpeed[i]**2)/(2*StewartPlatform.ANGLE_MAX_ACCELERATION)):
