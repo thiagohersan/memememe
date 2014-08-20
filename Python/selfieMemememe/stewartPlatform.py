@@ -30,7 +30,7 @@ class StewartPlatform:
         self.maxSpeed = [0]*6
         self.servos = Ax12()
         self.angles = StewartPlatformMath()
-        self.setTargetAngles()
+        self.setTargetAnglesSuccessfully()
 
         for (i,targetAngle) in enumerate(self.targetAngle):
             self.currentAngle[i] = targetAngle
@@ -39,19 +39,21 @@ class StewartPlatform:
         self.servos.action()
         sleep(2)
 
-    def setTargetAngles(self, translation=Vector3(), rotation=Vector3()):
+    def setTargetAnglesSuccessfully(self, translation=Vector3(), rotation=Vector3()):
         self.angles.applyTranslationAndRotation(translation, rotation)
         # check for nans
         for alphaAngle in self.angles.alpha:
             if(isnan(alphaAngle)):
-                return
+                return False
+
         # all valid angles
         for (i,alphaAngle) in enumerate(self.angles.alpha):
             self.targetAngle[i] = alphaAngle
             self.currentSpeed[i] = 0
             self.maxSpeed[i] = 0
+        return True
 
-    def atTarget(self):
+    def isAtTarget(self):
         for (i,targetAngle) in enumerate(self.targetAngle):
             if(abs(targetAngle-self.currentAngle[i]) > StewartPlatform.ANGLE_MAX_ACCELERATION):
                 return False
