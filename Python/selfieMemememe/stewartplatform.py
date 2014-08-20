@@ -13,22 +13,18 @@ class StewartPlatform:
     SERVO_MIN_ANGLE_VALUE = 220
     SERVO_MAX_ANGLE_VALUE = 820
 
-    class PlatformPosition:
-        def __init__(self):
-            self.translation = Vector3()
-            self.rotation = Vector3()
-
     def __init__(self):
-        self.currentPosition = StewartPlatform.PlatformPosition()
-        self.targetPosition = StewartPlatform.PlatformPosition()
+        self.currentValues = [0]*6
+        self.targetValues = [0]*6
         self.servos = Ax12()
         self.angles = StewartPlatformMath()
-        self.angles.applyTranslationAndRotation(self.currentPosition.translation, self.currentPosition.rotation)
+        self.angles.applyTranslationAndRotation()
 
         for s in range(6):
-            servoValue = StewartPlatform.getServoAngleValue(s, self.angles.alpha[s])
+            self.targetValues[i] = self.angles.alpha[s]
+            self.currentValues[i] = self.targetValues[i]
+            servoValue = StewartPlatform.getServoAngleValue(s, self.currentValues[i])
             self.servos.moveSpeedRW((s+1), servoValue, 450)
-            #sleep(0.01)
         self.servos.action()
         sleep(4)
 
