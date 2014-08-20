@@ -2,7 +2,7 @@ from math import radians, isnan
 from time import sleep
 from sys import path
 from vector3 import Vector3
-from stewartplatformmath import StewartPlatformMath
+from stewartPlatformMath import StewartPlatformMath
 
 path.append("../ax12")
 from ax12 import Ax12
