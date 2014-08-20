@@ -76,3 +76,4 @@ class StewartPlatformMath:
         self.translation = t.copy()
         self.calcQ()
         self.calcAlpha()
+        return list(self.alpha)

@@ -40,15 +40,15 @@ class StewartPlatform:
         sleep(2)
 
     def setTargetAnglesSuccessfully(self, translation=Vector3(), rotation=Vector3()):
-        self.angles.applyTranslationAndRotation(translation, rotation)
+        alphaAngles = self.angles.applyTranslationAndRotation(translation, rotation)
         # check for nans
-        for alphaAngle in self.angles.alpha:
-            if(isnan(alphaAngle)):
+        for angle in alphaAngles:
+            if(isnan(angle)):
                 return False
 
         # all valid angles
-        for (i,alphaAngle) in enumerate(self.angles.alpha):
-            self.targetAngle[i] = alphaAngle
+        for (i,angle) in enumerate(alphaAngles):
+            self.targetAngle[i] = angle
             self.currentSpeed[i] = 0
             self.maxSpeed[i] = 0
         return True
