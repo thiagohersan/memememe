@@ -27,6 +27,7 @@ class StewartPlatform:
         self.targetAngle = [0]*6
         self.currentAngle = [0]*6
         self.currentSpeed = [0]*6
+        self.maxSpeed = [0]*6
         self.servos = Ax12()
         self.angles = StewartPlatformMath()
         self.setTargetAngles()
@@ -48,13 +49,15 @@ class StewartPlatform:
         for (i,alphaAngle) in enumerate(self.angles.alpha):
             self.targetAngle[i] = alphaAngle
             self.currentSpeed[i] = 0
+            self.maxSpeed[i] = 0
 
     def update(self):
         for (i,targetAngle) in enumerate(self.targetAngle):
-            if(abs(targetAngle - self.currentAngle[i]) <= (self.currentSpeed[i]**2)/(2*StewartPlatform.ANGLE_MAX_ACCELERATION)):
+            if(abs(targetAngle - self.currentAngle[i]) <= (self.maxSpeed[i]**2)/(2*StewartPlatform.ANGLE_MAX_ACCELERATION)):
                 self.currentSpeed[i] = max(self.currentSpeed[i]-StewartPlatform.ANGLE_MAX_ACCELERATION, 0)
             else:
                 self.currentSpeed[i] = min(self.currentSpeed[i]+StewartPlatform.ANGLE_MAX_ACCELERATION, StewartPlatform.ANGLE_MAX_SPEED)
+            self.maxSpeed[i] = max(self.maxSpeed[i], self.currentSpeed[i])
 
             if(targetAngle > self.currentAngle[i]):
                 self.currentAngle[i] = min(self.currentAngle[i]+self.currentSpeed[i], targetAngle)
