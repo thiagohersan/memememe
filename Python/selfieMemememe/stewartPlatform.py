@@ -1,4 +1,5 @@
 from math import radians, isnan
+from random import randint, uniform
 from time import sleep
 from sys import path
 from vector3 import Vector3
@@ -47,6 +48,49 @@ class StewartPlatform:
             self.servos.moveSpeedRW((i+1), servoValue, 450)
         self.servos.action()
         sleep(2)
+
+    # ****Very Important*****
+    # Possible options/parameters:
+    #   'fast' := moves fast (default)
+    #   'slow' := moves slow
+    #   'repeat' := repeats last movement (ignores all other commmands except 'fast'/'slow')
+    #   'long'/'far' := moves large distance (default)
+    #   'short'/'near' := moves small distance
+    #   'translate' := list of which axis to translate
+    #   'rotate' := list of which axis to rotate
+    # Examples:
+    #   setNextPosition('fast', 'long', translate='xyz', rotate='zy')
+    #   setNextPosition(translate='xyz', rotate='zy')
+    #   setNextPosition('slow', rotate='zxy')
+    #   setNextPosition('slow', 'repeat')
+    def setNextPosition(self, *args, **kwargs):
+        if('repeat' in args):
+            if('slow' in args):
+                self.currentSpeedLimit = StewartPlatform.ANGLE_SPEED_LIMIT/2
+            elif('fast' in args):
+                self.currentSpeedLimit = StewartPlatform.ANGLE_SPEED_LIMIT
+            setTargetAnglesSuccessfully(self.lastPosition.translation, self.lastPosition.rotation)
+        else:
+            if('slow' in args):
+                self.currentSpeedLimit = StewartPlatform.ANGLE_SPEED_LIMIT/2
+            else:
+                self.currentSpeedLimit = StewartPlatform.ANGLE_SPEED_LIMIT
+            # pick valid new position
+            translateArg = kwargs.get('translate', '')
+            rotateArg = kwargs.get('rotate', '')
+            done = False
+            while not done:
+                # TODO: pick actual values based on parameters
+                translation = Vector3(
+                    randint(-20,20) if 'x' in translateArg else 0,
+                    randint(-20,20) if 'y' in translateArg else 0,
+                    randint(-20,20) if 'z' in translateArg else 0)
+                rotation = Vector3(
+                    uniform(-1.0,1.0) if 'x' in rotateArg else 0,
+                    uniform(-1.0,1.0) if 'y' in rotateArg else 0,
+                    uniform(-1.0,1.0) if 'z' in rotateArg else 0)
+
+                done = setTargetAnglesSuccessfully(translation, rotation)
 
     def setTargetAnglesSuccessfully(self, translation=Vector3(), rotation=Vector3()):
         alphaAngles = self.angles.applyTranslationAndRotation(translation, rotation)
