@@ -1,5 +1,5 @@
 from math import radians, isnan
-from random import randint, uniform
+from random import random, uniform
 from time import sleep
 from sys import path
 from vector3 import Vector3
@@ -22,6 +22,11 @@ class StewartPlatform:
 
     ANGLE_SPEED_LIMIT = 0.1
     ANGLE_ACCELERATION = 0.005
+
+    MOVE_SHORT_DISTANCE = 5
+    MOVE_LONG_DISTANCE = 20
+    MOVE_SHORT_ANGLE = 0.1
+    MOVE_LONG_ANGLE = 1.0
 
     @staticmethod
     def getServoAngleValue(servoNumber, angleRadians):
@@ -75,21 +80,36 @@ class StewartPlatform:
                 self.currentSpeedLimit = StewartPlatform.ANGLE_SPEED_LIMIT/2
             else:
                 self.currentSpeedLimit = StewartPlatform.ANGLE_SPEED_LIMIT
-            # pick valid new position
+
+            # pick new valid position
             translateArg = kwargs.get('translate', '')
             rotateArg = kwargs.get('rotate', '')
+
             done = False
+            deltaDistances = [0]*3
+            deltaAngles = [0]*3
+            if(('short' in args) or ('near' in args)):
+                # get list with 3 values of either -MOVE_SHORT_X or +MOVE_SHORT_X
+                deltaDistances = map(lambda x:-MOVE_SHORT_DISTANCE if random()<0.5 else MOVE_SHORT_DISTANCE, deltaDistances)
+                deltaAngles = map(lambda x:-MOVE_SHORT_ANGLE if random()<0.5 else MOVE_SHORT_ANGLE, deltaAngles)
+            else:
+                # TODO: long/far version
+                deltaDistances = deltaDistances
+                deltaAngles = deltaAngles
+
             while not done:
-                # TODO: pick actual values based on parameters
                 translation = Vector3(
-                    randint(-20,20) if 'x' in translateArg else 0,
-                    randint(-20,20) if 'y' in translateArg else 0,
-                    randint(-20,20) if 'z' in translateArg else 0)
+                    deltaDistances[0] if 'x' in translateArg else 0,
+                    deltaDistances[1] if 'y' in translateArg else 0,
+                    deltaDistances[2] if 'z' in translateArg else 0) + self.currentPosition.translation
                 rotation = Vector3(
-                    uniform(-1.0,1.0) if 'x' in rotateArg else 0,
-                    uniform(-1.0,1.0) if 'y' in rotateArg else 0,
-                    uniform(-1.0,1.0) if 'z' in rotateArg else 0)
+                    deltaAngles[0] if 'x' in rotateArg else 0,
+                    deltaAngles[1] if 'y' in rotateArg else 0,
+                    deltaAngles[2] if 'z' in rotateArg else 0) + self.currentPosition.rotation
+
                 done = self.setTargetAnglesSuccessfully(translation, rotation)
+                deltaDistances = map(lambda x:uniform(0.75,0.9)*x, deltaDistances)
+                deltaAngles = map(lambda x:uniform(0.75,0.9)*x, deltaAngles)
 
     def setTargetAnglesSuccessfully(self, translation=Vector3(), rotation=Vector3()):
         alphaAngles = self.angles.applyTranslationAndRotation(translation, rotation)
