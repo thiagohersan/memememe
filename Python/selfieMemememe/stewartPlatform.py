@@ -65,7 +65,7 @@ class StewartPlatform:
             if(abs(targetAngle - self.currentAngle[i]) <= (self.maxSpeed[i]**2)/(2*StewartPlatform.ANGLE_ACCELERATION)):
                 self.currentSpeed[i] = max(self.currentSpeed[i]-StewartPlatform.ANGLE_ACCELERATION, 0)
             else:
-                self.currentSpeed[i] = min(self.currentSpeed[i]+StewartPlatform.ANGLE_ACCELERATION, StewartPlatform.ANGLE_SPEED_LIMIT)
+                self.currentSpeed[i] = min(self.currentSpeed[i]+StewartPlatform.ANGLE_ACCELERATION, self.currentSpeedLimit)
             self.maxSpeed[i] = max(self.maxSpeed[i], self.currentSpeed[i])
 
             if(targetAngle > self.currentAngle[i]):
