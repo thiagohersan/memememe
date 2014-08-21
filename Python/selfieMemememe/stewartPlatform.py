@@ -90,8 +90,8 @@ class StewartPlatform:
             deltaAngles = [0]*3
             if(('short' in args) or ('near' in args)):
                 # get list with 3 values of either -MOVE_SHORT_X or +MOVE_SHORT_X
-                deltaDistances = map(lambda x:-MOVE_SHORT_DISTANCE if random()<0.5 else MOVE_SHORT_DISTANCE, deltaDistances)
-                deltaAngles = map(lambda x:-MOVE_SHORT_ANGLE if random()<0.5 else MOVE_SHORT_ANGLE, deltaAngles)
+                deltaDistances = map(lambda x:-StewartPlatform.MOVE_SHORT_DISTANCE if random()<0.5 else StewartPlatform.MOVE_SHORT_DISTANCE, deltaDistances)
+                deltaAngles = map(lambda x:-StewartPlatform.MOVE_SHORT_ANGLE if random()<0.5 else StewartPlatform.MOVE_SHORT_ANGLE, deltaAngles)
             else:
                 # TODO: long/far version
                 deltaDistances = deltaDistances
