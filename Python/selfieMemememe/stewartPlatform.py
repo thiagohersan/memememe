@@ -36,9 +36,10 @@ class StewartPlatform:
         self.currentSpeedLimit = StewartPlatform.ANGLE_SPEED_LIMIT
         self.servos = Ax12()
         self.angles = StewartPlatformMath()
-        self.setTargetAnglesSuccessfully()
         self.currentPosition = PlatformPosition()
         self.lastPosition = PlatformPosition()
+
+        self.setTargetAnglesSuccessfully()
 
         for (i,targetAngle) in enumerate(self.targetAngle):
             self.currentAngle[i] = targetAngle
