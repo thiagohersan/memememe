@@ -18,7 +18,7 @@ class Vector3:
         return Vector3(self.x-other.x, self.y-other.y, self.z-other.z)
 
     def __eq__(self, other):
-        return (abs(self.x-other.x)+abs(self.y-other.y)+abs(self.z-other.z)) < 1e-4
+        return (abs(self.x-other.x)+abs(self.y-other.y)+abs(self.z-other.z)) < 1e-9
 
     def copy(self):
         return deepcopy(self)
