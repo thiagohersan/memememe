@@ -69,7 +69,7 @@ class StewartPlatform:
                 self.currentSpeedLimit = StewartPlatform.ANGLE_SPEED_LIMIT/2
             elif('fast' in args):
                 self.currentSpeedLimit = StewartPlatform.ANGLE_SPEED_LIMIT
-            setTargetAnglesSuccessfully(self.lastPosition.translation, self.lastPosition.rotation)
+            self.setTargetAnglesSuccessfully(self.lastPosition.translation, self.lastPosition.rotation)
         else:
             if('slow' in args):
                 self.currentSpeedLimit = StewartPlatform.ANGLE_SPEED_LIMIT/2
@@ -89,8 +89,7 @@ class StewartPlatform:
                     uniform(-1.0,1.0) if 'x' in rotateArg else 0,
                     uniform(-1.0,1.0) if 'y' in rotateArg else 0,
                     uniform(-1.0,1.0) if 'z' in rotateArg else 0)
-
-                done = setTargetAnglesSuccessfully(translation, rotation)
+                done = self.setTargetAnglesSuccessfully(translation, rotation)
 
     def setTargetAnglesSuccessfully(self, translation=Vector3(), rotation=Vector3()):
         alphaAngles = self.angles.applyTranslationAndRotation(translation, rotation)
