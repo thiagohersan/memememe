@@ -7,6 +7,11 @@ from stewartPlatformMath import StewartPlatformMath
 path.append("../ax12")
 from ax12 import Ax12
 
+class PlatformPosition:
+    def __init__(self, translation=Vector3(), rotation=Vector3()):
+        self.translation = translation
+        self.rotation = rotation
+
 class StewartPlatform:
     SCALE_RADIANS_TO_SERVO_VALUE = 1024.0/radians(300.0)
 
@@ -32,6 +37,8 @@ class StewartPlatform:
         self.servos = Ax12()
         self.angles = StewartPlatformMath()
         self.setTargetAnglesSuccessfully()
+        self.currentPosition = PlatformPosition()
+        self.lastPosition = PlatformPosition()
 
         for (i,targetAngle) in enumerate(self.targetAngle):
             self.currentAngle[i] = targetAngle
@@ -52,6 +59,9 @@ class StewartPlatform:
             self.targetAngle[i] = angle
             self.currentSpeed[i] = StewartPlatform.ANGLE_ACCELERATION/10
             self.maxSpeed[i] = 0
+        # set positions
+        self.lastPosition = self.currentPosition
+        self.currentPosition = PlatformPosition(translation, rotation)
         return True
 
     def isAtTarget(self):
