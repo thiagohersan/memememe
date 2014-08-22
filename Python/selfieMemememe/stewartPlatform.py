@@ -1,5 +1,5 @@
 from math import radians, isnan
-from random import random, uniform
+from random import uniform, choice
 from time import sleep
 from sys import path
 from vector3 import Vector3
@@ -93,12 +93,14 @@ class StewartPlatform:
             deltaDistances = [0]*3
             deltaAngles = [0]*3
             if(('short' in args) or ('near' in args)):
-                # get list with 3 values of either -MOVE_SHORT_X or +MOVE_SHORT_X
-                deltaDistances = map(lambda x:-StewartPlatform.MOVE_SHORT_DISTANCE if random()<0.5 else StewartPlatform.MOVE_SHORT_DISTANCE, deltaDistances)
-                deltaAngles = map(lambda x:-StewartPlatform.MOVE_SHORT_ANGLE if random()<0.5 else StewartPlatform.MOVE_SHORT_ANGLE, deltaAngles)
+                # randomly move towards -MOVE_SHORT_X or +MOVE_SHORT_X
+                deltaDistances = map(lambda x:choice([-1, 1])*x, [StewartPlatform.MOVE_SHORT_DISTANCE]*3)
+                deltaAngles = map(lambda x:choice([-1, 1])*x, [StewartPlatform.MOVE_SHORT_ANGLE]*3)
             else:
+                # flip over origin: for example [1,-2,3] become [-1,2,-3]
                 deltaDistances = map(lambda x:-2*x, self.currentPosition.getTranslationAsList())
                 deltaAngles = map(lambda x:-2*x, self.currentPosition.getRotationAsList())
+                # add delta towards change direction
                 deltaDistances = map(lambda x:x-StewartPlatform.MOVE_SHORT_DISTANCE if x<0 else x+StewartPlatform.MOVE_SHORT_DISTANCE, deltaDistances)
                 deltaAngles = map(lambda x:x-StewartPlatform.MOVE_SHORT_ANGLE if x<0 else x+StewartPlatform.MOVE_SHORT_ANGLE, deltaAngles)
 
