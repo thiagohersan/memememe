@@ -25,3 +25,8 @@ class Vector3:
 
     def magnitudeSquared(self):
         return (self.x*self.x + self.y*self.y + self.z*self.z)
+
+    def constrain(self, lo, hi):
+        self.x = min(hi, max(lo, self.x))
+        self.y = min(hi, max(lo, self.y))
+        self.z = min(hi, max(lo, self.z))
