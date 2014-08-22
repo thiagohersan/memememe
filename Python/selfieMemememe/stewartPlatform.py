@@ -56,7 +56,7 @@ class StewartPlatform:
             servoValue = StewartPlatform.getServoAngleValue(i, self.currentAngle[i])
             self.servos.moveSpeedRW((i+1), servoValue, 450)
         self.servos.action()
-        sleep(2)
+        sleep(1)
 
     # ****Very Important*****
     # Possible options/parameters:
@@ -112,8 +112,8 @@ class StewartPlatform:
                     deltaAngles[2] if 'z' in rotateArg else 0) + self.currentPosition.rotation
 
                 done = self.setTargetAnglesSuccessfully(translation, rotation)
-                deltaDistances = map(lambda x:uniform(0.66,0.8)*x, deltaDistances)
-                deltaAngles = map(lambda x:uniform(0.66,0.8)*x, deltaAngles)
+                deltaDistances = map(lambda x:uniform(0.666,0.8)*x, deltaDistances)
+                deltaAngles = map(lambda x:uniform(0.666,0.8)*x, deltaAngles)
 
     def setTargetAnglesSuccessfully(self, translation=Vector3(), rotation=Vector3()):
         alphaAngles = self.angles.applyTranslationAndRotation(translation, rotation)
