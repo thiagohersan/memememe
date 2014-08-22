@@ -28,7 +28,7 @@ class StewartPlatform:
     SERVO_ACCELERATION = 0.03
 
     MOVE_SHORT_DISTANCE = 16
-    MOVE_LONG_DISTANCE = 48
+    MOVE_LONG_DISTANCE = 32
     MOVE_SHORT_ANGLE = 0.3
     MOVE_LONG_ANGLE = 1.0
 
@@ -37,6 +37,17 @@ class StewartPlatform:
         angPos = StewartPlatform.SERVO_CENTER_ANGLE_VALUE + int(angleRadians*StewartPlatform.SCALE_RADIANS_TO_SERVO_VALUE)
         angPos = min(StewartPlatform.SERVO_MAX_ANGLE_VALUE, max(StewartPlatform.SERVO_MIN_ANGLE_VALUE, angPos))
         return angPos if servoNumber%2==1 else 1024-angPos
+
+    # tries to pick a value that's far from current value
+    #     it sometimes flips the current position (x -> -x)
+    #     then adds a longValue offset to it, towards the direction with more room
+    @staticmethod
+    def pickLongTargetValue(longValue):
+        def fn(currentPosition):
+            delta = -currentPosition if uniform(0,1.0)<0.5 else 0
+            delta += (-1,1)[currentPosition<0]*uniform(0.8,1.2)*longValue
+            return delta
+        return fn
 
     def __init__(self):
         self.targetAngle = [0]*6
@@ -98,10 +109,9 @@ class StewartPlatform:
                 deltaDistances = map(lambda x:choice([-1, 1])*x, [StewartPlatform.MOVE_SHORT_DISTANCE]*3)
                 deltaAngles = map(lambda x:choice([-1, 1])*x, [StewartPlatform.MOVE_SHORT_ANGLE]*3)
             else:
-                # add MOVE_LONG_ towards side with more room
-                # TODO: add some randomness here so that the movement can go past mid point more frequently
-                deltaDistances = map(lambda x:(-1,1)[x<0]*uniform(0.8,1.2)*StewartPlatform.MOVE_LONG_DISTANCE, self.currentPosition.getTranslationAsList())
-                deltaAngles = map(lambda x:(-1,1)[x<0]*uniform(0.8,1.2)*StewartPlatform.MOVE_LONG_ANGLE, self.currentPosition.getRotationAsList())
+                # picks new potential long targets from current position
+                deltaDistances = map(StewartPlatform.pickLongTargetValue(StewartPlatform.MOVE_LONG_DISTANCE), self.currentPosition.getTranslationAsList())
+                deltaAngles = map(StewartPlatform.pickLongTargetValue(StewartPlatform.MOVE_LONG_ANGLE), self.currentPosition.getRotationAsList())
 
             while not done:
                 translation = Vector3(
