@@ -27,8 +27,8 @@ class StewartPlatform:
     SERVO_SPEED_LIMIT = 0.2
     SERVO_ACCELERATION = 0.03
 
-    MOVE_SHORT_DISTANCE = 10
-    MOVE_LONG_DISTANCE = 40
+    MOVE_SHORT_DISTANCE = 16
+    MOVE_LONG_DISTANCE = 48
     MOVE_SHORT_ANGLE = 0.3
     MOVE_LONG_ANGLE = 1.0
 
@@ -93,11 +93,13 @@ class StewartPlatform:
             deltaDistances = [0]*3
             deltaAngles = [0]*3
             if(('short' in args) or ('near' in args)):
-                # randomly move towards -MOVE_SHORT_X or +MOVE_SHORT_X
+                # randomly move towards -MOVE_SHORT_ or +MOVE_SHORT_
+                #     makes a list by picking -MOVE_SHORT_ or +MOVE_SHORT_ 3 times
                 deltaDistances = map(lambda x:choice([-1, 1])*x, [StewartPlatform.MOVE_SHORT_DISTANCE]*3)
                 deltaAngles = map(lambda x:choice([-1, 1])*x, [StewartPlatform.MOVE_SHORT_ANGLE]*3)
             else:
-                # add MOVE_LONG_X towards side with more room
+                # add MOVE_LONG_ towards side with more room
+                # TODO: add some randomness here so that the movement can go past mid point more frequently
                 deltaDistances = map(lambda x:(-1,1)[x<0]*uniform(0.8,1.2)*StewartPlatform.MOVE_LONG_DISTANCE, self.currentPosition.getTranslationAsList())
                 deltaAngles = map(lambda x:(-1,1)[x<0]*uniform(0.8,1.2)*StewartPlatform.MOVE_LONG_ANGLE, self.currentPosition.getRotationAsList())
 
