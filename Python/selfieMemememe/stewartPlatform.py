@@ -28,7 +28,7 @@ class StewartPlatform:
     ANGLE_ACCELERATION = 0.005
 
     MOVE_SHORT_DISTANCE = 10
-    MOVE_LONG_DISTANCE = 20
+    MOVE_LONG_DISTANCE = 40
     MOVE_SHORT_ANGLE = 0.3
     MOVE_LONG_ANGLE = 1.0
 
@@ -98,8 +98,8 @@ class StewartPlatform:
                 deltaAngles = map(lambda x:choice([-1, 1])*x, [StewartPlatform.MOVE_SHORT_ANGLE]*3)
             else:
                 # add MOVE_LONG_X towards side with more room
-                deltaDistances = map(lambda x:(1 if x<0 else -1)*StewartPlatform.MOVE_LONG_DISTANCE, self.currentPosition.getTranslationAsList())
-                deltaAngles = map(lambda x:(1 if x<0 else -1)*StewartPlatform.MOVE_LONG_ANGLE, self.currentPosition.getRotationAsList())
+                deltaDistances = map(lambda x:(-1,1)[x<0]*uniform(0.8,1.2)*StewartPlatform.MOVE_LONG_DISTANCE, self.currentPosition.getTranslationAsList())
+                deltaAngles = map(lambda x:(-1,1)[x<0]*uniform(0.8,1.2)*StewartPlatform.MOVE_LONG_ANGLE, self.currentPosition.getRotationAsList())
 
             while not done:
                 translation = Vector3(
