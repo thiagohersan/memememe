@@ -39,6 +39,7 @@ class StewartPlatform:
     PERLIN_SPEED_SCALE = 64.0
     PERLIN_MIN_SPEED = 16
     PERLIN_MAX_SPEED = 64
+    PERLIN_DISTANCE_LIMIT = 20.0
 
     INIT_TIME = time()
 
@@ -172,6 +173,8 @@ class StewartPlatform:
                 deltaDistances[0] if 'x' in translateArg else 0,
                 deltaDistances[1] if 'y' in translateArg else 0,
                 deltaDistances[2] if 'z' in translateArg else 0) + self.currentPosition.translation
+            translation.constrain(-StewartPlatform.PERLIN_DISTANCE_LIMIT, StewartPlatform.PERLIN_DISTANCE_LIMIT)
+
             rotation = Vector3(
                 deltaAngles[0] if 'x' in rotateArg else 0,
                 deltaAngles[1] if 'y' in rotateArg else 0,
