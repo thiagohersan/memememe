@@ -7,7 +7,7 @@ class Vector3:
         self.z = z
 
     def __str__(self):
-        return "[ "+str(self.x)+", "+str(self.y)+", "+str(self.z)+" ]"
+        return "[ %.3f, %.3f, %.3f ]"%(self.x, self.y, self.z)
     def __repr__(self):
         return self.__str__()
 
