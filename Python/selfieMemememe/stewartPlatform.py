@@ -16,16 +16,16 @@ class PlatformPosition:
 class StewartPlatform:
     SCALE_RADIANS_TO_SERVO_VALUE = 1024.0/radians(300.0)
 
-    SERVO_CENTER_ANGLE_VALUE = 520
-    SERVO_MIN_ANGLE_VALUE = 220
-    SERVO_MAX_ANGLE_VALUE = 820
+    SERVO_CENTER_ANGLE_VALUE = 512
+    SERVO_MIN_ANGLE_VALUE = 250
+    SERVO_MAX_ANGLE_VALUE = 812
 
     ANGLE_SPEED_LIMIT = 0.1
     ANGLE_ACCELERATION = 0.005
 
-    MOVE_SHORT_DISTANCE = 5
+    MOVE_SHORT_DISTANCE = 10
     MOVE_LONG_DISTANCE = 20
-    MOVE_SHORT_ANGLE = 0.1
+    MOVE_SHORT_ANGLE = 0.3
     MOVE_LONG_ANGLE = 1.0
 
     @staticmethod
@@ -108,8 +108,8 @@ class StewartPlatform:
                     deltaAngles[2] if 'z' in rotateArg else 0) + self.currentPosition.rotation
 
                 done = self.setTargetAnglesSuccessfully(translation, rotation)
-                deltaDistances = map(lambda x:uniform(0.75,0.9)*x, deltaDistances)
-                deltaAngles = map(lambda x:uniform(0.75,0.9)*x, deltaAngles)
+                deltaDistances = map(lambda x:uniform(0.66,0.8)*x, deltaDistances)
+                deltaAngles = map(lambda x:uniform(0.66,0.8)*x, deltaAngles)
 
     def setTargetAnglesSuccessfully(self, translation=Vector3(), rotation=Vector3()):
         alphaAngles = self.angles.applyTranslationAndRotation(translation, rotation)
