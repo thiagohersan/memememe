@@ -1,7 +1,8 @@
-from math import radians, isnan
+from math import radians, isnan, pi
 from random import uniform, choice
 from time import time, sleep
 from sys import path
+from noise import snoise4
 from vector3 import Vector3
 from stewartPlatformMath import StewartPlatformMath
 
@@ -35,11 +36,11 @@ class StewartPlatform:
     PERLIN_PHASE = 4*pi
     PERLIN_TIME_SCALE = 1.2
     PERLIN_POSITION_SCALE = 0.03 # this is roughly 1/MOVE_LONG_DISTANCE
-    PERLIN_SPEED_SCALE = 20.0
-    PERLIN_MIN_SPEED = 8
-    PERLIN_MAX_SPEED = 32
+    PERLIN_SPEED_SCALE = 64.0
+    PERLIN_MIN_SPEED = 16
+    PERLIN_MAX_SPEED = 64
 
-    initTime = time()
+    INIT_TIME = time()
 
     @staticmethod
     def getServoAngleValue(servoNumber, angleRadians):
@@ -137,7 +138,7 @@ class StewartPlatform:
                 deltaAngles = map(lambda x:uniform(0.666,0.8)*x, deltaAngles)
 
     def setNextPositionPerlin(self, *args, **kwargs):
-        t = (time()-initTime) * StewartPlatform.PERLIN_TIME_SCALE
+        t = (time()-StewartPlatform.INIT_TIME) * StewartPlatform.PERLIN_TIME_SCALE
         (x,y,z) = self.currentPosition.getTranslationAsList()
 
         # direction
