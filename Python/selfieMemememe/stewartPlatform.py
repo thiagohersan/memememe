@@ -97,12 +97,9 @@ class StewartPlatform:
                 deltaDistances = map(lambda x:choice([-1, 1])*x, [StewartPlatform.MOVE_SHORT_DISTANCE]*3)
                 deltaAngles = map(lambda x:choice([-1, 1])*x, [StewartPlatform.MOVE_SHORT_ANGLE]*3)
             else:
-                # flip over origin: for example [1,-2,3] become [-1,2,-3]
-                deltaDistances = map(lambda x:-2*x, self.currentPosition.getTranslationAsList())
-                deltaAngles = map(lambda x:-2*x, self.currentPosition.getRotationAsList())
-                # add delta towards change direction
-                deltaDistances = map(lambda x:x-StewartPlatform.MOVE_SHORT_DISTANCE if x<0 else x+StewartPlatform.MOVE_SHORT_DISTANCE, deltaDistances)
-                deltaAngles = map(lambda x:x-StewartPlatform.MOVE_SHORT_ANGLE if x<0 else x+StewartPlatform.MOVE_SHORT_ANGLE, deltaAngles)
+                # add MOVE_LONG_X towards side with more room
+                deltaDistances = map(lambda x:(1 if x<0 else -1)*StewartPlatform.MOVE_LONG_DISTANCE, self.currentPosition.getTranslationAsList())
+                deltaAngles = map(lambda x:(1 if x<0 else -1)*StewartPlatform.MOVE_LONG_ANGLE, self.currentPosition.getRotationAsList())
 
             while not done:
                 translation = Vector3(
