@@ -8,7 +8,7 @@ class StewartPlatformMath:
     beta = [-8*pi/3, pi/3, 0, -pi, -4*pi/3, -7*pi/3]
 
     # real measurements from platform v1.0
-    SCALE_INITIAL_HEIGHT = 250
+    SCALE_INITIAL_HEIGHT = 239
     SCALE_BASE_RADIUS = 140
     SCALE_PLATFORM_RADIUS = 32
     SCALE_HORN_LENGTH = 36
