@@ -37,8 +37,7 @@ if __name__=="__main__":
       loopStart = time()
       update()
       loopTime = time() - loopStart
-      print(loopTime*1000*1000)
-      print "%s"%(location)
+      print "%.3f us  ---  %s"%(loopTime*1000*1000, location)
       sleep(max(0.016 - loopTime, 0))
     except KeyboardInterrupt:
       exit(0)
