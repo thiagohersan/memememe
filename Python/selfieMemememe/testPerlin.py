@@ -3,26 +3,29 @@ from time import time, sleep
 from vector3 import Vector3
 from noise import snoise4
 
-NOISE_COMPLEXITY = 0.03 # this is roughly 1/MOVE_LONG_DISTANCE
-TIME_SCALE = 1.2
-SPEED_SCALE = 20.0
+MOVE_LONG_DISTANCE = 32
 PHASE = 4*pi
+TIME_SCALE = 1.2
+POSITION_SCALE = 0.03 # this is roughly 1/MOVE_LONG_DISTANCE
+SPEED_SCALE = 20.0
 
 location = Vector3()
 initTime = 0
 
 def update():
+  global location
   t = (time()-initTime) * TIME_SCALE
   (x,y,z) = (location.x, location.y, location.z)
 
   # direction
-  u = snoise4(x*NOISE_COMPLEXITY + 1*PHASE, y*NOISE_COMPLEXITY + 1*PHASE, z*NOISE_COMPLEXITY + 1*PHASE, t + 1*PHASE)
-  v = snoise4(x*NOISE_COMPLEXITY + 2*PHASE, y*NOISE_COMPLEXITY + 2*PHASE, z*NOISE_COMPLEXITY + 2*PHASE, t + 2*PHASE)
-  w = snoise4(x*NOISE_COMPLEXITY + 3*PHASE, y*NOISE_COMPLEXITY + 3*PHASE, z*NOISE_COMPLEXITY + 3*PHASE, t + 3*PHASE)
+  (u,v,w) = map(lambda p: snoise4(x*POSITION_SCALE + p*PHASE, y*POSITION_SCALE + p*PHASE, z*POSITION_SCALE + p*PHASE, t + 1*PHASE), range(1,4))
 
   #magnitude
   speed = min(32, max(8, SPEED_SCALE*(snoise4(u,v,w,t)*0.5+0.5)))
-  (location.x, location.y, location.z) = map(lambda l,d: l+d*speed, (x,y,z), (u,v,w))
+
+  # result
+  deltaDistances = map(lambda d: d*speed, (u,v,w))
+  location += Vector3(*(deltaDistances))
 
 if __name__=="__main__":
   initTime = time()
@@ -37,4 +40,5 @@ if __name__=="__main__":
     except KeyboardInterrupt:
       exit(0)
     except Exception as e:
+      print str(e)
       exit(0)
