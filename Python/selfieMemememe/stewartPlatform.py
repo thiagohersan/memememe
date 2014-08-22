@@ -12,6 +12,10 @@ class PlatformPosition:
     def __init__(self, translation=Vector3(), rotation=Vector3()):
         self.translation = translation
         self.rotation = rotation
+    def getTranslationAsList(self):
+        return [self.translation.x, self.translation.y, self.translation.z]
+    def getRotationAsList(self):
+        return [self.rotation.x, self.rotation.y, self.rotation.z]
 
 class StewartPlatform:
     SCALE_RADIANS_TO_SERVO_VALUE = 1024.0/radians(300.0)
@@ -93,8 +97,8 @@ class StewartPlatform:
                 deltaDistances = map(lambda x:-StewartPlatform.MOVE_SHORT_DISTANCE if random()<0.5 else StewartPlatform.MOVE_SHORT_DISTANCE, deltaDistances)
                 deltaAngles = map(lambda x:-StewartPlatform.MOVE_SHORT_ANGLE if random()<0.5 else StewartPlatform.MOVE_SHORT_ANGLE, deltaAngles)
             else:
-                deltaDistances = map(lambda x:-2*x, [self.currentPosition.translation.x, self.currentPosition.translation.y, self.currentPosition.translation.z])
-                deltaAngles = map(lambda x:-2*x, [self.currentPosition.rotation.x, self.currentPosition.rotation.y, self.currentPosition.rotation.z])
+                deltaDistances = map(lambda x:-2*x, self.currentPosition.getTranslationAsList())
+                deltaAngles = map(lambda x:-2*x, self.currentPosition.getRotationAsList())
                 deltaDistances = map(lambda x:x-StewartPlatform.MOVE_SHORT_DISTANCE if x<0 else x+StewartPlatform.MOVE_SHORT_DISTANCE, deltaDistances)
                 deltaAngles = map(lambda x:x-StewartPlatform.MOVE_SHORT_ANGLE if x<0 else x+StewartPlatform.MOVE_SHORT_ANGLE, deltaAngles)
 
