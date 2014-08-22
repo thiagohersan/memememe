@@ -1,6 +1,6 @@
 from math import radians, isnan
 from random import uniform, choice
-from time import sleep
+from time import time, sleep
 from sys import path
 from vector3 import Vector3
 from stewartPlatformMath import StewartPlatformMath
@@ -31,6 +31,15 @@ class StewartPlatform:
     MOVE_LONG_DISTANCE = 32
     MOVE_SHORT_ANGLE = 0.3
     MOVE_LONG_ANGLE = 1.0
+
+    PERLIN_PHASE = 4*pi
+    PERLIN_TIME_SCALE = 1.2
+    PERLIN_POSITION_SCALE = 0.03 # this is roughly 1/MOVE_LONG_DISTANCE
+    PERLIN_SPEED_SCALE = 20.0
+    PERLIN_MIN_SPEED = 8
+    PERLIN_MAX_SPEED = 32
+
+    initTime = time()
 
     @staticmethod
     def getServoAngleValue(servoNumber, angleRadians):
@@ -126,6 +135,50 @@ class StewartPlatform:
                 done = self.setTargetAnglesSuccessfully(translation, rotation)
                 deltaDistances = map(lambda x:uniform(0.666,0.8)*x, deltaDistances)
                 deltaAngles = map(lambda x:uniform(0.666,0.8)*x, deltaAngles)
+
+    def setNextPositionPerlin(self, *args, **kwargs):
+        t = (time()-initTime) * StewartPlatform.PERLIN_TIME_SCALE
+        (x,y,z) = self.currentPosition.getTranslationAsList()
+
+        # direction
+        u = snoise4(x*StewartPlatform.PERLIN_POSITION_SCALE + 1*StewartPlatform.PERLIN_PHASE,
+            y*StewartPlatform.PERLIN_POSITION_SCALE + 1*StewartPlatform.PERLIN_PHASE,
+            z*StewartPlatform.PERLIN_POSITION_SCALE + 1*StewartPlatform.PERLIN_PHASE,
+            t + 1*StewartPlatform.PERLIN_PHASE)
+        v = snoise4(x*StewartPlatform.PERLIN_POSITION_SCALE + 2*StewartPlatform.PERLIN_PHASE,
+            y*StewartPlatform.PERLIN_POSITION_SCALE + 2*StewartPlatform.PERLIN_PHASE,
+            z*StewartPlatform.PERLIN_POSITION_SCALE + 2*StewartPlatform.PERLIN_PHASE,
+            t + 2*StewartPlatform.PERLIN_PHASE)
+        w = snoise4(x*StewartPlatform.PERLIN_POSITION_SCALE + 3*StewartPlatform.PERLIN_PHASE,
+            y*StewartPlatform.PERLIN_POSITION_SCALE + 3*StewartPlatform.PERLIN_PHASE,
+            z*StewartPlatform.PERLIN_POSITION_SCALE + 3*StewartPlatform.PERLIN_PHASE,
+            t + 3*StewartPlatform.PERLIN_PHASE)
+
+        #magnitude
+        speed = min(StewartPlatform.PERLIN_MAX_SPEED, max(StewartPlatform.PERLIN_MIN_SPEED, StewartPlatform.PERLIN_SPEED_SCALE*(snoise4(u,v,w,t)*0.5+0.5)))
+
+        # result
+        deltaDistances = (u*speed, v*speed, w*speed)
+        deltaAngles = [0]*3
+
+        # pick new valid position
+        translateArg = kwargs.get('translate', '')
+        rotateArg = kwargs.get('rotate', '')
+        done = False
+
+        while not done:
+            translation = Vector3(
+                deltaDistances[0] if 'x' in translateArg else 0,
+                deltaDistances[1] if 'y' in translateArg else 0,
+                deltaDistances[2] if 'z' in translateArg else 0) + self.currentPosition.translation
+            rotation = Vector3(
+                deltaAngles[0] if 'x' in rotateArg else 0,
+                deltaAngles[1] if 'y' in rotateArg else 0,
+                deltaAngles[2] if 'z' in rotateArg else 0) + self.currentPosition.rotation
+
+            done = self.setTargetAnglesSuccessfully(translation, rotation)
+            deltaDistances = map(lambda x:0.9*x, deltaDistances)
+            deltaAngles = map(lambda x:0.9*x, deltaAngles)
 
     def setTargetAnglesSuccessfully(self, translation=Vector3(), rotation=Vector3()):
         alphaAngles = self.angles.applyTranslationAndRotation(translation, rotation)
