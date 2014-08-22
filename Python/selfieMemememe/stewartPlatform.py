@@ -93,9 +93,10 @@ class StewartPlatform:
                 deltaDistances = map(lambda x:-StewartPlatform.MOVE_SHORT_DISTANCE if random()<0.5 else StewartPlatform.MOVE_SHORT_DISTANCE, deltaDistances)
                 deltaAngles = map(lambda x:-StewartPlatform.MOVE_SHORT_ANGLE if random()<0.5 else StewartPlatform.MOVE_SHORT_ANGLE, deltaAngles)
             else:
-                # TODO: long/far version
-                deltaDistances = deltaDistances
-                deltaAngles = deltaAngles
+                deltaDistances = map(lambda x:-2*x, [self.currentPosition.translation.x, self.currentPosition.translation.y, self.currentPosition.translation.z])
+                deltaAngles = map(lambda x:-2*x, [self.currentPosition.rotation.x, self.currentPosition.rotation.y, self.currentPosition.rotation.z])
+                deltaDistances = map(lambda x:x-StewartPlatform.MOVE_SHORT_DISTANCE if x<0 else x+StewartPlatform.MOVE_SHORT_DISTANCE, deltaDistances)
+                deltaAngles = map(lambda x:x-StewartPlatform.MOVE_SHORT_ANGLE if x<0 else x+StewartPlatform.MOVE_SHORT_ANGLE, deltaAngles)
 
             while not done:
                 translation = Vector3(
