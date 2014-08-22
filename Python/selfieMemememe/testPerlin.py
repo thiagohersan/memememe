@@ -18,14 +18,17 @@ def update():
   (x,y,z) = (location.x, location.y, location.z)
 
   # direction
-  (u,v,w) = map(lambda p: snoise4(x*POSITION_SCALE + p*PHASE, y*POSITION_SCALE + p*PHASE, z*POSITION_SCALE + p*PHASE, t + 1*PHASE), range(1,4))
+  u = snoise4(x*POSITION_SCALE + 1*PHASE, y*POSITION_SCALE + 1*PHASE, z*POSITION_SCALE + 1*PHASE, t + 1*PHASE)
+  v = snoise4(x*POSITION_SCALE + 2*PHASE, y*POSITION_SCALE + 2*PHASE, z*POSITION_SCALE + 2*PHASE, t + 2*PHASE)
+  w = snoise4(x*POSITION_SCALE + 3*PHASE, y*POSITION_SCALE + 3*PHASE, z*POSITION_SCALE + 3*PHASE, t + 3*PHASE)
 
   #magnitude
   speed = min(32, max(8, SPEED_SCALE*(snoise4(u,v,w,t)*0.5+0.5)))
 
   # result
-  deltaDistances = map(lambda d: d*speed, (u,v,w))
-  location += Vector3(*(deltaDistances))
+  deltaDistances = (u*speed, v*speed, w*speed)
+  (location.x, location.y, location.z) = (x+u, y+v, z+w)
+
 
 if __name__=="__main__":
   initTime = time()
