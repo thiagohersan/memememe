@@ -36,9 +36,9 @@ class StewartPlatform:
     PERLIN_PHASE = 4*pi
     PERLIN_TIME_SCALE = 1.2
     PERLIN_POSITION_SCALE = 0.03 # this is roughly 1/MOVE_LONG_DISTANCE
-    PERLIN_SPEED_SCALE = 64.0
-    PERLIN_MIN_SPEED = 16
-    PERLIN_MAX_SPEED = 64
+    PERLIN_SPEED_SCALE = 16.0
+    PERLIN_MIN_SPEED = 8
+    PERLIN_MAX_SPEED = 16
     PERLIN_DISTANCE_LIMIT = 16.0
 
     INIT_TIME = time()
@@ -139,6 +139,7 @@ class StewartPlatform:
                 deltaAngles = map(lambda x:uniform(0.666,0.8)*x, deltaAngles)
 
     def setNextPositionPerlin(self, *args, **kwargs):
+        self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT*2
         t = (time()-StewartPlatform.INIT_TIME) * StewartPlatform.PERLIN_TIME_SCALE
         (x,y,z) = self.currentPosition.getTranslationAsList()
 
@@ -203,7 +204,7 @@ class StewartPlatform:
 
     def isAtTarget(self):
         for (i,targetAngle) in enumerate(self.targetAngle):
-            if((abs(targetAngle-self.currentAngle[i]) > self.currentSpeed[i]) and (self.currentSpeed[i] > 0)):
+            if((abs(targetAngle-self.currentAngle[i]) >= self.currentSpeed[i]) and (self.currentSpeed[i] > 0)):
                 return False
         return True
 
@@ -228,5 +229,26 @@ class StewartPlatform:
                     self.servos.moveSpeedRW((i+1), servoValue, 256)
                 except:
                     print "3rd time. oooops."
-            
+
+        self.servos.action()
+
+    def updatePerlin(self):
+        for (i,targetAngle) in enumerate(self.targetAngle):
+            self.currentSpeed[i] = min(self.currentSpeedLimit, abs(targetAngle-self.currentAngle[i]))
+            self.maxSpeed[i] = max(self.maxSpeed[i], self.currentSpeed[i])
+
+            if(targetAngle > self.currentAngle[i]):
+                self.currentAngle[i] = min(self.currentAngle[i]+self.currentSpeed[i], targetAngle)
+            elif(targetAngle < self.currentAngle[i]):
+                self.currentAngle[i] = max(self.currentAngle[i]-self.currentSpeed[i], targetAngle)
+            servoValue = StewartPlatform.getServoAngleValue(i, self.currentAngle[i])
+
+            try:
+                self.servos.moveSpeedRW((i+1), servoValue, 256)
+            except:
+                try:
+                    self.servos.moveSpeedRW((i+1), servoValue, 256)
+                except:
+                    print "3rd time. oooops."
+
         self.servos.action()
