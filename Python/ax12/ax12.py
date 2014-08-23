@@ -177,10 +177,9 @@ class Ax12:
             raise Ax12.timeoutError(e)
 
         try :
-            h2 = Ax12.port.read() # 0xff
-            origin = Ax12.port.read() # id
-            length = ord(Ax12.port.read()) - 2
-            error = ord(Ax12.port.read())
+            h2 = Ax12.port.read(4) # [0xff, origin, length, error]
+            length = ord(h2[2]) - 2
+            error = ord(h2[3])
 
             if(error != 0):
                 print "Error from servo: " + Ax12.dictErrors[error] + ' (code  ' + hex(error) + ')'
