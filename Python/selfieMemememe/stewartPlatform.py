@@ -70,6 +70,7 @@ class StewartPlatform:
         self.angles = StewartPlatformMath()
         self.currentPosition = PlatformPosition()
         self.lastPosition = PlatformPosition()
+        self.updateFunction = self.updateLinear
 
         self.setTargetAnglesSuccessfully()
 
@@ -94,7 +95,8 @@ class StewartPlatform:
     #   setNextPosition(translate='xyz', rotate='zy')
     #   setNextPosition('slow', rotate='zxy')
     #   setNextPosition('slow', 'repeat')
-    def setNextPosition(self, *args, **kwargs):
+    def setNextPositionLinear(self, *args, **kwargs):
+        self.updateFunction = self.updateLinear
         if('repeat' in args):
             if('slow' in args):
                 self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT/2
@@ -139,6 +141,7 @@ class StewartPlatform:
                 deltaAngles = map(lambda x:uniform(0.666,0.8)*x, deltaAngles)
 
     def setNextPositionPerlin(self, *args, **kwargs):
+        self.updateFunction = self.updatePerlin
         self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT*2
         t = (time()-StewartPlatform.INIT_TIME) * StewartPlatform.PERLIN_TIME_SCALE
         (x,y,z) = self.currentPosition.getTranslationAsList()
@@ -209,6 +212,9 @@ class StewartPlatform:
         return True
 
     def update(self):
+        self.updateFunction()
+
+    def updateLinear(self):
         for (i,targetAngle) in enumerate(self.targetAngle):
             if(abs(targetAngle - self.currentAngle[i]) <= (self.maxSpeed[i]**2)/(2*StewartPlatform.SERVO_ACCELERATION)):
                 self.currentSpeed[i] = max(self.currentSpeed[i]-StewartPlatform.SERVO_ACCELERATION, 0)
