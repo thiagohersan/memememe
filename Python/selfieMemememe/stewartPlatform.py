@@ -39,7 +39,7 @@ class StewartPlatform:
     PERLIN_SPEED_SCALE = 64.0
     PERLIN_MIN_SPEED = 16
     PERLIN_MAX_SPEED = 64
-    PERLIN_DISTANCE_LIMIT = 20.0
+    PERLIN_DISTANCE_LIMIT = 16.0
 
     INIT_TIME = time()
 
