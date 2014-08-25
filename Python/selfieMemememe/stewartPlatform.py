@@ -113,7 +113,6 @@ class StewartPlatform:
             translateArg = kwargs.get('translate', '')
             rotateArg = kwargs.get('rotate', '')
 
-            done = False
             deltaDistances = [0]*3
             deltaAngles = [0]*3
             if(('short' in args) or ('near' in args)):
@@ -126,6 +125,7 @@ class StewartPlatform:
                 deltaDistances = map(StewartPlatform.pickLongTargetValue(StewartPlatform.MOVE_LONG_DISTANCE), self.currentPosition.getTranslationAsList())
                 deltaAngles = map(StewartPlatform.pickLongTargetValue(StewartPlatform.MOVE_LONG_ANGLE), self.currentPosition.getRotationAsList())
 
+            done = False
             while not done:
                 translation = Vector3(
                     deltaDistances[0] if 'x' in translateArg else 0,
@@ -170,8 +170,8 @@ class StewartPlatform:
         # pick new valid position
         translateArg = kwargs.get('translate', '')
         rotateArg = kwargs.get('rotate', '')
-        done = False
 
+        done = False
         while not done:
             translation = Vector3(
                 deltaDistances[0] if 'x' in translateArg else 0,
@@ -187,6 +187,26 @@ class StewartPlatform:
             done = self.setTargetAnglesSuccessfully(translation, rotation)
             deltaDistances = map(lambda x:0.9*x, deltaDistances)
             deltaAngles = map(lambda x:0.9*x, deltaAngles)
+
+    def setNextPositionLook(self, x=0, y=0):
+        self.updateFunction = self.updateLinear
+        self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT/2
+
+        # look x actually means rotate around y-axis
+        #     and look y needs to rotate around x-axis
+        #     and z shouldn't matter, so we pick a random value
+        deltaAngles = (
+            StewartPlatform.MOVE_SHORT_ANGLE*y,
+            StewartPlatform.MOVE_SHORT_ANGLE*x,
+            StewartPlatform.MOVE_SHORT_ANGLE*choice([-1, 0, 1, 0]))
+
+        done = False
+        while not done:
+            translation = self.currentPosition.translation
+            rotation = Vector3(deltaAngles[0], deltaAngles[1], deltaAngles[2]) + self.currentPosition.rotation
+
+            done = self.setTargetAnglesSuccessfully(translation, rotation)
+            deltaAngles = map(lambda x:uniform(0.666,0.8)*x, deltaAngles)
 
     def setTargetAnglesSuccessfully(self, translation=Vector3(), rotation=Vector3()):
         alphaAngles = self.angles.applyTranslationAndRotation(translation, rotation)
