@@ -140,9 +140,24 @@ class StewartPlatform:
                 deltaDistances = map(lambda x:uniform(0.666,0.8)*x, deltaDistances)
                 deltaAngles = map(lambda x:uniform(0.666,0.8)*x, deltaAngles)
 
+    # ****Very Important*****
+    # Possible options/parameters:
+    #   'fast' := moves fast (default)
+    #   'slow' := moves slow
+    #   'translate' := list of which axis to translate
+    #   'rotate' := list of which axis to rotate
+    # Examples:
+    #   setNextPositionPerlin('slow', translate='xyz', rotate='zy')
+    #   setNextPositionPerlin(translate='xz', rotate='zy')
+    #   setNextPositionPerlin(translate='zy')
     def setNextPositionPerlin(self, *args, **kwargs):
         self.updateFunction = self.updatePerlin
-        self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT*2
+
+        if('slow' in args):
+            self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT
+        else:
+            self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT*2
+
         t = (time()-StewartPlatform.INIT_TIME) * StewartPlatform.PERLIN_TIME_SCALE
         (x,y,z) = self.currentPosition.getTranslationAsList()
 
@@ -188,6 +203,8 @@ class StewartPlatform:
             deltaDistances = map(lambda x:0.9*x, deltaDistances)
             deltaAngles = map(lambda x:0.9*x, deltaAngles)
 
+    # small nudge by rotation
+    # parameters {x,y} should be within [-1, 1]
     def setNextPositionLook(self, x=0, y=0):
         self.updateFunction = self.updateLinear
         self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT/2
@@ -200,9 +217,12 @@ class StewartPlatform:
             StewartPlatform.MOVE_SHORT_ANGLE*x,
             StewartPlatform.MOVE_SHORT_ANGLE*choice([-1, 0, 1, 0]))
 
+        # move platform slightly closer to its initial height
+        currentTranslation = self.currentPosition.translation
+        translation = Vector3(currentTranslation.x, currentTranslation.y, currentTranslation.z*0.8)
+
         done = False
         while not done:
-            translation = self.currentPosition.translation
             rotation = Vector3(deltaAngles[0], deltaAngles[1], deltaAngles[2]) + self.currentPosition.rotation
 
             done = self.setTargetAnglesSuccessfully(translation, rotation)
