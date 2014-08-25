@@ -56,6 +56,8 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
 
     private CameraBridgeViewBase   mOpenCvCameraView;
 
+    private long lastGcMillis = 0;
+
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -69,8 +71,8 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
 
                     try {
                         // load cascade file from application resources
-                        InputStream is = getResources().openRawResource(R.raw.lbpcascade_frontalface);
-                    	//InputStream is = getResources().openRawResource(R.raw.haarcascade_nexus);
+                        //InputStream is = getResources().openRawResource(R.raw.lbpcascade_frontalface);
+                        InputStream is = getResources().openRawResource(R.raw.haarcascade_nexus);
                         File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
                         mCascadeFile = new File(cascadeDir, "cascade.xml");
                         FileOutputStream os = new FileOutputStream(mCascadeFile);
@@ -128,19 +130,19 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
 
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.fd_activity_surface_view);
         mOpenCvCameraView.setCvCameraViewListener(this);
+
+        lastGcMillis = System.currentTimeMillis();
     }
 
     @Override
-    public void onPause()
-    {
+    public void onPause(){
         super.onPause();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
     }
 
     @Override
-    public void onResume()
-    {
+    public void onResume(){
         super.onResume();
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_9, this, mLoaderCallback);
     }
@@ -175,9 +177,14 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
         MatOfRect faces = new MatOfRect();
 
         if (mDetectorType == JAVA_DETECTOR) {
-            if (mJavaDetector != null)
-                mJavaDetector.detectMultiScale(mGray, faces, 1.1, 2, 2, // TODO: objdetect.CV_HAAR_SCALE_IMAGE
-                        new Size(mAbsoluteFaceSize, mAbsoluteFaceSize), new Size());
+            if (mJavaDetector != null){
+                Size minSize = new Size(mAbsoluteFaceSize, mAbsoluteFaceSize);
+                Size maxSize = new Size();
+                // TODO: objdetect.CV_HAAR_SCALE_IMAGE
+                mJavaDetector.detectMultiScale(mGray, faces, 1.1, 2, 2, minSize, maxSize);
+                minSize = null;
+                maxSize = null;
+            }
         }
         else if (mDetectorType == NATIVE_DETECTOR) {
             if (mNativeDetector != null)
@@ -188,12 +195,23 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
         }
 
         Rect[] facesArray = faces.toArray();
-        for (int i = 0; i < facesArray.length; i++)
-            Core.rectangle(mRgba,
-                    new Point(facesArray[i].tl().y, facesArray[i].tl().x),
-                    new Point(facesArray[i].br().y, facesArray[i].br().x),
-                    FACE_RECT_COLOR, 3);
+        for (int i = 0; i < facesArray.length; i++){
+            Point tl = new Point(facesArray[i].tl().y, facesArray[i].tl().x);
+            Point br = new Point(facesArray[i].br().y, facesArray[i].br().x);
+            Core.rectangle(mRgba, tl, br, FACE_RECT_COLOR, 3);
+            tl = null;
+            br = null;
+        }
 
+        faces.release();
+        faces = null;
+        inputFrame.gray().release();
+        mGray.release();
+        facesArray = null;
+        if(System.currentTimeMillis() - lastGcMillis > 2000){
+            System.gc();
+            lastGcMillis = System.currentTimeMillis();
+        }
         return mRgba;
     }
 
