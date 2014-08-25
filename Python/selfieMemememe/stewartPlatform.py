@@ -211,6 +211,11 @@ class StewartPlatform:
                 return False
         return True
 
+    def stop(self):
+        for (i,targetAngle) in enumerate(self.targetAngle):
+            targetAngle = self.currentAngle[i]
+            self.currentSpeed[i] = 0
+
     def update(self):
         self.updateFunction()
 
