@@ -10,36 +10,36 @@ class State:
 class OscServer(ServerThread):
     def __init__(self):
         ServerThread.__init__(self, 8888)
+        self.mState = State.SEARCHING
 
     @make_method('/memememe/stop', '')
     def stop_callback(self, path, args):
         print "%s"%path
         mPlatform.stop()
-        mState = State.WAITING
+        self.mState = State.WAITING
 
     @make_method('/memememe/look', 'ii')
     def look_callback(self, path, args):
         (x,y) = map(lambda v:min(1, max(-1, v)), args)
         print "%s = (%d, %d)"%(path, x,y)
         mLookQueue.put((x,y))
-        mState = State.LOOKING
+        self.mState = State.LOOKING
 
     @make_method('/memememe/search', '')
     def search_callback(self, path, args):
         print "%s"%path
         mPlatform.stop()
         mLookQueue = Queue()
-        mState = State.SEARCHING
+        self.mState = State.SEARCHING
 
     @make_method(None, None)
     def default_callback(self, path, args):
         print "%s"%path
 
 def setup():
-    global mServer, mPlatform, mState, mLookQueue
+    global mServer, mPlatform, mLookQueue
 
     mLookQueue = Queue()
-    mState = State.SEARCHING
 
     try:
         mServer = OscServer()
@@ -54,11 +54,11 @@ def setup():
         exit(0)
 
 def loop():
-    if(mState == State.SEARCHING):
+    if(mServer.mState == State.SEARCHING):
         if(mPlatform.isAtTarget()):
             mPlatform.setNextPositionPerlin(translate='xyz')
         mPlatform.update()
-    elif(mState == State.LOOKING):
+    elif(mServer.mState == State.LOOKING):
         if(mPlatform.isAtTarget() and not mLookQueue.empty()):
             (x,y) = mLookQueue.get()
             mPlatform.setNextPositionLook(x=x, y=y)
