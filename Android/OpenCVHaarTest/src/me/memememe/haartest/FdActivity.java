@@ -23,6 +23,8 @@ import me.memememe.haartest.R;
 
 import android.app.Activity;
 import android.content.Context;
+import android.hardware.Camera;
+import android.hardware.Camera.CameraInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -127,6 +129,16 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
         setContentView(R.layout.face_detect_surface_view);
 
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.fd_activity_surface_view);
+
+        // find front-facing camera
+        for(int i=0; i<Camera.getNumberOfCameras(); i++){
+            CameraInfo mInfo = new CameraInfo();
+            Camera.getCameraInfo(i, mInfo);
+            if(mInfo.facing == CameraInfo.CAMERA_FACING_FRONT){
+                mOpenCvCameraView.setCameraIndex(i);
+            }
+        }
+
         mOpenCvCameraView.setCvCameraViewListener(this);
     }
 
@@ -159,7 +171,7 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        mRgba = inputFrame.rgba();
+        Mat mTemp = inputFrame.rgba();
         mGray = inputFrame.gray().t();
 
         if (mAbsoluteFaceSize == 0) {
@@ -174,7 +186,6 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
 
         if (mDetectorType == JAVA_DETECTOR) {
             if (mJavaDetector != null){
-                // TODO: objdetect.CV_HAAR_SCALE_IMAGE
                 mJavaDetector.detectMultiScale(mGray, faces, 1.1, 2, 2,
                         new Size(mAbsoluteFaceSize, mAbsoluteFaceSize), new Size());
             }
@@ -189,13 +200,15 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
 
         Rect[] facesArray = faces.toArray();
         for (int i = 0; i < facesArray.length; i++){
-            Core.rectangle(mRgba,
+            Core.rectangle(mTemp,
                     new Point(facesArray[i].tl().y, facesArray[i].tl().x),
                     new Point(facesArray[i].br().y, facesArray[i].br().x),
                     FACE_RECT_COLOR, 3);
         }
 
+        Core.flip(mTemp, mRgba, 1);
         faces.release();
+        mTemp.release();
 
         return mRgba;
     }
