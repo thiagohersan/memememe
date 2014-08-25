@@ -56,8 +56,6 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
 
     private CameraBridgeViewBase   mOpenCvCameraView;
 
-    private long lastGcMillis = 0;
-
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -130,8 +128,6 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
 
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.fd_activity_surface_view);
         mOpenCvCameraView.setCvCameraViewListener(this);
-
-        lastGcMillis = System.currentTimeMillis();
     }
 
     @Override
@@ -208,10 +204,6 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
         inputFrame.gray().release();
         mGray.release();
         facesArray = null;
-        if(System.currentTimeMillis() - lastGcMillis > 2000){
-            System.gc();
-            lastGcMillis = System.currentTimeMillis();
-        }
         return mRgba;
     }
 
