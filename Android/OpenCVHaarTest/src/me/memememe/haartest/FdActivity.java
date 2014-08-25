@@ -174,12 +174,9 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
 
         if (mDetectorType == JAVA_DETECTOR) {
             if (mJavaDetector != null){
-                Size minSize = new Size(mAbsoluteFaceSize, mAbsoluteFaceSize);
-                Size maxSize = new Size();
                 // TODO: objdetect.CV_HAAR_SCALE_IMAGE
-                mJavaDetector.detectMultiScale(mGray, faces, 1.1, 2, 2, minSize, maxSize);
-                minSize = null;
-                maxSize = null;
+                mJavaDetector.detectMultiScale(mGray, faces, 1.1, 2, 2,
+                        new Size(mAbsoluteFaceSize, mAbsoluteFaceSize), new Size());
             }
         }
         else if (mDetectorType == NATIVE_DETECTOR) {
@@ -192,18 +189,14 @@ public class FdActivity extends Activity implements CvCameraViewListener2 {
 
         Rect[] facesArray = faces.toArray();
         for (int i = 0; i < facesArray.length; i++){
-            Point tl = new Point(facesArray[i].tl().y, facesArray[i].tl().x);
-            Point br = new Point(facesArray[i].br().y, facesArray[i].br().x);
-            Core.rectangle(mRgba, tl, br, FACE_RECT_COLOR, 3);
-            tl = null;
-            br = null;
+            Core.rectangle(mRgba,
+                    new Point(facesArray[i].tl().y, facesArray[i].tl().x),
+                    new Point(facesArray[i].br().y, facesArray[i].br().x),
+                    FACE_RECT_COLOR, 3);
         }
 
         faces.release();
-        faces = null;
-        inputFrame.gray().release();
-        mGray.release();
-        facesArray = null;
+
         return mRgba;
     }
 
