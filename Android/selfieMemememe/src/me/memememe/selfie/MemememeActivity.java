@@ -26,7 +26,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.WindowManager;
 
-public class FdActivity extends Activity implements CvCameraViewListener2 {
+public class MemememeActivity extends Activity implements CvCameraViewListener2 {
     private static final String TAG = "MEMEMEME::SELFIE";
     private static final Scalar FACE_RECT_COLOR = new Scalar(0, 255, 0, 255);
 
