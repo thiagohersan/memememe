@@ -21,6 +21,7 @@ import org.opencv.core.Scalar;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 
+import com.illposed.osc.OSCMessage;
 import com.illposed.osc.OSCPortOut;
 
 import android.app.Activity;
@@ -140,6 +141,20 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         catch(SocketException e){
             Log.e(TAG, "Socket Exception!!: while starting OscOut with (address, port): "+OSC_OUT_ADDRESS+", "+OSC_OUT_PORT);
         }
+
+        // send first message to motors
+        Thread thread = new Thread(new Runnable(){
+            @Override
+            public void run() {
+                try{
+                    mOscOut.send(new OSCMessage("/memememe/search"));
+                }
+                catch(IOException e){
+                    Log.e(TAG, "IO Exception!!: while sending first osc message.");
+                }
+            }
+        });
+        thread.start();
 
         // initialize state machine
         mCurrentState = State.SEARCHING;
