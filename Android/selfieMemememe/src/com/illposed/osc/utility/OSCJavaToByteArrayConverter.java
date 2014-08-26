@@ -302,7 +302,7 @@ public class OSCJavaToByteArrayConverter {
 	 * converts to.
 	 * @param c Class of a Java object in the arguments
 	 */
-	public void writeType(Class c) {
+	public void writeType(Class<?> c) {
 
 		// A big ol' else-if chain -- what's polymorphism mean, again?
 		// I really wish I could extend the base classes!
