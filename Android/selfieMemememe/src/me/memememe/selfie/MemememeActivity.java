@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
@@ -18,6 +21,8 @@ import org.opencv.core.Scalar;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 
+import com.illposed.osc.OSCPortOut;
+
 import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
@@ -27,8 +32,12 @@ import android.util.Log;
 import android.view.WindowManager;
 
 public class MemememeActivity extends Activity implements CvCameraViewListener2 {
+    private enum State {WAITING, SEARCHING, LOOKING, REFLECTING, FLASHING};
+
     private static final String TAG = "MEMEMEME::SELFIE";
     private static final Scalar FACE_RECT_COLOR = new Scalar(0, 255, 0, 255);
+    private static final String OSC_OUT_ADDRESS = "200.0.0.101";
+    private static final int OSC_OUT_PORT = 8888;
 
     private Mat mRgba;
     private Mat mGray;
@@ -40,6 +49,10 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
     private DetectionBasedTracker mNativeDetector;
     private CameraBridgeViewBase mOpenCvCameraView;
+    private OSCPortOut mOscOut;
+
+    private State mCurrentState;
+    private long mLastStateChangeMillis;
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -107,22 +120,37 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     @Override
     public void onPause(){
         super.onPause();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
+        if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
+        if(mNativeDetector != null) mNativeDetector.release();
+        if(mOscOut != null) mOscOut.close();
     }
 
     @Override
     public void onResume(){
         super.onResume();
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_9, this, mLoaderCallback);
+
+        // initialize OSC
+        try{
+            mOscOut = new OSCPortOut(InetAddress.getByName(OSC_OUT_ADDRESS), OSC_OUT_PORT);
+        }
+        catch(UnknownHostException e){
+            Log.e(TAG, "Unknown Host Exception!!: while starting OscOut with (address, port): "+OSC_OUT_ADDRESS+", "+OSC_OUT_PORT);
+        }
+        catch(SocketException e){
+            Log.e(TAG, "Socket Exception!!: while starting OscOut with (address, port): "+OSC_OUT_ADDRESS+", "+OSC_OUT_PORT);
+        }
+
+        // initialize state machine
+        mCurrentState = State.SEARCHING;
+        mLastStateChangeMillis = System.currentTimeMillis();
     }
 
     public void onDestroy() {
         super.onDestroy();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
-        if(mNativeDetector != null)
-            mNativeDetector.release();
+        if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
+        if(mNativeDetector != null) mNativeDetector.release();
+        if(mOscOut != null) mOscOut.close();
     }
 
     public void onCameraViewStarted(int width, int height) {
