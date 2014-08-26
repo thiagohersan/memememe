@@ -155,7 +155,7 @@ class StewartPlatform:
         self.updateFunction = self.updatePerlin
 
         if('slow' in args):
-            self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT
+            self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT/2
         else:
             self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT*2
 
@@ -177,7 +177,8 @@ class StewartPlatform:
             t + 3*StewartPlatform.PERLIN_PHASE)
 
         #magnitude
-        speed = min(StewartPlatform.PERLIN_MAX_SPEED, max(StewartPlatform.PERLIN_MIN_SPEED, StewartPlatform.PERLIN_SPEED_SCALE*(snoise4(u,v,w,t)*0.5+0.5)))
+        thisSpeedScale = StewartPlatform.PERLIN_SPEED_SCALE/2 if ('slow' in args) else StewartPlatform.PERLIN_SPEED_SCALE
+        speed = min(StewartPlatform.PERLIN_MAX_SPEED, max(StewartPlatform.PERLIN_MIN_SPEED, thisSpeedScale*(snoise4(u,v,w,t)*0.5+0.5)))
 
         # result
         deltaDistances = (
