@@ -48,9 +48,9 @@ if __name__=="__main__":
             if(mSP.isAtTarget()):
                 #mSP.setTargetAnglesSuccessfully(*targets[ti])
                 #ti = (ti+1)%2
-                i = instructions.get()
-                mSP.setNextPositionLinear(*(i[0]),**(i[1]))
-                #mSP.setNextPositionPerlin(translate='xyz')
+                #i = instructions.get()
+                #mSP.setNextPositionLinear(*(i[0]),**(i[1]))
+                mSP.setNextPositionPerlin('slow', translate='xyz', rotate='xyz')
             else:
                 mSP.update()
             loopTime = time() - loopStart

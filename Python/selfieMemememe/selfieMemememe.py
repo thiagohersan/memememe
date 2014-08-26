@@ -59,7 +59,7 @@ def setup():
 def loop():
     if(mState == State.SEARCHING):
         if(mPlatform.isAtTarget()):
-            mPlatform.setNextPositionPerlin(translate='xyz', rotate='xyz')
+            mPlatform.setNextPositionPerlin('slow', translate='xyz', rotate='xyz')
         mPlatform.update()
     elif(mState == State.LOOKING):
         if(mPlatform.isAtTarget() and not mLookQueue.empty()):
