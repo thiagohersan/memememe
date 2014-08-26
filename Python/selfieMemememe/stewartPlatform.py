@@ -2,7 +2,7 @@ from math import radians, isnan, pi
 from random import uniform, choice
 from time import time, sleep
 from sys import path
-from noise import snoise4
+from noise import snoise2, snoise4
 from vector3 import Vector3
 from stewartPlatformMath import StewartPlatformMath
 
@@ -40,6 +40,7 @@ class StewartPlatform:
     PERLIN_MIN_SPEED = 2.0
     PERLIN_MAX_SPEED = 6.0
     PERLIN_DISTANCE_LIMIT = 16.0
+    PERLIN_ANGLE_LIMIT = 0.25
 
     INIT_TIME = time()
 
@@ -179,8 +180,14 @@ class StewartPlatform:
         speed = min(StewartPlatform.PERLIN_MAX_SPEED, max(StewartPlatform.PERLIN_MIN_SPEED, StewartPlatform.PERLIN_SPEED_SCALE*(snoise4(u,v,w,t)*0.5+0.5)))
 
         # result
-        deltaDistances = (u*speed, v*speed, w*speed)
-        deltaAngles = [0]*3
+        deltaDistances = (
+            u*speed,
+            v*speed,
+            w*speed)
+        deltaAngles = (
+            snoise2(v,t)*StewartPlatform.PERLIN_ANGLE_LIMIT,
+            snoise2(w,t)*StewartPlatform.PERLIN_ANGLE_LIMIT,
+            snoise2(u,t)*StewartPlatform.PERLIN_ANGLE_LIMIT)
 
         # pick new valid position
         translateArg = kwargs.get('translate', '')
@@ -197,7 +204,8 @@ class StewartPlatform:
             rotation = Vector3(
                 deltaAngles[0] if 'x' in rotateArg else 0,
                 deltaAngles[1] if 'y' in rotateArg else 0,
-                deltaAngles[2] if 'z' in rotateArg else 0) + self.currentPosition.rotation
+                deltaAngles[2] if 'z' in rotateArg else 0)
+            rotation.constrain(-StewartPlatform.PERLIN_ANGLE_LIMIT, StewartPlatform.PERLIN_ANGLE_LIMIT)
 
             done = self.setTargetAnglesSuccessfully(translation, rotation)
             deltaDistances = map(lambda x:0.9*x, deltaDistances)
