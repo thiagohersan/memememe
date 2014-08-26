@@ -27,19 +27,19 @@ import android.util.Log;
 import android.view.WindowManager;
 
 public class FdActivity extends Activity implements CvCameraViewListener2 {
-    private static final String    TAG                 = "MEMEMEME::SELFIE";
-    private static final Scalar    FACE_RECT_COLOR     = new Scalar(0, 255, 0, 255);
+    private static final String TAG = "MEMEMEME::SELFIE";
+    private static final Scalar FACE_RECT_COLOR = new Scalar(0, 255, 0, 255);
 
-    private Mat                    mRgba;
-    private Mat                    mGray;
-    private Mat                    mTempRgba;
-    private File                   mCascadeFile;
+    private Mat mRgba;
+    private Mat mGray;
+    private Mat  mTempRgba;
+    private File mCascadeFile;
 
-    private float                  mRelativeDetectSize   = 0.2f;
-    private int                    mAbsoluteDetectSize   = 0;
+    private float mRelativeDetectSize = 0.2f;
+    private int mAbsoluteDetectSize = 0;
 
-    private DetectionBasedTracker  mNativeDetector;
-    private CameraBridgeViewBase   mOpenCvCameraView;
+    private DetectionBasedTracker mNativeDetector;
+    private CameraBridgeViewBase mOpenCvCameraView;
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
