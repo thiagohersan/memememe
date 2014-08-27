@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Random;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
@@ -33,10 +34,11 @@ import android.util.Log;
 import android.view.WindowManager;
 
 public class MemememeActivity extends Activity implements CvCameraViewListener2 {
-    private enum State {WAITING, SEARCHING, LOOKING, REFLECTING, FLASHING};
+    private enum State {WAITING, SEARCHING, LOOKING, REFLECTING, FLASHING, POSTING};
 
     private static final String TAG = "MEMEMEME::SELFIE";
     private static final Scalar FACE_RECT_COLOR = new Scalar(0, 255, 0, 255);
+    private static final Scalar BLACK_SCREEN_COLOR = new Scalar(0, 0, 0, 255);
     private static final String OSC_OUT_ADDRESS = "200.0.0.101";
     private static final int OSC_OUT_PORT = 8888;
 
@@ -54,6 +56,10 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
     private State mCurrentState;
     private long mLastStateChangeMillis;
+    private long mLastSuccessfulSearchMillis;
+    private Scalar mCurrentFlashColor;
+    private Point mCurrentFlashPosition;
+    private Random mRandomGenerator;
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -116,6 +122,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mOpenCvCameraView.setCameraIndex(i);
             }
         }
+        mRandomGenerator = new Random();
     }
 
     @Override
@@ -182,9 +189,25 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         mTempRgba.release();
     }
 
+    private Thread sendSearchToPlatform(){
+        Thread thread = new Thread(new Runnable(){
+            @Override
+            public void run() {
+                try{
+                    mOscOut.send(new OSCMessage("/memememe/search"));
+                }
+                catch(IOException e){
+                    Log.e(TAG, "IO Exception!!: while sending osc message.");
+                }
+            }
+        });
+        return thread;
+    }
+
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mTempRgba = inputFrame.rgba();
-        mGray = inputFrame.gray().t();
+        //mGray = inputFrame.gray().t();
+        Core.flip(inputFrame.gray().t(), mGray, 0);
 
         // only need to do this once
         if (mAbsoluteDetectSize == 0) {
@@ -196,25 +219,109 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             mNativeDetector.start();
         }
 
-        MatOfRect detectedRects = new MatOfRect();
+        // states
+        if(mCurrentState == State.SEARCHING){
+            mTempRgba.setTo(BLACK_SCREEN_COLOR);
 
-        if (mNativeDetector != null) {
-            mNativeDetector.detect(mGray, detectedRects);
-        }
-        else {
-            Log.e(TAG, "Native Detection method is NULL");
-        }
+            // keep from finding too often
+            if(System.currentTimeMillis()-mLastSuccessfulSearchMillis > 4000){
+                MatOfRect detectedRects = new MatOfRect();
+                if (mNativeDetector != null) {
+                    mNativeDetector.detect(mGray, detectedRects);
+                }
+                else {
+                    Log.e(TAG, "Native Detection method is NULL");
+                }
+                Rect[] detectedArray = detectedRects.toArray();
 
-        Rect[] detectedArray = detectedRects.toArray();
-        for (int i = 0; i < detectedArray.length; i++)
-            Core.rectangle(mTempRgba,
-                    new Point(detectedArray[i].tl().y, detectedArray[i].tl().x),
-                    new Point(detectedArray[i].br().y, detectedArray[i].br().x),
-                    FACE_RECT_COLOR, 3);
+                if(detectedArray.length > 0){
+                    mLastSuccessfulSearchMillis = System.currentTimeMillis();
+
+                    Point imgCenter = new Point(mGray.width()/2, mGray.height()/2);
+                    final Point lookAt = new Point(
+                            ((detectedArray[0].tl().x>imgCenter.x)?1:(detectedArray[0].br().x<imgCenter.x)?-1:0),
+                            ((detectedArray[0].br().y>imgCenter.y)?1:(detectedArray[0].tl().y<imgCenter.y)?-1:0));
+
+                    Thread thread = new Thread(new Runnable(){
+                        @Override
+                        public void run() {
+                            try{
+                                mOscOut.send(new OSCMessage("/memememe/stop"));
+                                OSCMessage lookMessage = new OSCMessage("/memememe/look");
+                                lookMessage.addArgument((int)lookAt.x);
+                                lookMessage.addArgument((int)lookAt.y);
+                                mOscOut.send(lookMessage);
+                                mLastStateChangeMillis = System.currentTimeMillis();
+                                mCurrentState = (mRandomGenerator.nextBoolean())?State.LOOKING:State.REFLECTING;
+                            }
+                            catch(IOException e){
+                                Log.e(TAG, "IO Exception!!: while sending osc message.");
+                            }
+                        }
+                    });
+                    mLastStateChangeMillis = System.currentTimeMillis();
+                    mCurrentState = State.WAITING;
+                    thread.start();
+                }
+                detectedRects.release();
+            }
+        }
+        else if(mCurrentState == State.REFLECTING){
+            // do nothing to image
+            // TODO: maybe adjust position
+
+            // if reflecting for 5 seconds, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > 5000){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mCurrentState = State.SEARCHING;
+                sendSearchToPlatform().start();
+            }
+        }
+        else if(mCurrentState == State.LOOKING){
+            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+            // TODO: maybe adjust position
+
+            // TODO: on detect: set flash color, set position...
+            //     mCurrentFlashPosition = new Point(cx,cy);
+            //     mCurrentFlashColor = new Scalar(mRandomGenerator.nextInt(256),mRandomGenerator.nextInt(256),mRandomGenerator.nextInt(256),0)
+            //     mTempRgba.setTo(mCurrentFlashColor);
+
+            // if looking for more than 5 seconds, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > 5000){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mCurrentState = State.SEARCHING;
+                sendSearchToPlatform().start();
+            }
+        }
+        else if(mCurrentState == State.FLASHING){
+            // TODO: on detect flash: take picture
+            //     if(mTempRgba.getColor(mCurrentFlashPosition) near mCurrentFlashColor
+
+            // if flashing for more than 1 second, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > 1000){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mCurrentState = State.SEARCHING;
+                sendSearchToPlatform().start();
+            }
+            mTempRgba.setTo(mCurrentFlashColor);
+        }
+        else if(mCurrentState == State.WAITING){
+            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+            // if waiting for 2 seconds, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > 2000){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mCurrentState = State.SEARCHING;
+                sendSearchToPlatform().start();
+            }
+        }
+        else if(mCurrentState == State.POSTING){
+            // TODO: save/post a picture
+            mLastStateChangeMillis = System.currentTimeMillis();
+            mCurrentState = State.SEARCHING;
+            sendSearchToPlatform().start();
+        }
 
         Core.flip(mTempRgba, mRgba, 1);
-        detectedRects.release();
-
         return mRgba;
     }
 }
