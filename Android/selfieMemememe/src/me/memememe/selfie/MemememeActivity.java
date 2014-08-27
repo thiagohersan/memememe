@@ -315,12 +315,11 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         else if(mCurrentState == State.FLASHING){
             Log.d(TAG, "state := FLASHING");
 
-            byte cA[] = new byte[4];
-            mTempRgba.get((int)mCurrentFlashPosition.y,(int)mCurrentFlashPosition.x,cA);
-            Scalar detectedColor = new Scalar(cA[0]&0xff, cA[1]&0xff, cA[2]&0xff, cA[3]&0xff);
+            byte detectedColor[] = new byte[4];
+            mTempRgba.get((int)mCurrentFlashPosition.y,(int)mCurrentFlashPosition.x,detectedColor);
 
             // checking these 2 values seem to be enough
-            if((detectedColor.val[1]>200) && (detectedColor.val[2]>200)){
+            if((detectedColor[1]&0xff)>200 && (detectedColor[2]&0xff)>200){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.POSTING;
             }
