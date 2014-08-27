@@ -47,7 +47,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private Mat  mTempRgba;
     private File mCascadeFile;
 
-    private float mRelativeDetectSize = 0.2f;
+    private float mRelativeDetectSize = 0.33f;
     private int mAbsoluteDetectSize = 0;
 
     private DetectionBasedTracker mNativeDetector;
@@ -150,18 +150,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         }
 
         // send first message to motors
-        Thread thread = new Thread(new Runnable(){
-            @Override
-            public void run() {
-                try{
-                    mOscOut.send(new OSCMessage("/memememe/search"));
-                }
-                catch(IOException e){
-                    Log.e(TAG, "IO Exception!!: while sending first osc message.");
-                }
-            }
-        });
-        thread.start();
+        sendSearchToPlatform().start();
 
         // initialize state machine
         mCurrentState = State.SEARCHING;
@@ -197,7 +186,10 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                     mOscOut.send(new OSCMessage("/memememe/search"));
                 }
                 catch(IOException e){
-                    Log.e(TAG, "IO Exception!!: while sending osc message.");
+                    Log.e(TAG, "IO Exception!!: while sending search osc message.");
+                }
+                catch(NullPointerException e){
+                    Log.e(TAG, "Null Pointer Exception!!: while sending search osc message.");
                 }
             }
         });
@@ -235,12 +227,22 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 Rect[] detectedArray = detectedRects.toArray();
 
                 if(detectedArray.length > 0){
+                    Log.d(TAG, "found something while SEARCHING");
                     mLastSuccessfulSearchMillis = System.currentTimeMillis();
 
                     Point imgCenter = new Point(mGray.width()/2, mGray.height()/2);
                     final Point lookAt = new Point(
                             ((detectedArray[0].tl().x>imgCenter.x)?1:(detectedArray[0].br().x<imgCenter.x)?-1:0),
-                            ((detectedArray[0].br().y>imgCenter.y)?1:(detectedArray[0].tl().y<imgCenter.y)?-1:0));
+                            ((detectedArray[0].br().y<imgCenter.y)?1:(detectedArray[0].tl().y>imgCenter.y)?-1:0));
+
+                    if(lookAt.x > 0)
+                        Log.d(TAG, "need to look to my RIGHT");
+                    if(lookAt.x < 0)
+                        Log.d(TAG, "need to look to my LEFT");
+                    if(lookAt.y > 0)
+                        Log.d(TAG, "need to look to my UP");
+                    if(lookAt.y < 0)
+                        Log.d(TAG, "need to look to my DOWN");
 
                     Thread thread = new Thread(new Runnable(){
                         @Override
@@ -251,12 +253,15 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                                 lookMessage.addArgument((int)lookAt.x);
                                 lookMessage.addArgument((int)lookAt.y);
                                 mOscOut.send(lookMessage);
-                                mLastStateChangeMillis = System.currentTimeMillis();
-                                mCurrentState = (mRandomGenerator.nextBoolean())?State.LOOKING:State.REFLECTING;
                             }
                             catch(IOException e){
-                                Log.e(TAG, "IO Exception!!: while sending osc message.");
+                                Log.e(TAG, "IO Exception!!: while sending look osc message.");
                             }
+                            catch(NullPointerException e){
+                                Log.e(TAG, "Null Pointer Exception!!: while sending look osc message.");
+                            }
+                            mLastStateChangeMillis = System.currentTimeMillis();
+                            mCurrentState = (mRandomGenerator.nextBoolean())?State.LOOKING:State.REFLECTING;
                         }
                     });
                     mLastStateChangeMillis = System.currentTimeMillis();
@@ -267,6 +272,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
         }
         else if(mCurrentState == State.REFLECTING){
+            Log.d(TAG, "state := REFLECTING");
             // do nothing to image
             // TODO: maybe adjust position
 
@@ -278,6 +284,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
         }
         else if(mCurrentState == State.LOOKING){
+            Log.d(TAG, "state := LOOKING");
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
             // TODO: maybe adjust position
 
@@ -294,6 +301,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
         }
         else if(mCurrentState == State.FLASHING){
+            Log.d(TAG, "state := FLASHING");
             // TODO: on detect flash: take picture
             //     if(mTempRgba.getColor(mCurrentFlashPosition) near mCurrentFlashColor
 
@@ -306,6 +314,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             mTempRgba.setTo(mCurrentFlashColor);
         }
         else if(mCurrentState == State.WAITING){
+            Log.d(TAG, "state := WAITING");
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
             // if waiting for 2 seconds, go back to searching
             if(System.currentTimeMillis()-mLastStateChangeMillis > 2000){
@@ -315,6 +324,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
         }
         else if(mCurrentState == State.POSTING){
+            Log.d(TAG, "state := POSTING");
+            mTempRgba.setTo(BLACK_SCREEN_COLOR);
             // TODO: save/post a picture
             mLastStateChangeMillis = System.currentTimeMillis();
             mCurrentState = State.SEARCHING;
