@@ -232,13 +232,13 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
                     Point imgCenter = new Point(mGray.width()/2, mGray.height()/2);
                     final Point lookAt = new Point(
-                            ((detectedArray[0].tl().x>imgCenter.x)?1:(detectedArray[0].br().x<imgCenter.x)?-1:0),
-                            ((detectedArray[0].br().y<imgCenter.y)?1:(detectedArray[0].tl().y>imgCenter.y)?-1:0));
+                            ((detectedArray[0].tl().x>imgCenter.x)?-1:(detectedArray[0].br().x<imgCenter.x)?1:0),
+                            ((detectedArray[0].br().y>imgCenter.y)?-1:(detectedArray[0].tl().y<imgCenter.y)?1:0));
 
                     if(lookAt.x > 0)
-                        Log.d(TAG, "need to look to my RIGHT");
-                    if(lookAt.x < 0)
                         Log.d(TAG, "need to look to my LEFT");
+                    if(lookAt.x < 0)
+                        Log.d(TAG, "need to look to my RIGHT");
                     if(lookAt.y > 0)
                         Log.d(TAG, "need to look to my UP");
                     if(lookAt.y < 0)
