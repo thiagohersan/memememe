@@ -36,9 +36,10 @@ class StewartPlatform:
     PERLIN_PHASE = 4*pi
     PERLIN_TIME_SCALE = 0.8
     PERLIN_POSITION_SCALE = 0.01 # this is roughly 1/MOVE_LONG_DISTANCE
-    PERLIN_SPEED_SCALE = 8.0
-    PERLIN_MIN_SPEED = 2.0
-    PERLIN_MAX_SPEED = 6.0
+    PERLIN_SPEED_SCALE = 4.0
+    PERLIN_ANGLE_SCALE = 0.05
+    PERLIN_MIN_SPEED = 1.0
+    PERLIN_MAX_SPEED = 3.0
     PERLIN_DISTANCE_LIMIT = 16.0
     PERLIN_ANGLE_LIMIT = 0.25
 
@@ -186,9 +187,9 @@ class StewartPlatform:
             v*speed,
             w*speed)
         deltaAngles = (
-            snoise2(v,t)*StewartPlatform.PERLIN_ANGLE_LIMIT,
-            snoise2(w,t)*StewartPlatform.PERLIN_ANGLE_LIMIT,
-            snoise2(u,t)*StewartPlatform.PERLIN_ANGLE_LIMIT)
+            snoise2(v,t)*StewartPlatform.PERLIN_ANGLE_SCALE,
+            snoise2(w,t)*StewartPlatform.PERLIN_ANGLE_SCALE,
+            snoise2(u,t)*StewartPlatform.PERLIN_ANGLE_SCALE)
 
         # pick new valid position
         translateArg = kwargs.get('translate', '')
@@ -205,7 +206,7 @@ class StewartPlatform:
             rotation = Vector3(
                 deltaAngles[0] if 'x' in rotateArg else 0,
                 deltaAngles[1] if 'y' in rotateArg else 0,
-                deltaAngles[2] if 'z' in rotateArg else 0)
+                deltaAngles[2] if 'z' in rotateArg else 0) + self.currentPosition.rotation
             rotation.constrain(-StewartPlatform.PERLIN_ANGLE_LIMIT, StewartPlatform.PERLIN_ANGLE_LIMIT)
 
             done = self.setTargetAnglesSuccessfully(translation, rotation)
