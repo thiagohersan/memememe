@@ -276,7 +276,6 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         else if(mCurrentState == State.REFLECTING){
             Log.d(TAG, "state := REFLECTING");
             // do nothing to image
-            // TODO: maybe adjust position
 
             // if reflecting for 5 seconds, go back to searching
             if(System.currentTimeMillis()-mLastStateChangeMillis > 5000){
@@ -288,12 +287,18 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         else if(mCurrentState == State.LOOKING){
             Log.d(TAG, "state := LOOKING");
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
-            // TODO: maybe adjust position
 
-            // TODO: on detect: set flash color, set position...
-            //     mCurrentFlashPosition = new Point(cx,cy);
-            //     mCurrentFlashColor = new Scalar(mRandomGenerator.nextInt(256),mRandomGenerator.nextInt(256),mRandomGenerator.nextInt(256),0)
-            //     mTempRgba.setTo(mCurrentFlashColor);
+            if(detectedArray.length > 0){
+                Log.d(TAG, "found something while LOOKING");
+                mCurrentFlashPosition = new Point(
+                        detectedArray[0].x+detectedArray[0].width/2,
+                        detectedArray[0].y+detectedArray[0].height/2);
+                mCurrentFlashColor = new Scalar(
+                        mRandomGenerator.nextInt(256),
+                        mRandomGenerator.nextInt(256),
+                        mRandomGenerator.nextInt(256),255);
+                mTempRgba.setTo(mCurrentFlashColor);
+            }
 
             // if looking for more than 5 seconds, go back to searching
             if(System.currentTimeMillis()-mLastStateChangeMillis > 5000){
@@ -304,8 +309,18 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         }
         else if(mCurrentState == State.FLASHING){
             Log.d(TAG, "state := FLASHING");
-            // TODO: on detect flash: take picture
-            //     if(mTempRgba.getColor(mCurrentFlashPosition) near mCurrentFlashColor
+
+            Scalar detectedColor = new Scalar(mTempRgba.get(mTempRgba.width()-(int)mCurrentFlashPosition.x, (int)mCurrentFlashPosition.y));
+            boolean isNear = (detectedColor.val.length > 0);
+
+            for(int i=0; i<detectedColor.val.length; i++){
+                isNear &= Math.abs(detectedColor.val[i] - mCurrentFlashColor.val[i]) < 32;
+            }
+
+            if(isNear){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mCurrentState = State.POSTING;
+            }
 
             // if flashing for more than 1 second, go back to searching
             if(System.currentTimeMillis()-mLastStateChangeMillis > 1000){
