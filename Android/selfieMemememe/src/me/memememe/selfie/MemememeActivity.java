@@ -56,7 +56,6 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
     private State mCurrentState;
     private long mLastStateChangeMillis;
-    private long mLastSuccessfulSearchMillis;
     private Scalar mCurrentFlashColor;
     private Point mCurrentFlashPosition;
     private Random mRandomGenerator;
@@ -211,64 +210,67 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             mNativeDetector.start();
         }
 
+        // always detect in order to keep NativeDetector consistent with camera
+        MatOfRect detectedRects = new MatOfRect();
+        if (mNativeDetector != null) {
+            mNativeDetector.detect(mGray, detectedRects);
+        }
+        else {
+            Log.e(TAG, "Native Detection method is NULL");
+        }
+        Rect[] detectedArray = detectedRects.toArray();
+        detectedRects.release();
+
         // states
         if(mCurrentState == State.SEARCHING){
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
 
             // keep from finding too often
-            if(System.currentTimeMillis()-mLastSuccessfulSearchMillis > 4000){
-                MatOfRect detectedRects = new MatOfRect();
-                if (mNativeDetector != null) {
-                    mNativeDetector.detect(mGray, detectedRects);
-                }
-                else {
-                    Log.e(TAG, "Native Detection method is NULL");
-                }
-                Rect[] detectedArray = detectedRects.toArray();
+            if((System.currentTimeMillis()-mLastStateChangeMillis > 4000) && (detectedArray.length > 0)){
+                Log.d(TAG, "found something while SEARCHING");
+                /////////////////
+                Core.rectangle(mTempRgba,
+                        new Point(mTempRgba.width()-detectedArray[0].tl().y, detectedArray[0].br().x),
+                        new Point(mTempRgba.width()-detectedArray[0].br().y, detectedArray[0].tl().x),
+                        FACE_RECT_COLOR, 3);
 
-                if(detectedArray.length > 0){
-                    Log.d(TAG, "found something while SEARCHING");
-                    mLastSuccessfulSearchMillis = System.currentTimeMillis();
+                Point imgCenter = new Point(mGray.width()/2, mGray.height()/2);
+                final Point lookAt = new Point(
+                        ((detectedArray[0].tl().x>imgCenter.x)?-1:(detectedArray[0].br().x<imgCenter.x)?1:0),
+                        ((detectedArray[0].br().y>imgCenter.y)?-1:(detectedArray[0].tl().y<imgCenter.y)?1:0));
 
-                    Point imgCenter = new Point(mGray.width()/2, mGray.height()/2);
-                    final Point lookAt = new Point(
-                            ((detectedArray[0].tl().x>imgCenter.x)?-1:(detectedArray[0].br().x<imgCenter.x)?1:0),
-                            ((detectedArray[0].br().y>imgCenter.y)?-1:(detectedArray[0].tl().y<imgCenter.y)?1:0));
+                if(lookAt.x > 0)
+                    Log.d(TAG, "need to look to my LEFT");
+                if(lookAt.x < 0)
+                    Log.d(TAG, "need to look to my RIGHT");
+                if(lookAt.y > 0)
+                    Log.d(TAG, "need to look to my UP");
+                if(lookAt.y < 0)
+                    Log.d(TAG, "need to look to my DOWN");
 
-                    if(lookAt.x > 0)
-                        Log.d(TAG, "need to look to my LEFT");
-                    if(lookAt.x < 0)
-                        Log.d(TAG, "need to look to my RIGHT");
-                    if(lookAt.y > 0)
-                        Log.d(TAG, "need to look to my UP");
-                    if(lookAt.y < 0)
-                        Log.d(TAG, "need to look to my DOWN");
-
-                    Thread thread = new Thread(new Runnable(){
-                        @Override
-                        public void run() {
-                            try{
-                                mOscOut.send(new OSCMessage("/memememe/stop"));
-                                OSCMessage lookMessage = new OSCMessage("/memememe/look");
-                                lookMessage.addArgument((int)lookAt.x);
-                                lookMessage.addArgument((int)lookAt.y);
-                                mOscOut.send(lookMessage);
-                            }
-                            catch(IOException e){
-                                Log.e(TAG, "IO Exception!!: while sending look osc message.");
-                            }
-                            catch(NullPointerException e){
-                                Log.e(TAG, "Null Pointer Exception!!: while sending look osc message.");
-                            }
-                            mLastStateChangeMillis = System.currentTimeMillis();
-                            mCurrentState = (mRandomGenerator.nextBoolean())?State.LOOKING:State.REFLECTING;
+                Thread thread = new Thread(new Runnable(){
+                    @Override
+                    public void run() {
+                        try{
+                            mOscOut.send(new OSCMessage("/memememe/stop"));
+                            OSCMessage lookMessage = new OSCMessage("/memememe/look");
+                            lookMessage.addArgument((int)lookAt.x);
+                            lookMessage.addArgument((int)lookAt.y);
+                            mOscOut.send(lookMessage);
                         }
-                    });
-                    mLastStateChangeMillis = System.currentTimeMillis();
-                    mCurrentState = State.WAITING;
-                    thread.start();
-                }
-                detectedRects.release();
+                        catch(IOException e){
+                            Log.e(TAG, "IO Exception!!: while sending look osc message.");
+                        }
+                        catch(NullPointerException e){
+                            Log.e(TAG, "Null Pointer Exception!!: while sending look osc message.");
+                        }
+                        mLastStateChangeMillis = System.currentTimeMillis();
+                        mCurrentState = (mRandomGenerator.nextBoolean())?State.LOOKING:State.REFLECTING;
+                    }
+                });
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mCurrentState = State.WAITING;
+                thread.start();
             }
         }
         else if(mCurrentState == State.REFLECTING){
