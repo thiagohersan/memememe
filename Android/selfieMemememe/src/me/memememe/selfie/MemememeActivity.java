@@ -290,13 +290,16 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
             if((System.currentTimeMillis()-mLastStateChangeMillis > 1000) && (detectedArray.length > 0)){
                 Log.d(TAG, "found something while LOOKING");
+
+                // in mTempRgba coordinates!!!
                 mCurrentFlashPosition = new Point(
-                        detectedArray[0].x+detectedArray[0].width/2,
-                        detectedArray[0].y+detectedArray[0].height/2);
+                        mTempRgba.width()-detectedArray[0].tl().y-detectedArray[0].height/2,
+                        detectedArray[0].br().x-detectedArray[0].width/2);
+
                 mCurrentFlashColor = new Scalar(
-                        mRandomGenerator.nextInt(256),
-                        mRandomGenerator.nextInt(256),
-                        mRandomGenerator.nextInt(256),255);
+                        128+mRandomGenerator.nextInt(128),
+                        128+mRandomGenerator.nextInt(128),
+                        128+mRandomGenerator.nextInt(128), 255);
                 mTempRgba.setTo(mCurrentFlashColor);
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.FLASHING;
@@ -312,14 +315,12 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         else if(mCurrentState == State.FLASHING){
             Log.d(TAG, "state := FLASHING");
 
-            Scalar detectedColor = new Scalar(mTempRgba.get(mTempRgba.width()-(int)mCurrentFlashPosition.x, (int)mCurrentFlashPosition.y));
-            boolean isNear = (detectedColor.val.length > 0);
+            byte cA[] = new byte[4];
+            mTempRgba.get((int)mCurrentFlashPosition.y,(int)mCurrentFlashPosition.x,cA);
+            Scalar detectedColor = new Scalar(cA[0]&0xff, cA[1]&0xff, cA[2]&0xff, cA[3]&0xff);
 
-            for(int i=0; i<detectedColor.val.length; i++){
-                isNear &= Math.abs(detectedColor.val[i] - mCurrentFlashColor.val[i]) < 32;
-            }
-
-            if(isNear){
+            // checking these 2 values seem to be enough
+            if((detectedColor.val[1]>200) && (detectedColor.val[2]>200)){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.POSTING;
             }
