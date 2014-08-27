@@ -288,7 +288,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             Log.d(TAG, "state := LOOKING");
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
 
-            if(detectedArray.length > 0){
+            if((System.currentTimeMillis()-mLastStateChangeMillis > 1000) && (detectedArray.length > 0)){
                 Log.d(TAG, "found something while LOOKING");
                 mCurrentFlashPosition = new Point(
                         detectedArray[0].x+detectedArray[0].width/2,
@@ -298,6 +298,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                         mRandomGenerator.nextInt(256),
                         mRandomGenerator.nextInt(256),255);
                 mTempRgba.setTo(mCurrentFlashColor);
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mCurrentState = State.FLASHING;
             }
 
             // if looking for more than 5 seconds, go back to searching
