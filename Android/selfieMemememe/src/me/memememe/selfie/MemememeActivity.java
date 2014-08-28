@@ -29,12 +29,16 @@ import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.WindowManager;
 
 public class MemememeActivity extends Activity implements CvCameraViewListener2 {
-    private enum State {WAITING, SEARCHING, LOOKING, REFLECTING, FLASHING, POSTING};
+    private static enum Type {LOOKER, REFLECTER};
+    private final Type mType = (Build.SERIAL.equals("04d8d9b29715d6ef")?Type.LOOKER:Type.REFLECTER);
+
+    private static enum State {WAITING, SEARCHING, LOOKING, REFLECTING, FLASHING, POSTING};
 
     private static final String TAG = "MEMEMEME::SELFIE";
     private static final Scalar FACE_RECT_COLOR = new Scalar(0, 255, 0, 255);
@@ -153,6 +157,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
         // initialize state machine
         mCurrentState = State.SEARCHING;
+        if(mType == Type.REFLECTER) mCurrentState = State.REFLECTING;
+
         mLastStateChangeMillis = System.currentTimeMillis();
     }
 
@@ -266,6 +272,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                         }
                         mLastStateChangeMillis = System.currentTimeMillis();
                         mCurrentState = (mRandomGenerator.nextBoolean())?State.LOOKING:State.REFLECTING;
+                        if(mType == Type.LOOKER) mCurrentState = State.LOOKING;
                     }
                 });
                 mLastStateChangeMillis = System.currentTimeMillis();
@@ -281,6 +288,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             if(System.currentTimeMillis()-mLastStateChangeMillis > 5000){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
+                if(mType == Type.REFLECTER) mCurrentState = State.REFLECTING;
                 sendSearchToPlatform().start();
             }
         }
@@ -344,11 +352,13 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         }
         else if(mCurrentState == State.POSTING){
             Log.d(TAG, "state := POSTING");
-            mTempRgba.setTo(BLACK_SCREEN_COLOR);
             // TODO: save/post a picture
+            //     Highgui.imwrite(filename, mTempRgba);
+            //     url-embed picture
             mLastStateChangeMillis = System.currentTimeMillis();
             mCurrentState = State.SEARCHING;
             sendSearchToPlatform().start();
+            mTempRgba.setTo(BLACK_SCREEN_COLOR);
         }
 
         Core.flip(mTempRgba, mRgba, 1);
