@@ -42,7 +42,7 @@ def setup():
     global mServer, mState, mPlatform, mLookQueue
 
     mLookQueue = Queue()
-    mState = State.SEARCHING
+    mState = State.WAITING
 
     try:
         mServer = OscServer()

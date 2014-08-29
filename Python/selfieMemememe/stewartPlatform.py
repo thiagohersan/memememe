@@ -178,7 +178,7 @@ class StewartPlatform:
             t + 3*StewartPlatform.PERLIN_PHASE)
 
         #magnitude
-        thisSpeedScale = StewartPlatform.PERLIN_SPEED_SCALE/2 if ('slow' in args) else StewartPlatform.PERLIN_SPEED_SCALE
+        thisSpeedScale = StewartPlatform.PERLIN_SPEED_SCALE/3 if ('slow' in args) else StewartPlatform.PERLIN_SPEED_SCALE
         speed = min(StewartPlatform.PERLIN_MAX_SPEED, max(StewartPlatform.PERLIN_MIN_SPEED, thisSpeedScale*(snoise4(u,v,w,t)*0.5+0.5)))
 
         # result
