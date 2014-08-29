@@ -43,7 +43,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private static final String TAG = "MEMEMEME::SELFIE";
     private static final Scalar FACE_RECT_COLOR = new Scalar(0, 255, 0, 255);
     private static final Scalar BLACK_SCREEN_COLOR = new Scalar(0, 0, 0, 255);
-    private static final String OSC_OUT_ADDRESS = "200.0.0.101";
+    private static final String OSC_OUT_ADDRESS = "172.26.10.132";
     private static final int OSC_OUT_PORT = 8888;
 
     private Mat mRgba;
@@ -131,6 +131,15 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     @Override
     public void onPause(){
         super.onPause();
+        try{
+            mOscOut.send(new OSCMessage("/memememe/stop"));
+        }
+        catch(IOException e){
+            Log.e(TAG, "IO Exception!!: while sending stop osc message.");
+        }
+        catch(NullPointerException e){
+            Log.e(TAG, "Null Pointer Exception!!: while sending stop osc message.");
+        }
         if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
         if(mNativeDetector != null) mNativeDetector.release();
         if(mOscOut != null) mOscOut.close();
