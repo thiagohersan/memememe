@@ -19,11 +19,14 @@ import org.opencv.core.MatOfRect;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.highgui.Highgui;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 
 import com.illposed.osc.OSCMessage;
 import com.illposed.osc.OSCPortOut;
+import com.tumblr.jumblr.JumblrClient;
+import com.tumblr.jumblr.types.PhotoPost;
 
 import android.app.Activity;
 import android.content.Context;
@@ -31,6 +34,7 @@ import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.WindowManager;
 
@@ -63,6 +67,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private Scalar mCurrentFlashColor;
     private Point mCurrentFlashPosition;
     private Random mRandomGenerator;
+
+    private JumblrClient mTumblrClient;
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -126,6 +132,11 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
         }
         mRandomGenerator = new Random();
+        mTumblrClient = new JumblrClient(
+                "16svfFXx0K9IMsV8TCCjDhTMrIiKpJLlTTlCOfVJjNREaHjgNm",
+                "tuitRq41Y1QO9shzegw6YkAuYNCqMH6FDvKVQX7d3yLN5ydVS9",
+                "6Iy2dhkVD4cTcK0njtR6XVLW0YO4zoHO0Fg5D0SJmeZN7rFnUZ",
+                "vmnSgs8LTLtjIXnF7bJTYDeTzQMNv7n3yr3d2F6ZV8pvhWvexf");
     }
 
     @Override
@@ -361,9 +372,26 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         }
         else if(mCurrentState == State.POSTING){
             Log.d(TAG, "state := POSTING");
-            // TODO: save/post a picture
-            //     Highgui.imwrite(filename, mTempRgba);
-            //     url-embed picture
+
+            File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+            String filename = "selfie.jpg";
+            File file = new File(path, filename);
+
+            Core.flip(mTempRgba.t(), mRgba, 0);
+            Highgui.imwrite(file.toString(), mRgba);
+
+            try{
+                PhotoPost mPP = mTumblrClient.newPost("memememeselfie.tumblr.com", PhotoPost.class);
+                mPP.setData(file);
+                mPP.save();
+            }
+            catch(IOException e){
+                Log.e(TAG, "IO Exception!!: while sending picture to tumblr.");
+            }
+            catch(Exception e){
+                Log.e(TAG, "some Exception!!: while sending picture to tumblr.");
+            }
+
             mLastStateChangeMillis = System.currentTimeMillis();
             mCurrentState = State.SEARCHING;
             sendSearchToPlatform().start();
