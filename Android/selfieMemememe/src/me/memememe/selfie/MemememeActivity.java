@@ -20,6 +20,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.highgui.Highgui;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 
@@ -55,7 +56,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private Mat  mTempRgba;
     private File mCascadeFile;
 
-    private float mRelativeDetectSize = 0.33f;
+    private float mRelativeDetectSize = 0.15f;
     private int mAbsoluteDetectSize = 0;
 
     private DetectionBasedTracker mNativeDetector;
@@ -135,8 +136,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         mTumblrClient = new JumblrClient(
                 "16svfFXx0K9IMsV8TCCjDhTMrIiKpJLlTTlCOfVJjNREaHjgNm",
                 "tuitRq41Y1QO9shzegw6YkAuYNCqMH6FDvKVQX7d3yLN5ydVS9",
-                "6Iy2dhkVD4cTcK0njtR6XVLW0YO4zoHO0Fg5D0SJmeZN7rFnUZ",
-                "vmnSgs8LTLtjIXnF7bJTYDeTzQMNv7n3yr3d2F6ZV8pvhWvexf");
+                "UZMLiqrzaFQrQDd69yPxdx50D98J2UeAyEW1DTuHi3jXHqnw9X",
+                "xLEtnEGrTVSOZ9AA8G27aO8m0D0EuEXB1gR4k07KbzYk2maQu9");
     }
 
     @Override
@@ -378,7 +379,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             File file = new File(path, filename);
 
             Core.flip(mTempRgba.t(), mRgba, 0);
-            Highgui.imwrite(file.toString(), mRgba);
+            Imgproc.cvtColor(mRgba, mTempRgba, Imgproc.COLOR_BGR2RGB);
+            Highgui.imwrite(file.toString(), mTempRgba);
 
             try{
                 PhotoPost mPP = mTumblrClient.newPost("memememeselfie.tumblr.com", PhotoPost.class);
@@ -390,6 +392,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
             catch(Exception e){
                 Log.e(TAG, "some Exception!!: while sending picture to tumblr.");
+                Log.e(TAG, e.toString());
             }
 
             mLastStateChangeMillis = System.currentTimeMillis();
