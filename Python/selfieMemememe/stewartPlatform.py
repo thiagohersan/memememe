@@ -217,7 +217,7 @@ class StewartPlatform:
     # parameters {x,y} should be within [-1, 1]
     def setNextPositionLook(self, x=0, y=0):
         self.updateFunction = self.updateLinear
-        self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT/2
+        self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT/10
 
         # look x actually means rotate around z-axis
         #     and look y needs to rotate around x-axis
