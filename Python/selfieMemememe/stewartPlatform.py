@@ -219,13 +219,13 @@ class StewartPlatform:
         self.updateFunction = self.updateLinear
         self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT/2
 
-        # look x actually means rotate around y-axis
+        # look x actually means rotate around z-axis
         #     and look y needs to rotate around x-axis
-        #     and z shouldn't matter, so we pick a random value
+        #     and y shouldn't matter, so we pick a random value
         deltaAngles = (
             StewartPlatform.MOVE_SHORT_ANGLE*y,
-            StewartPlatform.MOVE_SHORT_ANGLE*x,
-            StewartPlatform.MOVE_SHORT_ANGLE*choice([-1, 0, 1, 0]))
+            StewartPlatform.MOVE_SHORT_ANGLE*choice([-1, 0, 1, 0]),
+            StewartPlatform.MOVE_SHORT_ANGLE*-x)
 
         # move platform slightly closer to its initial height
         currentTranslation = self.currentPosition.translation
