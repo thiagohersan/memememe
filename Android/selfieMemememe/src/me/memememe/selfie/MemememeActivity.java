@@ -367,7 +367,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
 
             // if flashing for more than 1 second, go back to searching
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 1000){
+            if(System.currentTimeMillis()-mLastStateChangeMillis > 2000){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
                 sendSearchToPlatform().start();
