@@ -280,7 +280,20 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                     public void run() {
                         try{
                             mOscOut.send(new OSCMessage("/memememe/stop"));
+                            // like a double take
+                            Point doubleTake = new Point(
+                                    ((mRandomGenerator.nextFloat()>0.5)?1:-1),
+                                    ((mRandomGenerator.nextFloat()>0.5)?1:-1));
                             OSCMessage lookMessage = new OSCMessage("/memememe/look");
+                            lookMessage.addArgument((int)doubleTake.x);
+                            lookMessage.addArgument((int)doubleTake.y);
+                            mOscOut.send(lookMessage);
+                            lookMessage = new OSCMessage("/memememe/look");
+                            lookMessage.addArgument((int)(-doubleTake.x));
+                            lookMessage.addArgument((int)(-doubleTake.y));
+                            mOscOut.send(lookMessage);
+                            // the lookAt values
+                            lookMessage = new OSCMessage("/memememe/look");
                             lookMessage.addArgument((int)lookAt.x);
                             lookMessage.addArgument((int)lookAt.y);
                             mOscOut.send(lookMessage);
@@ -378,6 +391,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             String filename = "selfie.jpg";
             File file = new File(path, filename);
 
+            // TODO: there's a bug here to fix
             Core.flip(mTempRgba.t(), mRgba, 0);
             Imgproc.cvtColor(mRgba, mTempRgba, Imgproc.COLOR_BGR2RGB);
             Highgui.imwrite(file.toString(), mTempRgba);
