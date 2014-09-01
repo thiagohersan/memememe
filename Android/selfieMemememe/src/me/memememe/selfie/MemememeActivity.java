@@ -390,11 +390,9 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             String filename = "selfie.jpg";
             File file = new File(path, filename);
 
-            Mat mTempTempRgba = new Mat();
             Core.flip(mTempRgba.t(), mRgba, 0);
-            Imgproc.cvtColor(mTempTempRgba, mTempTempRgba, Imgproc.COLOR_BGR2RGB);
-            Highgui.imwrite(file.toString(), mTempTempRgba);
-            mTempTempRgba.release();
+            Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
+            Highgui.imwrite(file.toString(), mRgba);
 
             try{
                 PhotoPost mPP = mTumblrClient.newPost("memememeselfie.tumblr.com", PhotoPost.class);
