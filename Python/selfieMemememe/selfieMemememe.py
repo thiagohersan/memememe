@@ -58,12 +58,13 @@ def setup():
         exit(0)
 
 def loop():
+    global mLastLook
     if(mState == State.SEARCHING):
         if(mPlatform.isAtTarget()):
             mPlatform.setNextPositionPerlin('slow', translate='xyz', rotate='xyz')
         mPlatform.update()
     elif(mState == State.LOOKING):
-        if(mPlatform.isAtTarget() and not mLookQueue.empty() and (time()-mLastLook > 2)):
+        if(mPlatform.isAtTarget() and not mLookQueue.empty() and (time()-mLastLook > 1)):
             (x,y) = mLookQueue.get()
             mPlatform.setNextPositionLook(x=x, y=y)
             mLastLook = time()
