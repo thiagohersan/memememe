@@ -39,9 +39,10 @@ class OscServer(ServerThread):
         print "%s"%path
 
 def setup():
-    global mServer, mState, mPlatform, mLookQueue
+    global mServer, mState, mPlatform, mLookQueue, mLastLook
 
     mLookQueue = Queue()
+    mLastLook = time()
     mState = State.WAITING
 
     try:
@@ -62,9 +63,10 @@ def loop():
             mPlatform.setNextPositionPerlin('slow', translate='xyz', rotate='xyz')
         mPlatform.update()
     elif(mState == State.LOOKING):
-        if(mPlatform.isAtTarget() and not mLookQueue.empty()):
+        if(mPlatform.isAtTarget() and not mLookQueue.empty() and (time()-mLastLook > 2)):
             (x,y) = mLookQueue.get()
             mPlatform.setNextPositionLook(x=x, y=y)
+            mLastLook = time()
         mPlatform.update()
 
 def cleanUp():
