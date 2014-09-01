@@ -391,9 +391,9 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             File file = new File(path, filename);
 
             Mat mTempTempRgba = new Mat();
-            Core.flip(mTempRgba.t(), mTempTempRgba, 0);
-            Imgproc.cvtColor(mTempTempRgba, mRgba, Imgproc.COLOR_BGR2RGB);
-            Highgui.imwrite(file.toString(), mRgba);
+            Core.flip(mTempRgba.t(), mRgba, 0);
+            Imgproc.cvtColor(mTempTempRgba, mTempTempRgba, Imgproc.COLOR_BGR2RGB);
+            Highgui.imwrite(file.toString(), mTempTempRgba);
             mTempTempRgba.release();
 
             try{
