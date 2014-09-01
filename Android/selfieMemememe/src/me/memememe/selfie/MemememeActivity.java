@@ -224,7 +224,6 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mTempRgba = inputFrame.rgba();
-        //mGray = inputFrame.gray().t();
         Core.flip(inputFrame.gray().t(), mGray, 0);
 
         // only need to do this once
@@ -391,10 +390,11 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             String filename = "selfie.jpg";
             File file = new File(path, filename);
 
-            // TODO: there's a bug here to fix
-            Core.flip(mTempRgba.t(), mRgba, 0);
-            Imgproc.cvtColor(mRgba, mTempRgba, Imgproc.COLOR_BGR2RGB);
-            Highgui.imwrite(file.toString(), mTempRgba);
+            Mat mTempTempRgba = new Mat();
+            Core.flip(mTempRgba.t(), mTempTempRgba, 0);
+            Imgproc.cvtColor(mTempTempRgba, mRgba, Imgproc.COLOR_BGR2RGB);
+            Highgui.imwrite(file.toString(), mRgba);
+            mTempTempRgba.release();
 
             try{
                 PhotoPost mPP = mTumblrClient.newPost("memememeselfie.tumblr.com", PhotoPost.class);
