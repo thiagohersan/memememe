@@ -19,6 +19,7 @@ import org.opencv.core.MatOfRect;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.android.CameraBridgeViewBase;
@@ -51,6 +52,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private static final String OSC_OUT_ADDRESS = "172.26.10.132";
     private static final int OSC_OUT_PORT = 8888;
 
+    private static final String[] TEXTS = {"me", "meme", "mememe", "memememe"};
+
     private Mat mRgba;
     private Mat mGray;
     private Mat  mTempRgba;
@@ -67,6 +70,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private long mLastStateChangeMillis;
     private Scalar mCurrentFlashColor;
     private Point mCurrentFlashPosition;
+    private String mCurrentFlashText;
     private Random mRandomGenerator;
 
     private JumblrClient mTumblrClient;
@@ -341,6 +345,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                         128+mRandomGenerator.nextInt(128),
                         128+mRandomGenerator.nextInt(128),
                         128+mRandomGenerator.nextInt(128), 255);
+                mCurrentFlashText = TEXTS[mRandomGenerator.nextInt(TEXTS.length)];
                 mTempRgba.setTo(mCurrentFlashColor);
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.FLASHING;
@@ -360,9 +365,15 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             mTempRgba.get((int)mCurrentFlashPosition.y,(int)mCurrentFlashPosition.x,detectedColor);
 
             // checking these 2 values seem to be enough
-            if((detectedColor[1]&0xff)>200 && (detectedColor[2]&0xff)>200){
-                mLastStateChangeMillis = System.currentTimeMillis();
-                mCurrentState = State.POSTING;
+            if(System.currentTimeMillis()-mLastStateChangeMillis > 1000){
+                if((detectedColor[1]&0xff)>200 && (detectedColor[2]&0xff)>200){
+                    mLastStateChangeMillis = System.currentTimeMillis();
+                    mCurrentState = State.POSTING;
+                    mTempRgba.setTo(new Scalar(160, 160, 160, 255));
+                }
+            }
+            else{
+                mTempRgba.setTo(mCurrentFlashColor);
             }
 
             // if flashing for more than 1 second, go back to searching
@@ -371,7 +382,18 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mCurrentState = State.SEARCHING;
                 sendSearchToPlatform().start();
             }
-            mTempRgba.setTo(mCurrentFlashColor);
+
+            Core.flip(mTempRgba.t(), mRgba, 1);
+            Size mTextSize = Core.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, 1, 16, null);
+            float mWidthScale = (float)(mRgba.width()/mTextSize.width);
+            mTextSize = Core.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, mWidthScale, 16, null);
+            for(int i=0; i<mRandomGenerator.nextInt(3)+1; i++){
+                Point mTextOrigin = new Point(
+                        mRandomGenerator.nextInt((int)(mRgba.width() - mTextSize.width)),
+                        mRandomGenerator.nextInt((int)(mRgba.height() - mTextSize.height)));
+                Core.putText(mRgba, mCurrentFlashText, mTextOrigin, Core.FONT_HERSHEY_PLAIN, mWidthScale, BLACK_SCREEN_COLOR, 16);
+            }
+            Core.flip(mRgba.t(), mTempRgba, 1);
         }
         else if(mCurrentState == State.WAITING){
             Log.d(TAG, "state := WAITING");
