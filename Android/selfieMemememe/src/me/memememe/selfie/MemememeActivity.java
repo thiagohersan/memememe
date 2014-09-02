@@ -381,10 +381,11 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
 
             Core.flip(mTempRgba.t(), mRgba, 1);
-            Size mTextSize = Core.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, 1, 16, null);
-            float mWidthScale = (float)(mRgba.width()/mTextSize.width);
-            mTextSize = Core.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, mWidthScale, 16, null);
-            for(int i=0; i<mRandomGenerator.nextInt(3)+1; i++){
+            for(int i=0; i<mRandomGenerator.nextInt(5)+2; i++){
+                mCurrentFlashText = TEXTS[mRandomGenerator.nextInt(TEXTS.length)];
+                Size mTextSize = Core.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, 1, 16, null);
+                float mWidthScale = (float)(mRgba.width()/mTextSize.width);
+                mTextSize = Core.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, mWidthScale, 16, null);
                 Point mTextOrigin = new Point(
                         mRandomGenerator.nextInt((int)(mRgba.width() - mTextSize.width)),
                         mRandomGenerator.nextInt((int)(mRgba.height() - mTextSize.height)));
