@@ -52,7 +52,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private static final String OSC_OUT_ADDRESS = "172.26.10.132";
     private static final int OSC_OUT_PORT = 8888;
 
-    private static final String[] TEXTS = {"me", "meme", "mememe", "memememe"};
+    private static final String[] TEXTS = {"me", "meme", "mememe", "memememe", "#selfie"};
 
     private Mat mRgba;
     private Mat mGray;
@@ -341,10 +341,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                         mTempRgba.width()-detectedArray[0].tl().y-detectedArray[0].height/2,
                         detectedArray[0].br().x-detectedArray[0].width/2);
 
-                mCurrentFlashColor = new Scalar(
-                        128+mRandomGenerator.nextInt(128),
-                        128+mRandomGenerator.nextInt(128),
-                        128+mRandomGenerator.nextInt(128), 255);
+                mCurrentFlashColor = new Scalar(160, 160, 160, 255);
                 mCurrentFlashText = TEXTS[mRandomGenerator.nextInt(TEXTS.length)];
                 mTempRgba.setTo(mCurrentFlashColor);
                 mLastStateChangeMillis = System.currentTimeMillis();
