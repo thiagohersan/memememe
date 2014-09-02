@@ -47,12 +47,14 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private static enum State {WAITING, SEARCHING, LOOKING, REFLECTING, FLASHING, POSTING};
 
     private static final String TAG = "MEMEMEME::SELFIE";
+    private static final String SELFIE_FILE_NAME = "selfie.jpg";
+    private static final String[] TEXTS = {"me", "meme", "mememe", "memememe", "#selfie"};
     private static final Scalar FACE_RECT_COLOR = new Scalar(0, 255, 0, 255);
     private static final Scalar BLACK_SCREEN_COLOR = new Scalar(0, 0, 0, 255);
     private static final String OSC_OUT_ADDRESS = "172.26.10.132";
     private static final int OSC_OUT_PORT = 8888;
 
-    private static final String[] TEXTS = {"me", "meme", "mememe", "memememe", "#selfie"};
+
 
     private Mat mRgba;
     private Mat mGray;
@@ -406,12 +408,10 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         else if(mCurrentState == State.POSTING){
             Log.d(TAG, "state := POSTING");
 
-            File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-            String filename = "selfie.jpg";
-            File file = new File(path, filename);
-
             Core.flip(mTempRgba.t(), mRgba, 0);
             Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
+
+            final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), SELFIE_FILE_NAME);
             Highgui.imwrite(file.toString(), mRgba);
 
             try{
