@@ -256,7 +256,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
 
             // keep from finding too often
-            if((System.currentTimeMillis()-mLastStateChangeMillis > 4000) && (detectedArray.length > 0)){
+            if((System.currentTimeMillis()-mLastStateChangeMillis > 5000) && (detectedArray.length > 0)){
                 Log.d(TAG, "found something while SEARCHING");
                 /////////////////
                 Core.rectangle(mTempRgba,
