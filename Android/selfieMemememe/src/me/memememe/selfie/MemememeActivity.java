@@ -29,6 +29,7 @@ import com.illposed.osc.OSCMessage;
 import com.illposed.osc.OSCPortOut;
 import com.tumblr.jumblr.JumblrClient;
 import com.tumblr.jumblr.types.PhotoPost;
+import com.tumblr.jumblr.types.QuotePost;
 
 import android.app.Activity;
 import android.content.Context;
@@ -142,8 +143,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         mTumblrClient = new JumblrClient(
                 "16svfFXx0K9IMsV8TCCjDhTMrIiKpJLlTTlCOfVJjNREaHjgNm",
                 "tuitRq41Y1QO9shzegw6YkAuYNCqMH6FDvKVQX7d3yLN5ydVS9",
-                "UZMLiqrzaFQrQDd69yPxdx50D98J2UeAyEW1DTuHi3jXHqnw9X",
-                "xLEtnEGrTVSOZ9AA8G27aO8m0D0EuEXB1gR4k07KbzYk2maQu9");
+                "n1B5HWESAUwyQGchCAo1BdyKF9sZjMW1yFaNGkeTu5bgP2ZFzn",
+                "Y0lDndCSj0cqAfllXkRSgaYv04jrinogjT3ZHIstXB4c45AQ4L");
     }
 
     @Override
@@ -414,18 +415,24 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), SELFIE_FILE_NAME);
             Highgui.imwrite(file.toString(), mRgba);
 
-            try{
-                PhotoPost mPP = mTumblrClient.newPost("memememeselfie.tumblr.com", PhotoPost.class);
-                mPP.setData(file);
-                mPP.save();
-            }
-            catch(IOException e){
-                Log.e(TAG, "IO Exception!!: while sending picture to tumblr.");
-            }
-            catch(Exception e){
-                Log.e(TAG, "some Exception!!: while sending picture to tumblr.");
-                Log.e(TAG, e.toString());
-            }
+            Thread tumblrThread = new Thread(new Runnable(){
+                @Override
+                public void run() {
+                    try{
+                        PhotoPost mPP = mTumblrClient.newPost("memememeselfie.tumblr.com", PhotoPost.class);
+                        mPP.setData(file);
+                        mPP.save();
+                    }
+                    catch(IOException e){
+                        Log.e(TAG, "IO Exception!!: while sending picture to tumblr.");
+                    }
+                    catch(Exception e){
+                        Log.e(TAG, "some Exception!!: while sending picture to tumblr.");
+                        Log.e(TAG, e.toString());
+                    }
+                }
+            });
+            tumblrThread.start();
 
             mLastStateChangeMillis = System.currentTimeMillis();
             mCurrentState = State.SEARCHING;
