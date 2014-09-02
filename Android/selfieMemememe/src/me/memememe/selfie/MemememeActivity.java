@@ -333,7 +333,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             Log.d(TAG, "state := LOOKING");
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
 
-            if((System.currentTimeMillis()-mLastStateChangeMillis > 1000) && (detectedArray.length > 0)){
+            if((System.currentTimeMillis()-mLastStateChangeMillis > 100) && (detectedArray.length > 0)){
                 Log.d(TAG, "found something while LOOKING");
 
                 // in mTempRgba coordinates!!!
