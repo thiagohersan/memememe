@@ -143,8 +143,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         mTumblrClient = new JumblrClient(
                 "16svfFXx0K9IMsV8TCCjDhTMrIiKpJLlTTlCOfVJjNREaHjgNm",
                 "tuitRq41Y1QO9shzegw6YkAuYNCqMH6FDvKVQX7d3yLN5ydVS9",
-                "n1B5HWESAUwyQGchCAo1BdyKF9sZjMW1yFaNGkeTu5bgP2ZFzn",
-                "Y0lDndCSj0cqAfllXkRSgaYv04jrinogjT3ZHIstXB4c45AQ4L");
+                "Zhf9R1oEEAn39Q2OAHiEcB4XasHjcJBw2Y5MwbFbAZFQ7R9Icr",
+                "zP50LmZLOsEAVyyMuoF5QPRU7I1tnzTJASHp4na3oZOFEYfqfp");
     }
 
     @Override
@@ -365,7 +365,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             mTempRgba.get((int)mCurrentFlashPosition.y,(int)mCurrentFlashPosition.x,detectedColor);
 
             // checking these 2 values seem to be enough
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 1000){
+            if(System.currentTimeMillis()-mLastStateChangeMillis > 2000){
                 if((detectedColor[1]&0xff)>200 && (detectedColor[2]&0xff)>200){
                     mLastStateChangeMillis = System.currentTimeMillis();
                     mCurrentState = State.POSTING;
@@ -377,7 +377,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
 
             // if flashing for more than 1 second, go back to searching
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 2000){
+            if(System.currentTimeMillis()-mLastStateChangeMillis > 4000){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
                 sendSearchToPlatform().start();
