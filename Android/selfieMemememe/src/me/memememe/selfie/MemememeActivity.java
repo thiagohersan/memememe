@@ -29,7 +29,6 @@ import com.illposed.osc.OSCMessage;
 import com.illposed.osc.OSCPortOut;
 import com.tumblr.jumblr.JumblrClient;
 import com.tumblr.jumblr.types.PhotoPost;
-import com.tumblr.jumblr.types.QuotePost;
 
 import android.app.Activity;
 import android.content.Context;
@@ -54,8 +53,6 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private static final Scalar BLACK_SCREEN_COLOR = new Scalar(0, 0, 0, 255);
     private static final String OSC_OUT_ADDRESS = "172.26.10.132";
     private static final int OSC_OUT_PORT = 8888;
-
-
 
     private Mat mRgba;
     private Mat mGray;
@@ -232,6 +229,15 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mTempRgba = inputFrame.rgba();
         Core.flip(inputFrame.gray().t(), mGray, 0);
+
+        // save images for video...
+        /*
+        Core.flip(mTempRgba.t(), mRgba, 0);
+        Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
+        String dateFilename = SELFIE_FILE_NAME.replace(".jpg", "")+System.currentTimeMillis()+".jpg";
+        final File movFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), dateFilename);
+        Highgui.imwrite(movFile.toString(), mRgba);
+        */
 
         // only need to do this once
         if (mAbsoluteDetectSize == 0) {
