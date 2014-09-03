@@ -28,6 +28,7 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import com.illposed.osc.OSCMessage;
 import com.illposed.osc.OSCPortOut;
 import com.tumblr.jumblr.JumblrClient;
+import com.tumblr.jumblr.exceptions.JumblrException;
 import com.tumblr.jumblr.types.PhotoPost;
 
 import android.app.Activity;
@@ -72,6 +73,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private Point mCurrentFlashPosition;
     private String mCurrentFlashText;
     private Random mRandomGenerator;
+    private int mImageCounter;
 
     private JumblrClient mTumblrClient;
 
@@ -137,6 +139,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
         }
         mRandomGenerator = new Random();
+        mImageCounter = 0;
         mTumblrClient = new JumblrClient(
                 "16svfFXx0K9IMsV8TCCjDhTMrIiKpJLlTTlCOfVJjNREaHjgNm",
                 "tuitRq41Y1QO9shzegw6YkAuYNCqMH6FDvKVQX7d3yLN5ydVS9",
@@ -233,8 +236,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         // save images for video...
         /*
         Core.flip(mTempRgba.t(), mRgba, 0);
-        Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
-        String dateFilename = SELFIE_FILE_NAME.replace(".jpg", "")+System.currentTimeMillis()+".jpg";
+        String dateFilename = SELFIE_FILE_NAME.replace(".jpg", "")+String.format("%04d", mImageCounter++)+".jpg";
         final File movFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), dateFilename);
         Highgui.imwrite(movFile.toString(), mRgba);
         */
@@ -431,6 +433,11 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                     }
                     catch(IOException e){
                         Log.e(TAG, "IO Exception!!: while sending picture to tumblr.");
+                    }
+                    catch(JumblrException e){
+                        Log.e(TAG, "Jumblr Exception!!: while sending picture to tumblr.");
+                        Log.e(TAG, "Response Code: "+e.getResponseCode());
+                        Log.e(TAG, e.toString());
                     }
                     catch(Exception e){
                         Log.e(TAG, "some Exception!!: while sending picture to tumblr.");
