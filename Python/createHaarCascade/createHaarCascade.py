@@ -14,8 +14,8 @@ DIR_NEG_IMAGES = DIR_DATA+"/negative-tutorial-haartraining"
 DIR_SAMPLE_IMAGES = DIR_DATA+"/positive-clean-cropped-samples"
 DIR_HAAR_DATA = DIR_DATA+"/clean-cropped-haardata"
 
-FILE_NEG_COLLECTION = DIR_NEG_IMAGES+DIR_NEG_IMAGES.split("/")[-1]+".txt"
-FILE_SAMPLE_COLLECTION = DIR_SAMPLE_IMAGES+DIR_SAMPLE_IMAGES.split("/")[-1]+".txt"
+FILE_NEG_COLLECTION = DIR_NEG_IMAGES+"/"+DIR_NEG_IMAGES.split("/")[-1]+".txt"
+FILE_SAMPLE_COLLECTION = DIR_SAMPLE_IMAGES+"/"+DIR_SAMPLE_IMAGES.split("/")[-1]+".txt"
 FILE_SAMPLE_VEC = DIR_SAMPLE_IMAGES+".vec"
 
 if __name__=="__main__":
@@ -33,7 +33,11 @@ if __name__=="__main__":
     if(not path.isdir(DIR_SAMPLE_IMAGES)):
         makedirs(DIR_SAMPLE_IMAGES)
 
-    # get list of negative images
+    # get list of negative images.
+    #
+    # this is equivalent to:
+    #     cd data/negative-tutorial-haartraining
+    #     ls -l1 *.jpg > negative-tutorial-haartraining.txt
     negImageCollectionFile = open(FILE_NEG_COLLECTION, "w")
     negImageFilenames = [f for f in listdir(DIR_NEG_IMAGES) if path.isfile(path.join(DIR_NEG_IMAGES,f)) and f.lower().endswith("jpg")]
     for f in negImageFilenames:
@@ -43,6 +47,10 @@ if __name__=="__main__":
 
     # get list of positive image files
     posImageFilenames = [f for f in listdir(DIR_POS_IMAGES_CROPPED) if path.isfile(path.join(DIR_POS_IMAGES_CROPPED,f))]
+
+    # createSamples: this creates a bunch of sample images
+    #     with images from DIR_POS_IMAGES_CROPPED on top of a negative image,
+    #     and its accompanying collection files
     if(createSamples):
         # run the create command for each image
         for f in posImageFilenames:
@@ -60,15 +68,29 @@ if __name__=="__main__":
                 "-h", "48"])
             sleep(1)
 
+    # createVec: this creates a .vec file from the
+    #     positive sample images in the data/ directory.
+    #     if there are no positive samples in the data/ directory,
+    #     then it looks for some in the Processing directory
     if(createVec):
         # get mega list of sample images
         posImageCollectionFilenames = [f for f in listdir(DIR_SAMPLE_IMAGES) if path.isfile(path.join(DIR_SAMPLE_IMAGES,f)) and f.lower().endswith("txt")]
 
+        # if there are no collection files in data/ directory
+        #     and no overall collection file has been created,
+        #     then, copy clean images and collection file from Processing directory
         if((not posImageCollectionFilenames) and (not path.isfile(FILE_SAMPLE_COLLECTION))):
             rmtree(DIR_SAMPLE_IMAGES)
             copytree(DIR_POS_IMAGES, DIR_SAMPLE_IMAGES)
             posImageCollectionFilenames = [f for f in listdir(DIR_SAMPLE_IMAGES) if path.isfile(path.join(DIR_SAMPLE_IMAGES,f)) and f.lower().endswith("txt")]
 
+        # if no overall collection file has been created,
+        #     then, create one from all the collection files in posImageCollectionFilenames
+        #
+        # this is equivalent to:
+        #     cd data/positive-clean-cropped-samples
+        #     cat *.txt > positive-clean-cropped-samples.txt
+        #     find . -name '*.txt' \! -name positive-clean-cropped-samples.txt -delete
         if(not path.isfile(FILE_SAMPLE_COLLECTION)):
             posImageCollectionFile = open(FILE_SAMPLE_COLLECTION, "w")
             for f in posImageCollectionFilenames:
@@ -88,6 +110,7 @@ if __name__=="__main__":
             "-h", "48"])
         sleep(1)
 
+    # trainCascade: this trains the cascade with the .vec file in FILE_SAMPLE_VEC
     if(trainCascade):
         if(not path.isdir(DIR_HAAR_DATA)):
             makedirs(DIR_HAAR_DATA)

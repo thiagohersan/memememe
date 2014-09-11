@@ -129,7 +129,7 @@ class Ax12:
     RPI_DIRECTION_PIN = 18
     RPI_DIRECTION_TX = GPIO.HIGH
     RPI_DIRECTION_RX = GPIO.LOW
-    RPI_DIRECTION_SWITCH_DELAY = 0.00005
+    RPI_DIRECTION_SWITCH_DELAY = 0.0001
 
     # static variables
     port = None
@@ -169,18 +169,16 @@ class Ax12:
 
     def readData(self,id):
         self.direction(Ax12.RPI_DIRECTION_RX)
+        reply = Ax12.port.read(5) # [0xff, 0xff, origin, length, error]
         try:
-            h1 = Ax12.port.read()
-            assert ord(h1) == 0xFF
+            assert ord(reply[0]) == 0xFF
         except:
             e = "Timeout on servo " + str(id)
             raise Ax12.timeoutError(e)
 
         try :
-            h2 = Ax12.port.read() # 0xff
-            origin = Ax12.port.read() # id
-            length = ord(Ax12.port.read()) - 2
-            error = ord(Ax12.port.read())
+            length = ord(reply[3]) - 2
+            error = ord(reply[4])
 
             if(error != 0):
                 print "Error from servo: " + Ax12.dictErrors[error] + ' (code  ' + hex(error) + ')'
@@ -189,9 +187,12 @@ class Ax12:
             elif(length == 0):
                 return error
             else:
-                returnValue = ord(Ax12.port.read())
                 if(length > 1):
-                    returnValue += (int(ord(Ax12.port.read()))<<8)
+                    reply = Ax12.port.read(2)
+                    returnValue = (ord(reply[1])<<8) + (ord(reply[0])<<0)
+                else:
+                    reply = Ax12.port.read(1)
+                    returnValue = ord(reply[0])
                 return returnValue
         except Exception, detail:
             raise Ax12.axError(detail)

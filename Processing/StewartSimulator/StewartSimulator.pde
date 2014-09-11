@@ -18,8 +18,6 @@ float posX=0, posY=0, posZ=0, rotX=0, rotY=0, rotZ=0;
 boolean ctlPressed = false;
 
 void setup() {
-
-
   size(1024, 768, P3D);
   smooth();
   frameRate(60);
@@ -56,7 +54,6 @@ void setup() {
   cp5.addSlider("rotZ")
     .setPosition(width-200, 120)
       .setSize(180, 40).setRange(-1, 1);
-
 
   cp5.setAutoDraw(false);
   camera.setActive(true);
