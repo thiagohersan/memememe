@@ -9,7 +9,7 @@ class Platform {
    308.5, 351.5, 68.5, 111.5, 188.5, 231.5 };
 
   private final float platformAngles[]  = {
-   286.10, 13.9, 46.1,  133.9, 166.1, 253.9};
+   286.10, 13.9, 46.1,  133.9, 166.1,   253.9};
 
    private final float beta[] = {
    -8*PI/3, PI/3, 0, -PI, -4*PI/3, -7*PI/3};
