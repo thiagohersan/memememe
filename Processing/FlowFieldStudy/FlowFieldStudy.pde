@@ -7,18 +7,12 @@ PVector location, previousLocation;
 float radius = 1;
 boolean isRunning = false;
 
-void doSetup() {
+void setup() {
+  size(512, 512, P3D);
   location = new PVector(0, 0, 0);
   previousLocation = new PVector(0, 0, 0);
   smooth();
   background(255);
-  textSize(32);
-  textAlign(CENTER);
-}
-
-void setup() {
-  doSetup();
-  size(512, 512, P3D);
 }
 
 void update() {
@@ -62,14 +56,10 @@ void draw() {
     line(location.x, location.y, location.z, previousLocation.x, previousLocation.y, previousLocation.z);
     popMatrix();
   }
-  else {
-    fill(0);
-    text("Click Here to Start Simulation", width/2, height/2);
-  }
 }
 
 void mousePressed() {
   isRunning = !isRunning;
-  doSetup();
+  setup();
 }
 
