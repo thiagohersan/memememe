@@ -72,8 +72,9 @@ def loop():
             mPlatform.setNextPositionPerlin('slow', translate='xyz', rotate='xyz')
         mPlatform.update()
     elif(mState == State.SCANNING):
-        if(mPlatform.isAtTarget()):
+        if(mPlatform.isAtTarget() and (time()-mLastLook > 0.2)):
             mPlatform.setNextPositionScan('slow')
+            mLastLook = time()
         mPlatform.update()
     elif(mState == State.LOOKING):
         if(mPlatform.isAtTarget() and not mLookQueue.empty() and (time()-mLastLook > 0.5)):
