@@ -35,16 +35,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.WindowManager;
 
 public class MemememeActivity extends Activity implements CvCameraViewListener2 {
-    private static enum Type {LOOKER, REFLECTER};
-    private final Type mType = (Build.SERIAL.equals("04d8d9b29715d6ef")?Type.LOOKER:Type.REFLECTER);
-
     private static enum State {WAITING, SEARCHING, LOOKING, REFLECTING, FLASHING, POSTING};
 
     private static final String TAG = "MEMEMEME::SELFIE";
@@ -185,7 +181,6 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
         // initialize state machine
         mCurrentState = State.SEARCHING;
-        if(mType == Type.REFLECTER) mCurrentState = State.REFLECTING;
 
         mLastStateChangeMillis = System.currentTimeMillis();
     }
@@ -319,29 +314,31 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                             Log.e(TAG, "Null Pointer Exception!!: while sending look osc message.");
                         }
                         mLastStateChangeMillis = System.currentTimeMillis();
-                        mCurrentState = (mRandomGenerator.nextBoolean())?State.LOOKING:State.REFLECTING;
-                        if(mType == Type.LOOKER) mCurrentState = State.LOOKING;
+                        mCurrentState = State.LOOKING;
                     }
                 });
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.WAITING;
                 thread.start();
             }
+            // TODO: detect sound
+            // GOTO: REFLECTING
         }
         else if(mCurrentState == State.REFLECTING){
             Log.d(TAG, "state := REFLECTING");
             // do nothing to image
+            // TODO: make ack sound
 
             // if reflecting for 5 seconds, go back to searching
             if(System.currentTimeMillis()-mLastStateChangeMillis > 5000){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
-                if(mType == Type.REFLECTER) mCurrentState = State.REFLECTING;
                 sendSearchToPlatform().start();
             }
         }
         else if(mCurrentState == State.LOOKING){
             Log.d(TAG, "state := LOOKING");
+            // TODO: make sound
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
 
             if((System.currentTimeMillis()-mLastStateChangeMillis > 100) && (detectedArray.length > 0)){
@@ -368,6 +365,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         }
         else if(mCurrentState == State.FLASHING){
             Log.d(TAG, "state := FLASHING");
+            // TODO: make sound
 
             byte detectedColor[] = new byte[4];
             mTempRgba.get((int)mCurrentFlashPosition.y,(int)mCurrentFlashPosition.x,detectedColor);
@@ -384,7 +382,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mTempRgba.setTo(mCurrentFlashColor);
             }
 
-            // if flashing for more than 1 second, go back to searching
+            // if flashing for more than 4 seconds, go back to searching
             if(System.currentTimeMillis()-mLastStateChangeMillis > 4000){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
