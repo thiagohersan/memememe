@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Test Infrasound</string>
+    <string name="button_quit_text">Quit</string>
+</resources>
