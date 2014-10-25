@@ -55,7 +55,7 @@ class NoiseReader implements Runnable{
     }
 
     @Override
-    public synchronized void run(){
+    public void run(){
         mAudioRecord = new AudioRecord(AudioSource.MIC, 44100, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, 8192);
         bRun = true;
         mAudioRecord.startRecording();
@@ -116,7 +116,7 @@ class NoiseWriter implements Runnable{
     }
 
     @Override
-    public synchronized void run(){
+    public void run(){
         mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, (int)SAMPLE_RATE, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, 8192, AudioTrack.MODE_STREAM);
         bRun = true;
         bMakeSomeNoise = false;
