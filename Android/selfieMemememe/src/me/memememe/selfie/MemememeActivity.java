@@ -73,6 +73,11 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
     private JumblrClient mTumblrClient;
 
+    private NoiseReader mNoiseReader = null;
+    private NoiseWriter mNoiseWriter = null;
+    private Thread noiseReaderThread = null;
+    private Thread noiseWriterThread = null;
+
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -141,6 +146,11 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 "tuitRq41Y1QO9shzegw6YkAuYNCqMH6FDvKVQX7d3yLN5ydVS9",
                 "Zhf9R1oEEAn39Q2OAHiEcB4XasHjcJBw2Y5MwbFbAZFQ7R9Icr",
                 "zP50LmZLOsEAVyyMuoF5QPRU7I1tnzTJASHp4na3oZOFEYfqfp");
+
+        mNoiseReader = new NoiseReader();
+        mNoiseWriter = new NoiseWriter();
+        noiseReaderThread = new Thread(mNoiseReader);
+        noiseWriterThread = new Thread(mNoiseWriter);
     }
 
     @Override
@@ -158,6 +168,14 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
         if(mNativeDetector != null) mNativeDetector.release();
         if(mOscOut != null) mOscOut.close();
+
+        try{
+            noiseReaderThread.interrupt();
+            noiseWriterThread.interrupt();
+            noiseReaderThread.join(500);
+            noiseWriterThread.join(500);
+        }
+        catch(InterruptedException e){}
     }
 
     @Override
@@ -176,11 +194,14 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             Log.e(TAG, "Socket Exception!!: while starting OscOut with (address, port): "+OSC_OUT_ADDRESS+", "+OSC_OUT_PORT);
         }
 
-        // send first message to motors
-        sendSearchToPlatform().start();
+        // start sound threads
+        noiseReaderThread.start();
+        noiseWriterThread.start();
 
         // initialize state machine
         mCurrentState = State.SEARCHING;
+        // send first message to motors
+        sendSearchToPlatform().start();
 
         mLastStateChangeMillis = System.currentTimeMillis();
     }
@@ -321,8 +342,12 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mCurrentState = State.WAITING;
                 thread.start();
             }
-            // TODO: detect sound
-            // GOTO: REFLECTING
+            // TODO: TEST THIS !!!
+            else if(Math.abs(mNoiseReader.getFrequencyDifference()-503) < 50){
+                Log.d(TAG, "freq = "+mNoiseReader.getFrequencyDifference());
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mCurrentState = State.REFLECTING;
+            }
         }
         else if(mCurrentState == State.REFLECTING){
             Log.d(TAG, "state := REFLECTING");
@@ -338,9 +363,12 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         }
         else if(mCurrentState == State.LOOKING){
             Log.d(TAG, "state := LOOKING");
-            // TODO: make sound
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
 
+            // make noise
+            mNoiseWriter.makeSomeNoise();
+
+            // TODO: GIVE REFLECTOR SOME TIME TO TURN ON
             if((System.currentTimeMillis()-mLastStateChangeMillis > 100) && (detectedArray.length > 0)){
                 Log.d(TAG, "found something while LOOKING");
 
@@ -354,18 +382,19 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mTempRgba.setTo(mCurrentFlashColor);
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.FLASHING;
+                mNoiseWriter.stopNoise();
             }
 
             // if looking for more than 5 seconds, go back to searching
             if(System.currentTimeMillis()-mLastStateChangeMillis > 5000){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
+                mNoiseWriter.stopNoise();
                 sendSearchToPlatform().start();
             }
         }
         else if(mCurrentState == State.FLASHING){
             Log.d(TAG, "state := FLASHING");
-            // TODO: make sound
 
             byte detectedColor[] = new byte[4];
             mTempRgba.get((int)mCurrentFlashPosition.y,(int)mCurrentFlashPosition.x,detectedColor);
