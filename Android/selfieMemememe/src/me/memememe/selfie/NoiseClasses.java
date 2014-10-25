@@ -75,8 +75,6 @@ class NoiseReader implements Runnable{
                 frequencyDiffs[currentDiffIndex] = newDiff;
                 sumDiffs += frequencyDiffs[currentDiffIndex];
                 currentDiffIndex = (currentDiffIndex+1)%frequencyDiffs.length;
-                
-                Log.d(TAG, "Freq Diff = "+sumDiffs/frequencyDiffs.length+" Hz");
 
                 bRun = !(Thread.currentThread().isInterrupted());
                 Thread.sleep(0, 100);
