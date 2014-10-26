@@ -289,6 +289,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         if(mCurrentState == State.SEARCHING){
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
 
+            int currentFreqDiff = mNoiseReader.getFrequencyDifference();
+
             // keep from finding too often
             if((System.currentTimeMillis()-mLastStateChangeMillis > 5000) && (detectedArray.length > 0)){
                 Log.d(TAG, "found something while SEARCHING");
@@ -350,22 +352,25 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 thread.start();
             }
 
-            else if(mNoiseReader.getFrequencyDifference()>100 && mNoiseReader.getFrequencyDifference()<900){
-                if(Math.abs(mNoiseReader.getFrequencyDifference()-mLastFrequencyValue) < 50){
+            else if(currentFreqDiff>100 && currentFreqDiff<900){
+                if(Math.abs(currentFreqDiff-mLastFrequencyValue) < 50){
                     mValidFrequencyCounter++;
-                    mLastFrequencyValue = mNoiseReader.getFrequencyDifference();
+                    mLastFrequencyValue = currentFreqDiff;
                     mLastValidFrequencyMillis = System.currentTimeMillis();
                 }
                 else if(System.currentTimeMillis()-mLastValidFrequencyMillis > 300){
-                    mLastFrequencyValue = mNoiseReader.getFrequencyDifference();
+                    mLastFrequencyValue = currentFreqDiff;
                     mValidFrequencyCounter = 0;
                 }
 
                 if(mValidFrequencyCounter > 4){
                     Log.d(TAG, "Heard "+mNoiseReader.getFrequencyDifference()+" Hz");
+                    mLastFrequencyValue = currentFreqDiff;
                     mValidFrequencyCounter = 0;
-                    mLastStateChangeMillis = System.currentTimeMillis();
-                    mCurrentState = State.REFLECTING;
+                    if((Math.abs(currentFreqDiff-FREQUENCY_YES) < 50) || (Math.abs(currentFreqDiff-FREQUENCY_NO) < 50)){
+                        mLastStateChangeMillis = System.currentTimeMillis();
+                        mCurrentState = State.REFLECTING;
+                    }
                 }
             }
         }
