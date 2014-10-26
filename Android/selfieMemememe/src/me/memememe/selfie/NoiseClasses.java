@@ -113,6 +113,10 @@ class NoiseWriter implements Runnable{
         bMakeSomeNoise = false;
     }
 
+    public int getFrequencyDifference(){
+        return (int)FREQUENCY_DIFF;
+    }
+
     @Override
     public void run(){
         mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, (int)SAMPLE_RATE, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, 8192, AudioTrack.MODE_STREAM);
