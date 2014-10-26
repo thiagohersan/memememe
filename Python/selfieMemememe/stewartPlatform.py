@@ -67,6 +67,7 @@ class StewartPlatform:
         self.currentAngle = [0]*6
         self.currentSpeed = [0]*6
         self.maxSpeed = [0]*6
+        self.currentScanDirection = [0]*2
         self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT
         self.servos = Ax12()
         self.angles = StewartPlatformMath()
@@ -230,6 +231,39 @@ class StewartPlatform:
         # move platform slightly closer to its initial height
         currentTranslation = self.currentPosition.translation
         translation = Vector3(currentTranslation.x, currentTranslation.y, currentTranslation.z*0.8)
+
+        done = False
+        while not done:
+            rotation = Vector3(deltaAngles[0], deltaAngles[1], deltaAngles[2]) + self.currentPosition.rotation
+
+            done = self.setTargetAnglesSuccessfully(translation, rotation)
+            deltaAngles = map(lambda x:uniform(0.666,0.8)*x, deltaAngles)
+
+    # scan by nudging rotation
+    def setNextPositionScan(self, *args, **kwargs):
+        self.updateFunction = self.updateLinear
+
+        if('slow' in args):
+            self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT/2
+        else:
+            self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT*2
+
+        # pan actually means rotate around z-axis
+        #     and tilt means rotate around x-axis
+        deltaAngles = (0, 0, StewartPlatform.MOVE_SHORT_ANGLE/3*StewartPlatform.currentScanDirection[0])
+
+        if(self.currentPosition.rotation[2] + deltaAngles[2] > StewartPlatform.MOVE_LONG_ANGLE/2):
+            deltaAngles[2] = 0
+            StewartPlatform.currentScanDirection[0] = -1*StewartPlatform.currentScanDirection[0]
+            deltaAngles[0] = StewartPlatform.MOVE_SHORT_ANGLE/3*StewartPlatform.currentScanDirection[1]
+            if(self.currentPosition.rotation[0] + deltaAngles[0] > StewartPlatform.MOVE_LONG_ANGLE/2):
+                deltaAngles[0] = 0
+                StewartPlatform.currentScanDirection[1] = -1*StewartPlatform.currentScanDirection[1]
+                deltaAngles[2] = StewartPlatform.MOVE_SHORT_ANGLE/3*StewartPlatform.currentScanDirection[0]
+
+        # move platform slightly closer to its initial height
+        currentTranslation = self.currentPosition.translation
+        translation = Vector3(currentTranslation.x, currentTranslation.y, currentTranslation.z*0.9)
 
         done = False
         while not done:
