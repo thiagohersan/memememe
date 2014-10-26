@@ -209,7 +209,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         // initialize state machine
         mCurrentState = State.SEARCHING;
         // send first message to motors
-        sendSearchToPlatform().start();
+        sendCommandToPlatform("search").start();
 
         mLastStateChangeMillis = System.currentTimeMillis();
     }
@@ -235,12 +235,13 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         mTempRgba.release();
     }
 
-    private Thread sendSearchToPlatform(){
+    private Thread sendCommandToPlatform(String cmd){
+        final String theCommand = "/memememe/"+cmd;
         Thread thread = new Thread(new Runnable(){
             @Override
             public void run() {
                 try{
-                    mOscOut.send(new OSCMessage("/memememe/search"));
+                    mOscOut.send(new OSCMessage(theCommand));
                 }
                 catch(IOException e){
                     Log.e(TAG, "IO Exception!!: while sending search osc message.");
@@ -371,21 +372,45 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                     mValidFrequencyCounter = 0;
                     if((Math.abs(currentFreqDiff-FREQUENCY_YES) < 50) || (Math.abs(currentFreqDiff-FREQUENCY_NO) < 50)){
                         mLastStateChangeMillis = System.currentTimeMillis();
-                        mCurrentState = State.REFLECTING;
+                        mCurrentState = State.SCANNING_REFLECTING;
+                        sendCommandToPlatform("scan").start();
                     }
                 }
+            }
+        }
+        else if(mCurrentState == State.SCANNING_LOOKING){
+            Log.d(TAG, "state := SCANNING_LOOKING");
+            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+            // TODO: detect phone
+
+            // if scanning for 10 seconds, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > 10000){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mCurrentState = State.SEARCHING;
+                sendCommandToPlatform("search").start();
+            }
+        }
+        else if(mCurrentState == State.SCANNING_REFLECTING){
+            Log.d(TAG, "state := SCANNING_REFLECTING");
+            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+            // TODO: detect phone
+
+            // if scanning for 10 seconds, go back to searching, but let LOOKER know
+            if(System.currentTimeMillis()-mLastStateChangeMillis > 10000){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mNoiseWriter.makeSomeNoise(FREQUENCY_NO);
+                mCurrentState = State.MAKING_NOISE_REFLECTING;
             }
         }
         else if(mCurrentState == State.REFLECTING){
             Log.d(TAG, "state := REFLECTING");
             // do nothing to image
-            // TODO: make ack sound
 
             // if reflecting for 5 seconds, go back to searching
             if(System.currentTimeMillis()-mLastStateChangeMillis > 5000){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
-                sendSearchToPlatform().start();
+                sendCommandToPlatform("search").start();
             }
         }
         else if(mCurrentState == State.MAKING_NOISE_LOOKING){
@@ -400,7 +425,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             if(System.currentTimeMillis()-mLastStateChangeMillis > 30000){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
-                sendSearchToPlatform().start();
+                sendCommandToPlatform("search").start();
             }
         }
         else if(mCurrentState == State.MAKING_NOISE_REFLECTING){
@@ -416,7 +441,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 else{
                     mLastStateChangeMillis = System.currentTimeMillis();
                     mCurrentState = State.SEARCHING;
-                    sendSearchToPlatform().start();
+                    sendCommandToPlatform("search").start();
                 }
             }
         }
@@ -424,7 +449,6 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             Log.d(TAG, "state := LOOKING");
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
 
-            // TODO: GIVE REFLECTOR SOME TIME TO TURN ON
             if((System.currentTimeMillis()-mLastStateChangeMillis > 100) && (detectedArray.length > 0)){
                 Log.d(TAG, "found something while LOOKING");
 
@@ -446,7 +470,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
                 mNoiseWriter.stopNoise();
-                sendSearchToPlatform().start();
+                sendCommandToPlatform("search").start();
             }
         }
         else if(mCurrentState == State.FLASHING){
@@ -471,7 +495,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             if(System.currentTimeMillis()-mLastStateChangeMillis > 4000){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
-                sendSearchToPlatform().start();
+                sendCommandToPlatform("search").start();
             }
 
             Core.flip(mTempRgba.t(), mRgba, 1);
@@ -494,7 +518,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             if(System.currentTimeMillis()-mLastStateChangeMillis > 2000){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
-                sendSearchToPlatform().start();
+                sendCommandToPlatform("search").start();
             }
         }
         else if(mCurrentState == State.POSTING){
@@ -532,7 +556,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
             mLastStateChangeMillis = System.currentTimeMillis();
             mCurrentState = State.SEARCHING;
-            sendSearchToPlatform().start();
+            sendCommandToPlatform("search").start();
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
         }
 
