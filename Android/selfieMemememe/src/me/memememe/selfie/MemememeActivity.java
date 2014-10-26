@@ -55,6 +55,16 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private static final int FREQUENCY_YES = 809;
     private static final int FREQUENCY_NO = 443;
 
+    private static final int TIMEOUT_SCANNING = 10000;
+    private static final int TIMEOUT_REFLECTING = 5000;
+    private static final int TIMEOUT_MAKING_NOISE_LOOKING = 30000;
+    private static final int PERIOD_MAKING_NOISE_LOOKING = 4000;
+    private static final int TIMEOUT_MAKING_NOISE_REFLECTING = 3000;
+    private static final int TIMEOUT_FREQUENCY_DETECTION = 300;
+    private static final int TIMEOUT_FLASHING = 4000;
+    private static final int DELAY_FLASHING = 2000;
+    private static final int TIMEOUT_WAITING = 2000;
+
     private Mat mRgba;
     private Mat mGray;
     private Mat  mTempRgba;
@@ -355,13 +365,13 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 thread.start();
             }
 
-            else if(currentFreqDiff>100 && currentFreqDiff<900){
+            else if(currentFreqDiff>(FREQUENCY_NO-100) && currentFreqDiff<(FREQUENCY_YES+100)){
                 if(Math.abs(currentFreqDiff-mLastFrequencyValue) < 50){
                     mValidFrequencyCounter++;
                     mLastFrequencyValue = currentFreqDiff;
                     mLastValidFrequencyMillis = System.currentTimeMillis();
                 }
-                else if(System.currentTimeMillis()-mLastValidFrequencyMillis > 300){
+                else if(System.currentTimeMillis()-mLastValidFrequencyMillis > TIMEOUT_FREQUENCY_DETECTION){
                     mLastFrequencyValue = currentFreqDiff;
                     mValidFrequencyCounter = 0;
                 }
@@ -398,8 +408,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mCurrentState = State.FLASHING;
             }
 
-            // if scanning for 10 seconds, go back to searching
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 10000){
+            // if scanning for a while, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_SCANNING){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
                 sendCommandToPlatform("search").start();
@@ -418,8 +428,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mCurrentState = State.MAKING_NOISE_REFLECTING;
             }
 
-            // if scanning for 10 seconds, go back to searching, but let LOOKER know
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 10000){
+            // if scanning for a while, go back to searching, but let LOOKER know
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_SCANNING){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mNoiseWriter.makeSomeNoise(FREQUENCY_NO);
                 mCurrentState = State.MAKING_NOISE_REFLECTING;
@@ -429,8 +439,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             Log.d(TAG, "state := REFLECTING");
             // do nothing to image
 
-            // if reflecting for 5 seconds, go back to searching
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 5000){
+            // if reflecting for a while, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_REFLECTING){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
                 sendCommandToPlatform("search").start();
@@ -441,18 +451,18 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             // TODO: maybe a different color to prevent other phone from detecting it
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
 
-            if((System.currentTimeMillis()-mLastStateChangeMillis)%4000 > 2000){
+            if((System.currentTimeMillis()-mLastStateChangeMillis)%PERIOD_MAKING_NOISE_LOOKING > PERIOD_MAKING_NOISE_LOOKING/2){
                 mNoiseWriter.stopNoise();
 
                 int currentFreqDiff = mNoiseReader.getFrequencyDifference();
 
-                if(currentFreqDiff>100 && currentFreqDiff<900){
+                if(currentFreqDiff>(FREQUENCY_NO-100) && currentFreqDiff<(FREQUENCY_YES+100)){
                     if(Math.abs(currentFreqDiff-mLastFrequencyValue) < 50){
                         mValidFrequencyCounter++;
                         mLastFrequencyValue = currentFreqDiff;
                         mLastValidFrequencyMillis = System.currentTimeMillis();
                     }
-                    else if(System.currentTimeMillis()-mLastValidFrequencyMillis > 300){
+                    else if(System.currentTimeMillis()-mLastValidFrequencyMillis > TIMEOUT_FREQUENCY_DETECTION){
                         mLastFrequencyValue = currentFreqDiff;
                         mValidFrequencyCounter = 0;
                     }
@@ -479,8 +489,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mNoiseWriter.makeSomeNoise(FREQUENCY_YES);
             }
 
-            // if waiting for more than 30 seconds, go back to searching
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 30000){
+            // if waiting for a while, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_MAKING_NOISE_LOOKING){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
                 sendCommandToPlatform("search").start();
@@ -490,7 +500,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             Log.d(TAG, "state := MAKING_NOISE_REFLECTING");
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
 
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 2000){
+            // if making noise for a while, move on
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_MAKING_NOISE_REFLECTING){
                 mNoiseWriter.stopNoise();
                 if(mNoiseWriter.getFrequencyDifference() == FREQUENCY_YES){
                     mLastStateChangeMillis = System.currentTimeMillis();
@@ -538,7 +549,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             mTempRgba.get((int)mCurrentFlashPosition.y,(int)mCurrentFlashPosition.x,detectedColor);
 
             // checking these 2 values seem to be enough
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 2000){
+            if(System.currentTimeMillis()-mLastStateChangeMillis > DELAY_FLASHING){
                 if((detectedColor[1]&0xff)>200 && (detectedColor[2]&0xff)>200){
                     mLastStateChangeMillis = System.currentTimeMillis();
                     mCurrentState = State.POSTING;
@@ -549,8 +560,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mTempRgba.setTo(mCurrentFlashColor);
             }
 
-            // if flashing for more than 4 seconds, go back to searching
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 4000){
+            // if flashing for a while, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_FLASHING){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
                 sendCommandToPlatform("search").start();
@@ -572,8 +583,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         else if(mCurrentState == State.WAITING){
             Log.d(TAG, "state := WAITING");
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
-            // if waiting for 2 seconds, go back to searching
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 2000){
+            // if waiting for a while, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_WAITING){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mCurrentState = State.SEARCHING;
                 sendCommandToPlatform("search").start();
