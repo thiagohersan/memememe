@@ -90,7 +90,6 @@ class NoiseWriter implements Runnable{
     private static final String TAG = "MEMEMEME::NOISEWRITER";
     private final float FREQUENCY_BASE = 1009.0f;
     private final float FREQUENCY_RANGE = 1499.0f;
-    private final float FREQUENCY_DIFF = 503.0f;
     private final float SAMPLE_RATE = 44100.0f;
 
     Random mRandom = new Random();
@@ -103,18 +102,16 @@ class NoiseWriter implements Runnable{
 
     long runningSample = 0L;
     long lastChangeMillis = System.currentTimeMillis();
+    float currentFrequencyDiff = 0;
     float lowFreqK = (float)(2.0*Math.PI*FREQUENCY_BASE/SAMPLE_RATE);
-    float highFreqK = (float)(2.0*Math.PI*(FREQUENCY_BASE+FREQUENCY_DIFF)/SAMPLE_RATE);
+    float highFreqK = (float)(2.0*Math.PI*(FREQUENCY_BASE+currentFrequencyDiff)/SAMPLE_RATE);
 
-    public synchronized void makeSomeNoise(){
+    public synchronized void makeSomeNoise(int freqDiff){
+        currentFrequencyDiff = (float)freqDiff;
         bMakeSomeNoise = true;
     }
     public synchronized void stopNoise(){
         bMakeSomeNoise = false;
-    }
-
-    public int getFrequencyDifference(){
-        return (int)FREQUENCY_DIFF;
     }
 
     @Override
@@ -130,7 +127,7 @@ class NoiseWriter implements Runnable{
                     if(System.currentTimeMillis()-lastChangeMillis > 100){
                         float nFreq = mRandom.nextFloat()*FREQUENCY_RANGE+FREQUENCY_BASE;
                         lowFreqK = (float)(2.0*Math.PI*nFreq/SAMPLE_RATE);
-                        highFreqK = (float)(2.0*Math.PI*(nFreq+FREQUENCY_DIFF)/SAMPLE_RATE);
+                        highFreqK = (float)(2.0*Math.PI*(nFreq+currentFrequencyDiff)/SAMPLE_RATE);
                         lastChangeMillis = System.currentTimeMillis();
                     }
 

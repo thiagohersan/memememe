@@ -51,6 +51,9 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private static final String OSC_OUT_ADDRESS = "172.26.10.132";
     private static final int OSC_OUT_PORT = 8888;
 
+    private static final int FREQUENCY_YES = 809;
+    private static final int FREQUENCY_NO = 443;
+
     private Mat mRgba;
     private Mat mGray;
     private Mat  mTempRgba;
@@ -383,7 +386,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
 
             // make noise
-            mNoiseWriter.makeSomeNoise();
+            mNoiseWriter.makeSomeNoise(FREQUENCY_YES);
 
             // TODO: GIVE REFLECTOR SOME TIME TO TURN ON
             if((System.currentTimeMillis()-mLastStateChangeMillis > 100) && (detectedArray.length > 0)){
