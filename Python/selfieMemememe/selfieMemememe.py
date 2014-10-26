@@ -5,7 +5,7 @@ from liblo import *
 from stewartPlatform import StewartPlatform
 
 class State:
-    (WAITING, SEARCHING, LOOKING) = range(3)
+    (WAITING, SEARCHING, LOOKING, SCANNING) = range(4)
 
 class OscServer(ServerThread):
     def __init__(self):
@@ -33,6 +33,14 @@ class OscServer(ServerThread):
         mPlatform.stop()
         mLookQueue = Queue()
         mState = State.SEARCHING
+
+    @make_method('/memememe/scan', '')
+    def scan_callback(self, path, args):
+        global mState
+        print "%s"%path
+        mPlatform.stop()
+        mLookQueue = Queue()
+        mState = State.SCANNING
 
     @make_method(None, None)
     def default_callback(self, path, args):
@@ -62,6 +70,10 @@ def loop():
     if(mState == State.SEARCHING):
         if(mPlatform.isAtTarget()):
             mPlatform.setNextPositionPerlin('slow', translate='xyz', rotate='xyz')
+        mPlatform.update()
+    elif(mState == State.SCANNING):
+        if(mPlatform.isAtTarget()):
+            mPlatform.setNextPositionScan('slow')
         mPlatform.update()
     elif(mState == State.LOOKING):
         if(mPlatform.isAtTarget() and not mLookQueue.empty() and (time()-mLastLook > 0.5)):
