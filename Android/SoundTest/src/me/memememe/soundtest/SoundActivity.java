@@ -91,8 +91,9 @@ public class SoundActivity extends Activity {
                 long runningSample = 0L;
                 long lastChangeMillis = System.currentTimeMillis();
                 float cFreq = 1009.0f;
+                float freqDiff = 503.0f;
                 float lowFreqK = (float)(2.0*Math.PI*cFreq/44100.0);
-                float highFreqK = (float)(2.0*Math.PI*(cFreq+503.0)/44100.0);
+                float highFreqK = (float)(2.0*Math.PI*(cFreq+freqDiff)/44100.0);
 
                 while(bRun){
                     try{
@@ -100,7 +101,7 @@ public class SoundActivity extends Activity {
                             if(System.currentTimeMillis()-lastChangeMillis > 100){
                                 cFreq = mRandom.nextFloat()*1499.0f+1009.0f;
                                 lowFreqK = (float)(2.0*Math.PI*cFreq/44100.0);
-                                highFreqK = (float)(2.0*Math.PI*(cFreq+503.0)/44100.0);
+                                highFreqK = (float)(2.0*Math.PI*(cFreq+freqDiff)/44100.0);
                                 lastChangeMillis = System.currentTimeMillis();
                             }
 
