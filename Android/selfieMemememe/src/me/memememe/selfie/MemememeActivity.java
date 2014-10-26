@@ -71,6 +71,9 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private Random mRandomGenerator;
     private int mImageCounter;
 
+    private long mLastValidFrequencyMillis;
+    private int mValidFrequencyCounter;
+
     private JumblrClient mTumblrClient;
 
     private NoiseReader mNoiseReader = null;
@@ -342,11 +345,21 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mCurrentState = State.WAITING;
                 thread.start();
             }
-            // TODO: TEST THIS !!!
-            else if(Math.abs(mNoiseReader.getFrequencyDifference()-503) < 50){
+
+            else if(Math.abs(mNoiseReader.getFrequencyDifference()-mNoiseWriter.getFrequencyDifference()) < 50){
                 Log.d(TAG, "freq = "+mNoiseReader.getFrequencyDifference());
-                mLastStateChangeMillis = System.currentTimeMillis();
-                mCurrentState = State.REFLECTING;
+                if(System.currentTimeMillis()-mLastValidFrequencyMillis < 200){
+                    mValidFrequencyCounter++;
+                }
+                else{
+                    mValidFrequencyCounter = 0;
+                }
+                mLastValidFrequencyMillis = System.currentTimeMillis();
+
+                if(mValidFrequencyCounter > 4){
+                    mLastStateChangeMillis = System.currentTimeMillis();
+                    mCurrentState = State.REFLECTING;
+                }
             }
         }
         else if(mCurrentState == State.REFLECTING){
