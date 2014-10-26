@@ -113,6 +113,9 @@ class NoiseWriter implements Runnable{
     public synchronized void stopNoise(){
         bMakeSomeNoise = false;
     }
+    public synchronized int getFrequencyDifference(){
+        return (int)currentFrequencyDiff;
+    }
 
     @Override
     public void run(){
