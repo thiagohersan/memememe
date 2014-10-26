@@ -41,7 +41,8 @@ import android.util.Log;
 import android.view.WindowManager;
 
 public class MemememeActivity extends Activity implements CvCameraViewListener2 {
-    private static enum State {WAITING, SEARCHING, LOOKING, REFLECTING, FLASHING, POSTING};
+    private static enum State {WAITING, SEARCHING, LOOKING, REFLECTING, FLASHING, POSTING,
+                               MAKING_NOISE_LOOKING, MAKING_NOISE_REFLECTING, SCANNING_LOOKING, SCANNING_REFLECTING};
 
     private static final String TAG = "MEMEMEME::SELFIE";
     private static final String SELFIE_FILE_NAME = "selfie.jpg";
@@ -344,7 +345,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                             Log.e(TAG, "Null Pointer Exception!!: while sending look osc message.");
                         }
                         mLastStateChangeMillis = System.currentTimeMillis();
-                        mCurrentState = State.LOOKING;
+                        mNoiseWriter.makeSomeNoise(FREQUENCY_YES);
+                        mCurrentState = State.MAKING_NOISE_LOOKING;
                     }
                 });
                 mLastStateChangeMillis = System.currentTimeMillis();
@@ -386,12 +388,41 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 sendSearchToPlatform().start();
             }
         }
+        else if(mCurrentState == State.MAKING_NOISE_LOOKING){
+            Log.d(TAG, "state := MAKING_NOISE_LOOKING");
+            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+
+            if(System.currentTimeMillis()-mLastStateChangeMillis > 2000){
+                mNoiseWriter.stopNoise();
+                // TODO: hear noise
+            }
+            // if waiting for more than 30 seconds, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > 30000){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mCurrentState = State.SEARCHING;
+                sendSearchToPlatform().start();
+            }
+        }
+        else if(mCurrentState == State.MAKING_NOISE_REFLECTING){
+            Log.d(TAG, "state := MAKING_NOISE_REFLECTING");
+            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+
+            if(System.currentTimeMillis()-mLastStateChangeMillis > 2000){
+                mNoiseWriter.stopNoise();
+                if(mNoiseWriter.getFrequencyDifference() == FREQUENCY_YES){
+                    mLastStateChangeMillis = System.currentTimeMillis();
+                    mCurrentState = State.REFLECTING;
+                }
+                else{
+                    mLastStateChangeMillis = System.currentTimeMillis();
+                    mCurrentState = State.SEARCHING;
+                    sendSearchToPlatform().start();
+                }
+            }
+        }
         else if(mCurrentState == State.LOOKING){
             Log.d(TAG, "state := LOOKING");
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
-
-            // make noise
-            mNoiseWriter.makeSomeNoise(FREQUENCY_YES);
 
             // TODO: GIVE REFLECTOR SOME TIME TO TURN ON
             if((System.currentTimeMillis()-mLastStateChangeMillis > 100) && (detectedArray.length > 0)){
