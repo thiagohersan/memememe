@@ -438,12 +438,47 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         }
         else if(mCurrentState == State.MAKING_NOISE_LOOKING){
             Log.d(TAG, "state := MAKING_NOISE_LOOKING");
+            // TODO: maybe a different color to prevent other phone from detecting it
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
 
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 2000){
+            if((System.currentTimeMillis()-mLastStateChangeMillis)%4000 > 2000){
                 mNoiseWriter.stopNoise();
-                // TODO: hear noise
+
+                int currentFreqDiff = mNoiseReader.getFrequencyDifference();
+
+                if(currentFreqDiff>100 && currentFreqDiff<900){
+                    if(Math.abs(currentFreqDiff-mLastFrequencyValue) < 50){
+                        mValidFrequencyCounter++;
+                        mLastFrequencyValue = currentFreqDiff;
+                        mLastValidFrequencyMillis = System.currentTimeMillis();
+                    }
+                    else if(System.currentTimeMillis()-mLastValidFrequencyMillis > 300){
+                        mLastFrequencyValue = currentFreqDiff;
+                        mValidFrequencyCounter = 0;
+                    }
+
+                    if(mValidFrequencyCounter > 4){
+                        Log.d(TAG, "Heard "+mNoiseReader.getFrequencyDifference()+" Hz");
+                        mLastFrequencyValue = 0;
+                        mValidFrequencyCounter = 0;
+
+                        if(Math.abs(currentFreqDiff-FREQUENCY_YES) < 50){
+                            mLastStateChangeMillis = System.currentTimeMillis();
+                            mCurrentState = State.SCANNING_LOOKING;
+                            sendCommandToPlatform("scan").start();
+                        }
+                        else if(Math.abs(currentFreqDiff-FREQUENCY_NO) < 50){
+                            mLastStateChangeMillis = System.currentTimeMillis();
+                            mCurrentState = State.SEARCHING;
+                            sendCommandToPlatform("search").start();
+                        }
+                    }
+                }
             }
+            else{
+                mNoiseWriter.makeSomeNoise(FREQUENCY_YES);
+            }
+
             // if waiting for more than 30 seconds, go back to searching
             if(System.currentTimeMillis()-mLastStateChangeMillis > 30000){
                 mLastStateChangeMillis = System.currentTimeMillis();
