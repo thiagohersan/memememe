@@ -73,6 +73,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
     private long mLastValidFrequencyMillis;
     private int mValidFrequencyCounter;
+    private int mLastFrequencyValue;
 
     private JumblrClient mTumblrClient;
 
@@ -346,17 +347,20 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 thread.start();
             }
 
-            else if(Math.abs(mNoiseReader.getFrequencyDifference()-mNoiseWriter.getFrequencyDifference()) < 50){
-                Log.d(TAG, "freq = "+mNoiseReader.getFrequencyDifference());
-                if(System.currentTimeMillis()-mLastValidFrequencyMillis < 200){
+            else if(mNoiseReader.getFrequencyDifference()>100 && mNoiseReader.getFrequencyDifference()<900){
+                if(Math.abs(mNoiseReader.getFrequencyDifference()-mLastFrequencyValue) < 50){
                     mValidFrequencyCounter++;
+                    mLastFrequencyValue = mNoiseReader.getFrequencyDifference();
+                    mLastValidFrequencyMillis = System.currentTimeMillis();
                 }
-                else{
+                else if(System.currentTimeMillis()-mLastValidFrequencyMillis > 300){
+                    mLastFrequencyValue = mNoiseReader.getFrequencyDifference();
                     mValidFrequencyCounter = 0;
                 }
-                mLastValidFrequencyMillis = System.currentTimeMillis();
 
                 if(mValidFrequencyCounter > 4){
+                    Log.d(TAG, "Heard "+mNoiseReader.getFrequencyDifference()+" Hz");
+                    mValidFrequencyCounter = 0;
                     mLastStateChangeMillis = System.currentTimeMillis();
                     mCurrentState = State.REFLECTING;
                 }
