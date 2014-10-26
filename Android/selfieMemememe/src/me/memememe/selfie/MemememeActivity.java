@@ -381,7 +381,22 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         else if(mCurrentState == State.SCANNING_LOOKING){
             Log.d(TAG, "state := SCANNING_LOOKING");
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
-            // TODO: detect phone
+
+            if(detectedArray.length > 0){
+                Log.d(TAG, "found something while SCANNING/LOOKING");
+                sendCommandToPlatform("stop").start();
+
+                // in mTempRgba coordinates!!!
+                mCurrentFlashPosition = new Point(
+                        mTempRgba.width()-detectedArray[0].tl().y-detectedArray[0].height/2,
+                        detectedArray[0].br().x-detectedArray[0].width/2);
+
+                mCurrentFlashColor = new Scalar(160, 160, 160, 255);
+                mCurrentFlashText = TEXTS[mRandomGenerator.nextInt(TEXTS.length)];
+                mTempRgba.setTo(mCurrentFlashColor);
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mCurrentState = State.FLASHING;
+            }
 
             // if scanning for 10 seconds, go back to searching
             if(System.currentTimeMillis()-mLastStateChangeMillis > 10000){
@@ -393,7 +408,15 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         else if(mCurrentState == State.SCANNING_REFLECTING){
             Log.d(TAG, "state := SCANNING_REFLECTING");
             mTempRgba.setTo(BLACK_SCREEN_COLOR);
-            // TODO: detect phone
+
+            if(detectedArray.length > 0){
+                Log.d(TAG, "found something while SCANNING/REFLECTING");
+                sendCommandToPlatform("stop").start();
+
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mNoiseWriter.makeSomeNoise(FREQUENCY_YES);
+                mCurrentState = State.MAKING_NOISE_REFLECTING;
+            }
 
             // if scanning for 10 seconds, go back to searching, but let LOOKER know
             if(System.currentTimeMillis()-mLastStateChangeMillis > 10000){
