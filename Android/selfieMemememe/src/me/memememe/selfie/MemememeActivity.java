@@ -49,8 +49,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private static final String SELFIE_FILE_NAME = "selfie.jpg";
     private static final String[] TEXTS = {"me", "meme", "mememe", "memememe", "#selfie"};
     private static final Scalar FACE_RECT_COLOR = new Scalar(0, 255, 0, 255);
-    private static final Scalar FLASH_COLOR = new Scalar(160, 160, 160, 255);
-    private static final Scalar BLACK_SCREEN_COLOR = new Scalar(0, 0, 0, 255);
+    private static final Scalar SCREEN_COLOR_FLASH = new Scalar(160, 160, 160, 255);
+    private static final Scalar SCREEN_COLOR_BLACK = new Scalar(0, 0, 0, 255);
     private static final String OSC_OUT_ADDRESS = Build.SERIAL.equals("04d8d9b29715d6ef")?"10.10.0.110":"10.10.0.111";
     private static final int OSC_OUT_PORT = 8888;
 
@@ -302,7 +302,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
         // states
         if(mCurrentState == State.SEARCHING){
-            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+            mTempRgba.setTo(SCREEN_COLOR_BLACK);
 
             int currentFreqDiff = mNoiseReader.getFrequencyDifference();
 
@@ -395,7 +395,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
         }
         else if(mCurrentState == State.SCANNING_LOOKING){
-            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+            mTempRgba.setTo(SCREEN_COLOR_BLACK);
 
             if(detectedArray.length > 0){
                 Log.d(TAG, "found something while SCANNING/LOOKING");
@@ -406,7 +406,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                         mTempRgba.width()-detectedArray[0].tl().y-detectedArray[0].height/2,
                         detectedArray[0].br().x-detectedArray[0].width/2);
 
-                mCurrentFlashColor = FLASH_COLOR;
+                mCurrentFlashColor = SCREEN_COLOR_FLASH;
                 mCurrentFlashText = TEXTS[mRandomGenerator.nextInt(TEXTS.length)];
                 mTempRgba.setTo(mCurrentFlashColor);
                 mLastStateChangeMillis = System.currentTimeMillis();
@@ -423,7 +423,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
         }
         else if(mCurrentState == State.SCANNING_REFLECTING){
-            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+            mTempRgba.setTo(SCREEN_COLOR_BLACK);
 
             if(detectedArray.length > 0){
                 Log.d(TAG, "found something while SCANNING/REFLECTING");
@@ -455,10 +455,11 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
         }
         else if(mCurrentState == State.MAKING_NOISE_LOOKING){
-            mTempRgba.setTo(FLASH_COLOR);
+            mTempRgba.setTo(SCREEN_COLOR_FLASH);
 
             if((System.currentTimeMillis()-mLastStateChangeMillis) > PERIOD_MAKING_NOISE_LOOKING){
                 mNoiseWriter.stopNoise();
+                mTempRgba.setTo(SCREEN_COLOR_BLACK);
 
                 int currentFreqDiff = mNoiseReader.getFrequencyDifference();
 
@@ -503,7 +504,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
         }
         else if(mCurrentState == State.MAKING_NOISE_REFLECTING){
-            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+            mTempRgba.setTo(SCREEN_COLOR_BLACK);
 
             // if making noise for a while, move on
             if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_MAKING_NOISE_REFLECTING){
@@ -522,7 +523,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
         }
         else if(mCurrentState == State.LOOKING){
-            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+            mTempRgba.setTo(SCREEN_COLOR_BLACK);
 
             if((System.currentTimeMillis()-mLastStateChangeMillis > 100) && (detectedArray.length > 0)){
                 Log.d(TAG, "found something while LOOKING");
@@ -532,7 +533,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                         mTempRgba.width()-detectedArray[0].tl().y-detectedArray[0].height/2,
                         detectedArray[0].br().x-detectedArray[0].width/2);
 
-                mCurrentFlashColor = FLASH_COLOR;
+                mCurrentFlashColor = SCREEN_COLOR_FLASH;
                 mCurrentFlashText = TEXTS[mRandomGenerator.nextInt(TEXTS.length)];
                 mTempRgba.setTo(mCurrentFlashColor);
                 mLastStateChangeMillis = System.currentTimeMillis();
@@ -584,12 +585,12 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 Point mTextOrigin = new Point(
                         mRandomGenerator.nextInt((int)(mRgba.width() - mTextSize.width)),
                         mRandomGenerator.nextInt((int)(mRgba.height() - mTextSize.height)));
-                Core.putText(mRgba, mCurrentFlashText, mTextOrigin, Core.FONT_HERSHEY_PLAIN, mWidthScale, BLACK_SCREEN_COLOR, 16);
+                Core.putText(mRgba, mCurrentFlashText, mTextOrigin, Core.FONT_HERSHEY_PLAIN, mWidthScale, SCREEN_COLOR_BLACK, 16);
             }
             Core.flip(mRgba.t(), mTempRgba, 1);
         }
         else if(mCurrentState == State.WAITING){
-            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+            mTempRgba.setTo(SCREEN_COLOR_BLACK);
             // if waiting for a while, go back to searching
             if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_WAITING){
                 mLastStateChangeMillis = System.currentTimeMillis();
@@ -633,7 +634,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             mCurrentState = State.SEARCHING;
             Log.d(TAG, "state := SEARCHING");
             sendCommandToPlatform("search").start();
-            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+            mTempRgba.setTo(SCREEN_COLOR_BLACK);
         }
 
         Core.flip(mTempRgba, mRgba, 1);
