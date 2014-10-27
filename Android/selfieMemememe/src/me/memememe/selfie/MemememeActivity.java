@@ -54,14 +54,14 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private static final String OSC_OUT_ADDRESS = Build.SERIAL.equals("04d8d9b29715d6ef")?"10.10.0.110":"10.10.0.111";
     private static final int OSC_OUT_PORT = 8888;
 
-    private static final int FREQUENCY_YES = 809;
+    private static final int FREQUENCY_YES = 709;
     private static final int FREQUENCY_NO = 443;
 
     private static final int TIMEOUT_SCANNING = 10000;
     private static final int TIMEOUT_REFLECTING = 5000;
     private static final int TIMEOUT_MAKING_NOISE_LOOKING = 30000;
-    private static final int PERIOD_MAKING_NOISE_LOOKING = 5000;
-    private static final int TIMEOUT_MAKING_NOISE_REFLECTING = 3000;
+    private static final int PERIOD_MAKING_NOISE_LOOKING = 7000;
+    private static final int TIMEOUT_MAKING_NOISE_REFLECTING = 5000;
     private static final int TIMEOUT_FREQUENCY_DETECTION = 300;
     private static final int TIMEOUT_FLASHING = 4000;
     private static final int DELAY_FLASHING = 2000;
@@ -385,7 +385,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                     Log.d(TAG, "Heard "+mNoiseReader.getFrequencyDifference()+" Hz");
                     mLastFrequencyValue = currentFreqDiff;
                     mValidFrequencyCounter = 0;
-                    if((Math.abs(currentFreqDiff-FREQUENCY_YES) < 50) || (Math.abs(currentFreqDiff-FREQUENCY_NO) < 50)){
+                    if((Math.abs(currentFreqDiff-FREQUENCY_YES) < 100) || (Math.abs(currentFreqDiff-FREQUENCY_NO) < 100)){
                         mLastStateChangeMillis = System.currentTimeMillis();
                         mCurrentState = State.SCANNING_REFLECTING;
                         Log.d(TAG, "state := SCANNING_REFLECTING");
@@ -478,13 +478,13 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                         mLastFrequencyValue = 0;
                         mValidFrequencyCounter = 0;
 
-                        if(Math.abs(currentFreqDiff-FREQUENCY_YES) < 50){
+                        if(Math.abs(currentFreqDiff-FREQUENCY_YES) < 100){
                             mLastStateChangeMillis = System.currentTimeMillis();
                             mCurrentState = State.SCANNING_LOOKING;
                             Log.d(TAG, "state := SCANNING_LOOKING");
                             sendCommandToPlatform("scan").start();
                         }
-                        else if(Math.abs(currentFreqDiff-FREQUENCY_NO) < 50){
+                        else if(Math.abs(currentFreqDiff-FREQUENCY_NO) < 100){
                             mLastStateChangeMillis = System.currentTimeMillis();
                             mCurrentState = State.SEARCHING;
                             Log.d(TAG, "state := SEARCHING");
