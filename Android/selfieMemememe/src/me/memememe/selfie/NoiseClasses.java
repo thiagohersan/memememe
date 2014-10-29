@@ -13,6 +13,7 @@ import android.util.Log;
 
 class NoiseReader implements Runnable{
     private static final String TAG = "MEMEMEME::NOISEREADER";
+    private final float SAMPLE_RATE = 44100.0f;
 
     boolean bRun = true;
 
@@ -53,7 +54,11 @@ class NoiseReader implements Runnable{
 
     @Override
     public void run(){
-        mAudioRecord = new AudioRecord(AudioSource.MIC, 44100, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, 8192);
+        mAudioRecord = new AudioRecord(AudioSource.MIC,
+                (int)SAMPLE_RATE,
+                AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT,
+                AudioRecord.getMinBufferSize((int)SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT));
         bRun = true;
         mAudioRecord.startRecording();
 
@@ -90,9 +95,11 @@ class NoiseReader implements Runnable{
 
                 if(deltaFreq > lastFreqs.length-2){
                     lastYesMillis = System.currentTimeMillis();
+                    Log.d(TAG, "YESSSS!!!");
                 }
                 if(-deltaFreq > lastFreqs.length-2){
                     lastNoMillis = System.currentTimeMillis();
+                    Log.d(TAG, "NOOOO....");
                 }
 
                 bRun = !(Thread.currentThread().isInterrupted());
@@ -150,7 +157,12 @@ class NoiseWriter implements Runnable{
 
     @Override
     public void run(){
-        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, (int)SAMPLE_RATE, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, 8192, AudioTrack.MODE_STREAM);
+        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+                (int)SAMPLE_RATE,
+                AudioFormat.CHANNEL_OUT_MONO,
+                AudioFormat.ENCODING_PCM_16BIT,
+                AudioTrack.getMinBufferSize((int)SAMPLE_RATE, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT),
+                AudioTrack.MODE_STREAM);
         bRun = true;
         bMakeSomeNoise = false;
         mAudioTrack.play();
