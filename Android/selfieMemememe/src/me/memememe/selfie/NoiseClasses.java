@@ -23,35 +23,32 @@ class NoiseReader implements Runnable{
     FloatFFT_1D fft = new FloatFFT_1D(mDataFloat.length);
 
     // for finding max frequencies
-    float[] maxFrequencyVals = {0.0f,0.0f};
-    int[] maxFrequencyIndex = {0,0};
+    int maxFreq = 0;
+    int maxMag = 0;
+    int lastFreq = 0;
+    int[] lastFreqs = {0,0,0,0};
+    int deltaFreq;
 
-    // for running average
-    int[] frequencyDiffs = new int[8];
-    int currentDiffIndex = 0;
-    int sumDiffs = 0;
-
-    public synchronized int getFrequencyDifference(){
-        return sumDiffs/frequencyDiffs.length;
+    public synchronized boolean isHearingYes(){
+        return (deltaFreq > lastFreqs.length-2);
+    }
+    public synchronized boolean isHearingNo(){
+        return (-deltaFreq > lastFreqs.length-2);
     }
 
     private synchronized void processFFTResults(){
-        Arrays.fill(maxFrequencyVals,0.0f);
-        Arrays.fill(maxFrequencyIndex, 0);
+        float maxMagF = 0.0f;
+        maxFreq = 0;
+        maxMag = 0;
 
-        for(int i=1; i<mDataFloat.length/4; i++){
+        for(int i=mDataFloat.length/8; i<mDataFloat.length/6; i++){
             float magSq = mDataFloat[2*i]*mDataFloat[2*i] + mDataFloat[2*i+1]*mDataFloat[2*i+1];
-            if(magSq > maxFrequencyVals[0]){
-                maxFrequencyVals[1] = maxFrequencyVals[0];
-                maxFrequencyIndex[1] = maxFrequencyIndex[0];
-                maxFrequencyVals[0] = magSq;
-                maxFrequencyIndex[0] = i;
-            }
-            else if(magSq > maxFrequencyVals[1]){
-                maxFrequencyVals[1] = magSq;
-                maxFrequencyIndex[1] = i;
+            if(magSq > maxMagF){
+                maxMagF = magSq;
+                maxFreq = i;
             }
         }
+        maxMag = ((int)Math.sqrt(maxMagF))/1000;
     }
 
     @Override
@@ -69,12 +66,27 @@ class NoiseReader implements Runnable{
                 fft.realForward(mDataFloat);
                 processFFTResults();
 
-                int newDiff = 44100*Math.abs(maxFrequencyIndex[0]-maxFrequencyIndex[1])/512;
-                // update running average
-                sumDiffs -= frequencyDiffs[currentDiffIndex];
-                frequencyDiffs[currentDiffIndex] = newDiff;
-                sumDiffs += frequencyDiffs[currentDiffIndex];
-                currentDiffIndex = (currentDiffIndex+1)%frequencyDiffs.length;
+                // ignore and clear buffer
+                if(maxMag < 6){
+                    for(int i=0; i<lastFreqs.length; i++){
+                        lastFreqs[i] = 0;
+                    }
+                }
+                // read into buffer
+                else if(maxFreq != lastFreq){
+                    lastFreq = maxFreq;
+                    for(int i=1; i<lastFreqs.length; i++){
+                        lastFreqs[i-1] = lastFreqs[i];
+                    }
+                    lastFreqs[lastFreqs.length-1] = maxFreq;
+                }
+
+                // check what's up
+                deltaFreq = 0;
+                for(int i=1; i<lastFreqs.length; i++){
+                    if(lastFreqs[i] > lastFreqs[i-1]) deltaFreq++;
+                    else if(lastFreqs[i] < lastFreqs[i-1]) deltaFreq--;
+                }
 
                 bRun = !(Thread.currentThread().isInterrupted());
                 Thread.sleep(0, 100);

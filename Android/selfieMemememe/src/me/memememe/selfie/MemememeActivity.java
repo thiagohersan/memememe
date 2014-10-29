@@ -54,15 +54,11 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private static final String OSC_OUT_ADDRESS = Build.SERIAL.equals("04d8d9b29715d6ef")?"10.10.0.110":"10.10.0.111";
     private static final int OSC_OUT_PORT = 8888;
 
-    private static final int FREQUENCY_YES = 709;
-    private static final int FREQUENCY_NO = 443;
-
     private static final int TIMEOUT_SCANNING = 10000;
     private static final int TIMEOUT_REFLECTING = 5000;
     private static final int TIMEOUT_MAKING_NOISE_LOOKING = 30000;
     private static final int PERIOD_MAKING_NOISE_LOOKING = 7000;
     private static final int TIMEOUT_MAKING_NOISE_REFLECTING = 5000;
-    private static final int TIMEOUT_FREQUENCY_DETECTION = 300;
     private static final int TIMEOUT_FLASHING = 4000;
     private static final int DELAY_FLASHING = 2000;
     private static final int TIMEOUT_WAITING = 2000;
@@ -86,10 +82,6 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private String mCurrentFlashText;
     private Random mRandomGenerator;
     private int mImageCounter;
-
-    private long mLastValidFrequencyMillis;
-    private int mValidFrequencyCounter;
-    private int mLastFrequencyValue;
 
     private JumblrClient mTumblrClient;
 
@@ -304,8 +296,6 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         if(mCurrentState == State.SEARCHING){
             mTempRgba.setTo(SCREEN_COLOR_BLACK);
 
-            int currentFreqDiff = mNoiseReader.getFrequencyDifference();
-
             // keep from finding too often
             if((System.currentTimeMillis()-mLastStateChangeMillis > 5000) && (detectedArray.length > 0)){
                 Log.d(TAG, "found something while SEARCHING");
@@ -370,28 +360,12 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 thread.start();
             }
 
-            else if(currentFreqDiff>(FREQUENCY_NO-100) && currentFreqDiff<(FREQUENCY_YES+100)){
-                if(Math.abs(currentFreqDiff-mLastFrequencyValue) < 50){
-                    mValidFrequencyCounter++;
-                    mLastFrequencyValue = currentFreqDiff;
-                    mLastValidFrequencyMillis = System.currentTimeMillis();
-                }
-                else if(System.currentTimeMillis()-mLastValidFrequencyMillis > TIMEOUT_FREQUENCY_DETECTION){
-                    mLastFrequencyValue = currentFreqDiff;
-                    mValidFrequencyCounter = 0;
-                }
-
-                if(mValidFrequencyCounter > 4){
-                    Log.d(TAG, "Heard "+mNoiseReader.getFrequencyDifference()+" Hz");
-                    mLastFrequencyValue = currentFreqDiff;
-                    mValidFrequencyCounter = 0;
-                    if((Math.abs(currentFreqDiff-FREQUENCY_YES) < 100) || (Math.abs(currentFreqDiff-FREQUENCY_NO) < 100)){
-                        mLastStateChangeMillis = System.currentTimeMillis();
-                        mCurrentState = State.SCANNING_REFLECTING;
-                        Log.d(TAG, "state := SCANNING_REFLECTING");
-                        sendCommandToPlatform("scan").start();
-                    }
-                }
+            // no phone detected, check for noises
+            else if(mNoiseReader.isHearingYes() || mNoiseReader.isHearingNo()){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mCurrentState = State.SCANNING_REFLECTING;
+                Log.d(TAG, "state := SCANNING_REFLECTING");
+                sendCommandToPlatform("scan").start();
             }
         }
         else if(mCurrentState == State.SCANNING_LOOKING){
@@ -461,37 +435,17 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mNoiseWriter.stopNoise();
                 mTempRgba.setTo(SCREEN_COLOR_BLACK);
 
-                int currentFreqDiff = mNoiseReader.getFrequencyDifference();
-
-                if(currentFreqDiff>(FREQUENCY_NO-100) && currentFreqDiff<(FREQUENCY_YES+100)){
-                    if(Math.abs(currentFreqDiff-mLastFrequencyValue) < 50){
-                        mValidFrequencyCounter++;
-                        mLastFrequencyValue = currentFreqDiff;
-                        mLastValidFrequencyMillis = System.currentTimeMillis();
-                    }
-                    else if(System.currentTimeMillis()-mLastValidFrequencyMillis > TIMEOUT_FREQUENCY_DETECTION){
-                        mLastFrequencyValue = currentFreqDiff;
-                        mValidFrequencyCounter = 0;
-                    }
-
-                    if(mValidFrequencyCounter > 4){
-                        Log.d(TAG, "Heard "+mNoiseReader.getFrequencyDifference()+" Hz");
-                        mLastFrequencyValue = 0;
-                        mValidFrequencyCounter = 0;
-
-                        if(Math.abs(currentFreqDiff-FREQUENCY_YES) < 100){
-                            mLastStateChangeMillis = System.currentTimeMillis();
-                            mCurrentState = State.SCANNING_LOOKING;
-                            Log.d(TAG, "state := SCANNING_LOOKING");
-                            sendCommandToPlatform("scan").start();
-                        }
-                        else if(Math.abs(currentFreqDiff-FREQUENCY_NO) < 100){
-                            mLastStateChangeMillis = System.currentTimeMillis();
-                            mCurrentState = State.SEARCHING;
-                            Log.d(TAG, "state := SEARCHING");
-                            sendCommandToPlatform("search").start();
-                        }
-                    }
+                if(mNoiseReader.isHearingYes()){
+                    mLastStateChangeMillis = System.currentTimeMillis();
+                    mCurrentState = State.SCANNING_LOOKING;
+                    Log.d(TAG, "state := SCANNING_LOOKING");
+                    sendCommandToPlatform("scan").start();
+                }
+                else if(mNoiseReader.isHearingNo()){
+                    mLastStateChangeMillis = System.currentTimeMillis();
+                    mCurrentState = State.SEARCHING;
+                    Log.d(TAG, "state := SEARCHING");
+                    sendCommandToPlatform("search").start();
                 }
             }
 
