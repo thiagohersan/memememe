@@ -1,6 +1,5 @@
 package me.memememe.selfie;
 
-import java.util.Arrays;
 import java.util.Random;
 
 import org.jtransforms.fft.FloatFFT_1D;
@@ -28,12 +27,13 @@ class NoiseReader implements Runnable{
     int lastFreq = 0;
     int[] lastFreqs = {0,0,0,0};
     int deltaFreq;
+    long lastYesMillis, lastNoMillis;
 
     public synchronized boolean isHearingYes(){
-        return (deltaFreq > lastFreqs.length-2);
+        return (System.currentTimeMillis()-lastYesMillis < 200);
     }
     public synchronized boolean isHearingNo(){
-        return (-deltaFreq > lastFreqs.length-2);
+        return (System.currentTimeMillis()-lastNoMillis < 200);
     }
 
     private synchronized void processFFTResults(){
@@ -86,6 +86,13 @@ class NoiseReader implements Runnable{
                 for(int i=1; i<lastFreqs.length; i++){
                     if(lastFreqs[i] > lastFreqs[i-1]) deltaFreq++;
                     else if(lastFreqs[i] < lastFreqs[i-1]) deltaFreq--;
+                }
+
+                if(deltaFreq > lastFreqs.length-2){
+                    lastYesMillis = System.currentTimeMillis();
+                }
+                if(-deltaFreq > lastFreqs.length-2){
+                    lastNoMillis = System.currentTimeMillis();
                 }
 
                 bRun = !(Thread.currentThread().isInterrupted());
