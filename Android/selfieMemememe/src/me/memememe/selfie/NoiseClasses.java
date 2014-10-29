@@ -88,33 +88,45 @@ class NoiseReader implements Runnable{
 
 class NoiseWriter implements Runnable{
     private static final String TAG = "MEMEMEME::NOISEWRITER";
-    private final float FREQUENCY_BASE = 1009.0f;
-    private final float FREQUENCY_RANGE = 1499.0f;
+    private final float FREQUENCY_MAX = 13000.0f;
+    private final float FREQUENCY_MIN = 11000.0f;
+    private final float FREQUENCY_TONE_DELTA = 300.0f;
+    private final float FREQUENCY_TONE_RANDOM = 100.0f;
     private final float SAMPLE_RATE = 44100.0f;
 
     Random mRandom = new Random();
 
     boolean bRun = true;
     boolean bMakeSomeNoise = false;
+    private float[] mTones = {0,0,0,0};
+    private int toneIndex = 0;
 
     AudioTrack mAudioTrack = null;
     byte[] mData = new byte[1024];
 
     long runningSample = 0L;
     long lastChangeMillis = System.currentTimeMillis();
-    float currentFrequencyDiff = 0;
-    float lowFreqK = (float)(2.0*Math.PI*FREQUENCY_BASE/SAMPLE_RATE);
-    float highFreqK = (float)(2.0*Math.PI*(FREQUENCY_BASE+currentFrequencyDiff)/SAMPLE_RATE);
+    float freqK = 0.0f;
 
-    public synchronized void makeSomeNoise(int freqDiff){
-        currentFrequencyDiff = (float)freqDiff;
+    public synchronized void makeYesNoise(){
+        for(int i=0; i<mTones.length; i++){
+            mTones[i] = FREQUENCY_MIN + i*FREQUENCY_TONE_DELTA + mRandom.nextFloat()*FREQUENCY_TONE_RANDOM;
+        }
+        toneIndex = 0;
+        bMakeSomeNoise = true;
+    }
+    public synchronized void makeNoNoise(){
+        for(int i=0; i<mTones.length; i++){
+            mTones[i] = FREQUENCY_MAX - i*FREQUENCY_TONE_DELTA - mRandom.nextFloat()*FREQUENCY_TONE_RANDOM;
+        }
+        toneIndex = 0;
         bMakeSomeNoise = true;
     }
     public synchronized void stopNoise(){
         bMakeSomeNoise = false;
     }
-    public synchronized int getFrequencyDifference(){
-        return (int)currentFrequencyDiff;
+    public synchronized boolean isMakingYesNoise(){
+        return (mTones[1] > mTones[0]);
     }
 
     @Override
@@ -127,17 +139,19 @@ class NoiseWriter implements Runnable{
         while(bRun){
             try{
                 if(bMakeSomeNoise){
-                    if(System.currentTimeMillis()-lastChangeMillis > 100){
-                        float nFreq = mRandom.nextFloat()*FREQUENCY_RANGE+FREQUENCY_BASE;
-                        lowFreqK = (float)(2.0*Math.PI*nFreq/SAMPLE_RATE);
-                        highFreqK = (float)(2.0*Math.PI*(nFreq+currentFrequencyDiff)/SAMPLE_RATE);
+                    if(System.currentTimeMillis()-lastChangeMillis > 50){
+                        freqK = (float)(2.0*Math.PI*mTones[toneIndex%mTones.length]/SAMPLE_RATE);
                         lastChangeMillis = System.currentTimeMillis();
+                        toneIndex++;
+                        if(toneIndex > 4*mTones.length){
+                            bMakeSomeNoise = false;
+                        }
                     }
 
                     for(int i=0; i<mData.length/2; i++,runningSample++){
-                        double sinSum = Math.sin(lowFreqK*runningSample) + Math.sin(highFreqK*runningSample);
-                        mData[2*i] = (byte)(63.5*sinSum);
-                        mData[2*i+1] = (byte)(63.5*sinSum);
+                        double sinVal = Math.sin(freqK*runningSample);
+                        mData[2*i] = (byte)(63.5*sinVal);
+                        mData[2*i+1] = (byte)(63.5*sinVal);
                     }
                     if(runningSample > (Long.MAX_VALUE-2)){
                         runningSample = 0L;

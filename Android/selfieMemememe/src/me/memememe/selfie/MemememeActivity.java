@@ -359,7 +359,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                             Log.e(TAG, "Null Pointer Exception!!: while sending look osc message.");
                         }
                         mLastStateChangeMillis = System.currentTimeMillis();
-                        mNoiseWriter.makeSomeNoise(FREQUENCY_YES);
+                        mNoiseWriter.makeYesNoise();
                         mCurrentState = State.MAKING_NOISE_LOOKING;
                         Log.d(TAG, "state := MAKING_NOISE_LOOKING");
                     }
@@ -430,7 +430,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 sendCommandToPlatform("stop").start();
 
                 mLastStateChangeMillis = System.currentTimeMillis();
-                mNoiseWriter.makeSomeNoise(FREQUENCY_YES);
+                mNoiseWriter.makeYesNoise();
                 mCurrentState = State.MAKING_NOISE_REFLECTING;
                 Log.d(TAG, "state := MAKING_NOISE_REFLECTING");
             }
@@ -438,7 +438,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             // if scanning for a while, go back to searching, but let LOOKER know
             if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_SCANNING){
                 mLastStateChangeMillis = System.currentTimeMillis();
-                mNoiseWriter.makeSomeNoise(FREQUENCY_NO);
+                mNoiseWriter.makeNoNoise();
                 mCurrentState = State.MAKING_NOISE_REFLECTING;
                 Log.d(TAG, "state := MAKING_NOISE_REFLECTING");
             }
@@ -509,7 +509,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             // if making noise for a while, move on
             if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_MAKING_NOISE_REFLECTING){
                 mNoiseWriter.stopNoise();
-                if(mNoiseWriter.getFrequencyDifference() == FREQUENCY_YES){
+                if(mNoiseWriter.isMakingYesNoise()){
                     mLastStateChangeMillis = System.currentTimeMillis();
                     mCurrentState = State.REFLECTING;
                     Log.d(TAG, "state := REFLECTING");
