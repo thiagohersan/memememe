@@ -2,4 +2,6 @@
 <resources>
     <string name="app_name">Test Infrasound</string>
     <string name="button_quit_text">Quit</string>
+	<string name="button_yes_text">YES</string>
+	<string name="button_no_text">NO</string>
 </resources>

@@ -22,7 +22,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
-import android.widget.ToggleButton;
 
 public class SoundActivity extends Activity {
 	// TAG is used to debug in Android logcat console
@@ -30,10 +29,12 @@ public class SoundActivity extends Activity {
 
 	private AudioTrack mAudioTrack = null;
 	private AudioRecord mAudioRecord = null;
-	private ToggleButton soundButton = null;
 	private Thread audioWriteThread = null;
 	private Thread audioReadThread = null;
 	private Random mRandom = null;
+	private float[] mTones = {0,0,0,0};
+	private int toneIndex = 0;
+	private boolean playSound = false;
 
 	/**/
 	public class DrawView extends View {
@@ -63,6 +64,21 @@ public class SoundActivity extends Activity {
 	DrawView mDrawView;
 	/**/
 
+	public void pressedYes(View v){
+	    for(int i=0; i<mTones.length; i++){
+	        mTones[i] = 11000.0f + i*300.0f + mRandom.nextFloat()*100.0f;
+	    }
+	    toneIndex = 0;
+	    playSound = true;
+	}
+    public void pressedNo(View v){
+        for(int i=0; i<mTones.length; i++){
+            mTones[i] = 13000.0f - i*300.0f - mRandom.nextFloat()*100.0f;
+        }
+        toneIndex = 0;
+        playSound = true;
+    }
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -80,8 +96,6 @@ public class SoundActivity extends Activity {
 		/**/
 		setContentView(mainLayout);
 
-        soundButton = (ToggleButton) findViewById(R.id.soundButton);
-
         // play audio
 		audioWriteThread = new Thread(new Runnable(){
             @Override
@@ -90,25 +104,24 @@ public class SoundActivity extends Activity {
                 byte[] mData = new byte[512];
                 long runningSample = 0L;
                 long lastChangeMillis = System.currentTimeMillis();
-                float cFreq = 1009.0f;
-                float freqDiff = 503.0f;
-                float lowFreqK = (float)(2.0*Math.PI*cFreq/44100.0);
-                float highFreqK = (float)(2.0*Math.PI*(cFreq+freqDiff)/44100.0);
+                float freqK = 0.0f;
 
                 while(bRun){
                     try{
-                        if(soundButton.isChecked()){
-                            if(System.currentTimeMillis()-lastChangeMillis > 100){
-                                cFreq = mRandom.nextFloat()*1499.0f+1009.0f;
-                                lowFreqK = (float)(2.0*Math.PI*cFreq/44100.0);
-                                highFreqK = (float)(2.0*Math.PI*(cFreq+freqDiff)/44100.0);
+                        if(playSound){
+                            if(System.currentTimeMillis()-lastChangeMillis > 50){
+                                freqK = (float)(2.0*Math.PI*mTones[toneIndex%mTones.length]/44100.0);
                                 lastChangeMillis = System.currentTimeMillis();
+                                toneIndex++;
+                                if(toneIndex > 4*mTones.length){
+                                    playSound = false;
+                                }
                             }
 
                             for(int i=0; i<mData.length/2; i++,runningSample++){
-                                double sinSum = Math.sin(lowFreqK*runningSample) + Math.sin(highFreqK*runningSample);
-                                mData[2*i] = (byte)(63.5*sinSum);
-                                mData[2*i+1] = (byte)(63.5*sinSum);
+                                double sinSum = Math.sin(freqK*runningSample);
+                                mData[2*i] = (byte)(127.0*sinSum);
+                                mData[2*i+1] = (byte)(127.0*sinSum);
                             }
                             if(runningSample > (Long.MAX_VALUE-2)){
                                 runningSample = 0L;
@@ -136,23 +149,20 @@ public class SoundActivity extends Activity {
 
 		// read audio
 		audioReadThread = new Thread(new Runnable(){
-		    private int[] getTwoHighestIndexes(float[] f){
-		        float[] maxVals = {0.0f,0.0f};
-		        int[] maxIndex = {0,0};
-		        for(int i=1; i<f.length/4; i++){
+		    int maxFreq = 0;
+		    int maxMag = 0;
+		    private void setHighestIndexAndMagnitude(float[] f){
+		        float maxVal = 0.0f;
+	            maxFreq = 0;
+	            maxMag = 0;
+		        for(int i=f.length/8; i<f.length/6; i++){
 		            float magSq = f[2*i]*f[2*i] + f[2*i+1]*f[2*i+1];
-		            if(magSq > maxVals[0]){
-		                maxVals[1] = maxVals[0];
-		                maxIndex[1] = maxIndex[0];
-		                maxVals[0] = magSq;
-		                maxIndex[0] = i;
-		            }
-		            else if(magSq > maxVals[1]){
-                        maxVals[1] = magSq;
-                        maxIndex[1] = i;
+		            if(magSq > maxVal){
+		                maxVal = magSq;
+		                maxFreq = i;
 		            }
 		        }
-		        return maxIndex;
+		        maxMag = ((int)Math.sqrt(maxVal))/1000;
 		    }
             @Override
             public void run() {
@@ -160,9 +170,8 @@ public class SoundActivity extends Activity {
                 byte[] mData = new byte[1024];
                 float[] mDataFloat = new float[mData.length];
                 FloatFFT_1D fft = new FloatFFT_1D(mDataFloat.length);
-                int[] diffs = new int[8];
-                int currentDiffIndex = 0;
-                int sumDiffs = 0;
+                int lastFreq = 0;
+                int[] lastFreqs = {0,0,0,0};
                 while(bRun){
                     try{
                         mAudioRecord.read(mData, 0, mData.length);
@@ -182,14 +191,35 @@ public class SoundActivity extends Activity {
                         });
                         /**/
 
-                        int[] maxFreqIndexes = getTwoHighestIndexes(mDataFloat);
-                        int newDiff = 44100*Math.abs(maxFreqIndexes[0]-maxFreqIndexes[1])/512;
-                        sumDiffs -= diffs[currentDiffIndex];
-                        diffs[currentDiffIndex] = newDiff;
-                        sumDiffs += diffs[currentDiffIndex];
-                        currentDiffIndex = (currentDiffIndex+1)%diffs.length;
+                        setHighestIndexAndMagnitude(mDataFloat);
+                        // ignore and clear buffer
+                        if(maxMag < 6){
+                            for(int i=0; i<lastFreqs.length; i++){
+                                lastFreqs[i] = 0;
+                            }
+                        }
+                        // read into buffer
+                        else if(maxFreq != lastFreq){
+                            lastFreq = maxFreq;
+                            for(int i=1; i<lastFreqs.length; i++){
+                                lastFreqs[i-1] = lastFreqs[i];
+                            }
+                            lastFreqs[lastFreqs.length-1] = maxFreq;
+                        }
+
+                        // check what's up
+                        int deltaFreq = 0;
+                        for(int i=1; i<lastFreqs.length; i++){
+                            if(lastFreqs[i] > lastFreqs[i-1]) deltaFreq++;
+                            else if(lastFreqs[i] < lastFreqs[i-1]) deltaFreq--;
+                        }
                         
-                        Log.d(TAG, "Freq Diff = "+sumDiffs/diffs.length+" Hz");
+                        if(deltaFreq > lastFreqs.length-2){
+                            Log.d(TAG, "YESSS");
+                        }
+                        else if(-deltaFreq > lastFreqs.length-2){
+                            Log.d(TAG, "NOOOO");
+                        }
 
                         bRun = !(Thread.currentThread().isInterrupted());
                         Thread.sleep(0, 100);
@@ -218,11 +248,6 @@ public class SoundActivity extends Activity {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-	}
-
-	public void playSound(View v){
-	    if(soundButton.isChecked()){}
-	    else{}
 	}
 
 	public void quitActivity(View v){

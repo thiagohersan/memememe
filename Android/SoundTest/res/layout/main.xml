@@ -3,17 +3,28 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" >
-<Button
-    android:text="@string/button_quit_text"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:id="@+id/quitButton"
-    android:onClick="quitActivity" />
-<ToggleButton
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:id="@+id/soundButton"
-    android:textOn="ON"
-    android:textOff="OFF"
-    android:onClick="playSound" />
+    <LinearLayout
+        android:id="@+id/buttonLayout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+        <Button
+            android:text="@string/button_quit_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/quitButton"
+            android:onClick="quitActivity" />
+        <Button
+            android:text="@string/button_yes_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/yesButton"
+            android:onClick="pressedYes" />
+        <Button
+            android:text="@string/button_no_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/noButton"
+            android:onClick="pressedNo" />
+	</LinearLayout>
 </LinearLayout>
