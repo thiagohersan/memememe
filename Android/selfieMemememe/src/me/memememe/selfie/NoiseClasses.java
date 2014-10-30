@@ -122,7 +122,7 @@ class NoiseWriter implements Runnable{
 
     boolean bRun = true;
     boolean bMakeSomeNoise = false;
-    private float[] mTones = {0,0,0,0};
+    private float[] mTones = {0,0,0,0,0};
     private int toneIndex = 0;
 
     AudioTrack mAudioTrack = null;
@@ -148,9 +148,6 @@ class NoiseWriter implements Runnable{
     }
     public synchronized void stopNoise(){
         bMakeSomeNoise = false;
-    }
-    public synchronized boolean isMakingReflectNoise(){
-        return (mTones[1] > mTones[0]);
     }
 
     @Override
