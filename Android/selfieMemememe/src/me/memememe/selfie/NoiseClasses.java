@@ -28,13 +28,13 @@ class NoiseReader implements Runnable{
     int lastFreq = 0;
     int[] lastFreqs = {0,0,0,0};
     int deltaFreq;
-    long lastYesMillis, lastNoMillis;
+    long lastReflectMillis, lastPictureMillis;
 
-    public synchronized boolean isHearingYes(){
-        return (System.currentTimeMillis()-lastYesMillis < 200);
+    public synchronized boolean isHearingReflect(){
+        return (System.currentTimeMillis()-lastReflectMillis < 200);
     }
-    public synchronized boolean isHearingNo(){
-        return (System.currentTimeMillis()-lastNoMillis < 200);
+    public synchronized boolean isHearingPicture(){
+        return (System.currentTimeMillis()-lastPictureMillis < 200);
     }
 
     private synchronized void processFFTResults(){
@@ -94,10 +94,10 @@ class NoiseReader implements Runnable{
                 }
 
                 if(deltaFreq > lastFreqs.length-2){
-                    lastYesMillis = System.currentTimeMillis();
+                    lastReflectMillis = System.currentTimeMillis();
                 }
                 if(-deltaFreq > lastFreqs.length-2){
-                    lastNoMillis = System.currentTimeMillis();
+                    lastPictureMillis = System.currentTimeMillis();
                 }
 
                 bRun = !(Thread.currentThread().isInterrupted());
@@ -132,14 +132,14 @@ class NoiseWriter implements Runnable{
     long lastChangeMillis = System.currentTimeMillis();
     float freqK = 0.0f;
 
-    public synchronized void makeYesNoise(){
+    public synchronized void makeReflectNoise(){
         for(int i=0; i<mTones.length; i++){
             mTones[i] = FREQUENCY_MIN + i*FREQUENCY_TONE_DELTA + mRandom.nextFloat()*FREQUENCY_TONE_RANDOM;
         }
         toneIndex = 0;
         bMakeSomeNoise = true;
     }
-    public synchronized void makeNoNoise(){
+    public synchronized void makePictureNoise(){
         for(int i=0; i<mTones.length; i++){
             mTones[i] = FREQUENCY_MAX - i*FREQUENCY_TONE_DELTA - mRandom.nextFloat()*FREQUENCY_TONE_RANDOM;
         }
@@ -149,7 +149,7 @@ class NoiseWriter implements Runnable{
     public synchronized void stopNoise(){
         bMakeSomeNoise = false;
     }
-    public synchronized boolean isMakingYesNoise(){
+    public synchronized boolean isMakingReflectNoise(){
         return (mTones[1] > mTones[0]);
     }
 
