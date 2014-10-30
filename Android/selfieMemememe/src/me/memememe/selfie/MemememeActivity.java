@@ -46,7 +46,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                                MAKING_REFLECT_NOISE, MAKING_PICTURE_NOISE};
 
     private static final String TAG = "MEMEMEME::SELFIE";
-    private static final String TUMBLR_BLOG_ADDRESS = "memememeselfie.tumblr.com";
+    private static final String TUMBLR_BLOG_ADDRESS = "memememe2memememe.tumblr.com";
     private static final String SELFIE_FILE_NAME = "selfie.jpg";
     private static final String[] TEXTS = {"me", "meme", "mememe", "memememe", "#selfie"};
     private static final Scalar FACE_RECT_COLOR = new Scalar(0, 255, 0, 255);
