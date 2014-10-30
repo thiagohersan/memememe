@@ -172,7 +172,7 @@ class NoiseWriter implements Runnable{
                         freqK = (float)(2.0*Math.PI*mTones[toneIndex%mTones.length]/SAMPLE_RATE);
                         lastChangeMillis = System.currentTimeMillis();
                         toneIndex++;
-                        if(toneIndex > 8*mTones.length){
+                        if(toneIndex > 10*mTones.length){
                             bMakeSomeNoise = false;
                         }
                     }
