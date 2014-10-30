@@ -59,7 +59,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private static final int TIMEOUT_REFLECTING = 10000;
     private static final int TIMEOUT_MAKING_NOISE = 2000;
     private static final int TIMEOUT_FLASHING = 4000;
-    private static final int DELAY_FLASHING = 2000;
+    private static final int DELAY_FLASHING = 1000;
     private static final int TIMEOUT_WAITING = 2000;
 
     private Mat mRgba;
@@ -76,7 +76,6 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
     private State mCurrentState, mLastState;
     private long mLastStateChangeMillis;
-    private Scalar mCurrentFlashColor;
     private Point mCurrentFlashPosition;
     private String mCurrentFlashText;
     private Random mRandomGenerator;
@@ -399,7 +398,6 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 Log.d(TAG, "found something while SCANNING/LOOKING");
 
                 // get ready for FLASH state
-                mCurrentFlashColor = SCREEN_COLOR_FLASH;
                 // in mTempRgba coordinates!!!
                 mCurrentFlashPosition = new Point(
                         mTempRgba.width()-detectedArray[0].tl().y-detectedArray[0].height/2,
@@ -484,19 +482,15 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         else if(mCurrentState == State.FLASHING){
             byte detectedColor[] = new byte[4];
             mTempRgba.get((int)mCurrentFlashPosition.y,(int)mCurrentFlashPosition.x,detectedColor);
+            mTempRgba.setTo(SCREEN_COLOR_FLASH);
 
             // checking these 2 values seem to be enough
-            if(System.currentTimeMillis()-mLastStateChangeMillis > DELAY_FLASHING){
-                if((detectedColor[1]&0xff)>200 && (detectedColor[2]&0xff)>200){
-                    mLastStateChangeMillis = System.currentTimeMillis();
-                    mLastState = State.FLASHING;
-                    mCurrentState = State.POSTING;
-                    Log.d(TAG, "state := POSTING");
-                    mTempRgba.setTo(SCREEN_COLOR_FLASH);
-                }
-            }
-            else{
-                mTempRgba.setTo(mCurrentFlashColor);
+            if((System.currentTimeMillis()-mLastStateChangeMillis > DELAY_FLASHING) &&
+                    ((detectedColor[1]&0xff)>200 && (detectedColor[2]&0xff)>200)){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.FLASHING;
+                mCurrentState = State.POSTING;
+                Log.d(TAG, "state := POSTING");
             }
 
             // if flashing for a while, go back to searching
