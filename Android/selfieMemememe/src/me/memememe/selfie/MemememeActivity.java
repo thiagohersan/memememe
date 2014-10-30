@@ -46,6 +46,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                                MAKING_REFLECT_NOISE, MAKING_PICTURE_NOISE};
 
     private static final String TAG = "MEMEMEME::SELFIE";
+    private static final String TUMBLR_BLOG_ADDRESS = "memememeselfie.tumblr.com";
     private static final String SELFIE_FILE_NAME = "selfie.jpg";
     private static final String[] TEXTS = {"me", "meme", "mememe", "memememe", "#selfie"};
     private static final Scalar FACE_RECT_COLOR = new Scalar(0, 255, 0, 255);
@@ -152,10 +153,10 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         mRandomGenerator = new Random();
         mImageCounter = 0;
         mTumblrClient = new JumblrClient(
-                "16svfFXx0K9IMsV8TCCjDhTMrIiKpJLlTTlCOfVJjNREaHjgNm",
-                "tuitRq41Y1QO9shzegw6YkAuYNCqMH6FDvKVQX7d3yLN5ydVS9",
-                "Zhf9R1oEEAn39Q2OAHiEcB4XasHjcJBw2Y5MwbFbAZFQ7R9Icr",
-                "zP50LmZLOsEAVyyMuoF5QPRU7I1tnzTJASHp4na3oZOFEYfqfp");
+                getString(R.string.consumer_key),
+                getString(R.string.consumer_secret),
+                getString(R.string.oauth_token),
+                getString(R.string.oauth_token_secret));
 
         mNoiseReader = new NoiseReader();
         mNoiseWriter = new NoiseWriter();
@@ -542,7 +543,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 @Override
                 public void run() {
                     try{
-                        PhotoPost mPP = mTumblrClient.newPost("memememeselfie.tumblr.com", PhotoPost.class);
+                        PhotoPost mPP = mTumblrClient.newPost(TUMBLR_BLOG_ADDRESS, PhotoPost.class);
                         mPP.setData(file);
                         mPP.save();
                     }
