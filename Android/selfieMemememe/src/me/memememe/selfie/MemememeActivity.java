@@ -394,7 +394,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         else if(mCurrentState == State.SCANNING){
             mTempRgba.setTo(SCREEN_COLOR_BLACK);
 
-            if(detectedArray.length > 0){
+            if((System.currentTimeMillis()-mLastStateChangeMillis > 500) && (detectedArray.length > 0)){
                 Log.d(TAG, "found something while SCANNING/LOOKING");
 
                 // get ready for FLASH state
@@ -419,7 +419,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 sendCommandToPlatform("stop").start();
             }
             // if other phone sees me
-            else if(mNoiseReader.isHearingReflect()){
+            else if((System.currentTimeMillis()-mLastStateChangeMillis > 500) && mNoiseReader.isHearingReflect()){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mLastState = State.SCANNING;
                 mCurrentState = State.REFLECTING;
