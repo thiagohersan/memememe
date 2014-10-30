@@ -55,7 +55,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private static final int OSC_OUT_PORT = 8888;
 
     private static final int TIMEOUT_SCANNING = 10000;
-    private static final int TIMEOUT_REFLECTING = 5000;
+    private static final int TIMEOUT_REFLECTING = 10000;
     private static final int TIMEOUT_MAKING_NOISE_LOOKING = 15000;
     private static final int PERIOD_MAKING_NOISE_LOOKING = 2000;
     private static final int TIMEOUT_MAKING_NOISE_REFLECTING = 2000;
