@@ -109,11 +109,11 @@ public class SoundActivity extends Activity {
                 while(bRun){
                     try{
                         if(playSound){
-                            if(System.currentTimeMillis()-lastChangeMillis > 50){
+                            if(System.currentTimeMillis()-lastChangeMillis > 25){
                                 freqK = (float)(2.0*Math.PI*mTones[toneIndex%mTones.length]/44100.0);
                                 lastChangeMillis = System.currentTimeMillis();
                                 toneIndex++;
-                                if(toneIndex > 4*mTones.length){
+                                if(toneIndex > 8*mTones.length){
                                     playSound = false;
                                 }
                             }
