@@ -95,11 +95,9 @@ class NoiseReader implements Runnable{
 
                 if(deltaFreq > lastFreqs.length-2){
                     lastYesMillis = System.currentTimeMillis();
-                    Log.d(TAG, "YESSSS!!!");
                 }
                 if(-deltaFreq > lastFreqs.length-2){
                     lastNoMillis = System.currentTimeMillis();
-                    Log.d(TAG, "NOOOO....");
                 }
 
                 bRun = !(Thread.currentThread().isInterrupted());
@@ -170,11 +168,11 @@ class NoiseWriter implements Runnable{
         while(bRun){
             try{
                 if(bMakeSomeNoise){
-                    if(System.currentTimeMillis()-lastChangeMillis > 50){
+                    if(System.currentTimeMillis()-lastChangeMillis > 25){
                         freqK = (float)(2.0*Math.PI*mTones[toneIndex%mTones.length]/SAMPLE_RATE);
                         lastChangeMillis = System.currentTimeMillis();
                         toneIndex++;
-                        if(toneIndex > 4*mTones.length){
+                        if(toneIndex > 8*mTones.length){
                             bMakeSomeNoise = false;
                         }
                     }
