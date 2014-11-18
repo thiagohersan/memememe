@@ -3,17 +3,18 @@ isrun=`ps -u root | grep python | wc -l`
 if [ $isrun -lt 1 ]
 then
     cd /home/pi/Dev/memememe/Python/selfieMemememe
-    rm -rf ./stop.sh
-    while [ ! -f ./stop.sh ]
+    cnt=0
+    while [ $cnt -lt 50 ]
     do
 	sudo python selfieMemememe.py &
 	sleep 1
 	killsudopid=$!
 	killpythonpid=`ps -u root | awk '/python/{print $1}'`
-	sleep 5
+	sleep 600
 	sudo kill -9 $killpythonpid
 	sudo kill -9 $killsudopid
+	let cnt=cnt+1
+	echo $cnt
     done
-    rm -rf ./stop.sh
-    #sudo halt -n
+    sudo halt -n
 fi
