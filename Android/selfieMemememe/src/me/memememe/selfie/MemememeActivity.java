@@ -76,6 +76,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
     private State mCurrentState, mLastState;
     private long mLastStateChangeMillis;
+    private long mLastSearchSendMillis;
     private Point mCurrentFlashPosition;
     private String mCurrentFlashText;
     private Random mRandomGenerator;
@@ -213,6 +214,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         mCurrentState = State.SEARCHING;
         Log.d(TAG, "state := SEARCHING");
         // send first message to motors
+        mLastSearchSendMillis = System.currentTimeMillis();
         sendCommandToPlatform("search").start();
 
         mLastStateChangeMillis = System.currentTimeMillis();
@@ -294,6 +296,12 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         // states
         if(mCurrentState == State.SEARCHING){
             mTempRgba.setTo(SCREEN_COLOR_BLACK);
+
+            // send search to motors
+            if(System.currentTimeMillis()-mLastSearchSendMillis > 1000){
+                mLastSearchSendMillis = System.currentTimeMillis();
+                sendCommandToPlatform("search").start();
+            }
 
             // keep from finding too often
             if((System.currentTimeMillis()-mLastStateChangeMillis > 5000) && (detectedArray.length > 0)){
