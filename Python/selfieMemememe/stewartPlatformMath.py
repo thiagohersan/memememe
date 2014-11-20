@@ -53,7 +53,7 @@ class StewartPlatformMath:
                 (cos(self.rotation.z)*cos(self.rotation.x)+sin(self.rotation.z)*sin(self.rotation.y)*sin(self.rotation.x))*joint.y +
                 (-cos(self.rotation.z)*sin(self.rotation.x)+sin(self.rotation.z)*sin(self.rotation.y)*cos(self.rotation.x))*joint.z)
 
-            self.q[i].z = (-sin(self.rotation.y)*self.platformJoint[i].x +
+            self.q[i].z = (-sin(self.rotation.y)*joint.x +
                 cos(self.rotation.y)*sin(self.rotation.x)*joint.y +
                 cos(self.rotation.y)*cos(self.rotation.x)*joint.z)
 

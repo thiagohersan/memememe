@@ -42,18 +42,25 @@ import android.util.Log;
 import android.view.WindowManager;
 
 public class MemememeActivity extends Activity implements CvCameraViewListener2 {
-    private static enum Type {LOOKER, REFLECTER};
-    private final Type mType = (Build.SERIAL.equals("04d8d9b29715d6ef")?Type.LOOKER:Type.REFLECTER);
-
-    private static enum State {WAITING, SEARCHING, LOOKING, REFLECTING, FLASHING, POSTING};
+    private static enum State {WAITING, SEARCHING, REFLECTING, FLASHING, POSTING, SCANNING,
+                               MAKING_REFLECT_NOISE, MAKING_PICTURE_NOISE};
 
     private static final String TAG = "MEMEMEME::SELFIE";
+    private static final String TUMBLR_BLOG_ADDRESS = "memememe2memememe.tumblr.com";
     private static final String SELFIE_FILE_NAME = "selfie.jpg";
     private static final String[] TEXTS = {"me", "meme", "mememe", "memememe", "#selfie"};
     private static final Scalar FACE_RECT_COLOR = new Scalar(0, 255, 0, 255);
-    private static final Scalar BLACK_SCREEN_COLOR = new Scalar(0, 0, 0, 255);
-    private static final String OSC_OUT_ADDRESS = "172.26.10.132";
+    private static final Scalar SCREEN_COLOR_FLASH = new Scalar(160, 160, 160, 255);
+    private static final Scalar SCREEN_COLOR_BLACK = new Scalar(0, 0, 0, 255);
+    private static final String OSC_OUT_ADDRESS = Build.SERIAL.equals("04d8d9b29715d6ef")?"10.10.0.110":"10.10.0.111";
     private static final int OSC_OUT_PORT = 8888;
+
+    private static final int TIMEOUT_SCANNING = 10000;
+    private static final int TIMEOUT_REFLECTING = 10000;
+    private static final int TIMEOUT_MAKING_NOISE = 2000;
+    private static final int TIMEOUT_FLASHING = 4000;
+    private static final int DELAY_FLASHING = 1000;
+    private static final int TIMEOUT_WAITING = 2000;
 
     private Mat mRgba;
     private Mat mGray;
@@ -67,15 +74,20 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private CameraBridgeViewBase mOpenCvCameraView;
     private OSCPortOut mOscOut;
 
-    private State mCurrentState;
+    private State mCurrentState, mLastState;
     private long mLastStateChangeMillis;
-    private Scalar mCurrentFlashColor;
+    private long mLastSearchSendMillis;
     private Point mCurrentFlashPosition;
     private String mCurrentFlashText;
     private Random mRandomGenerator;
     private int mImageCounter;
 
     private JumblrClient mTumblrClient;
+
+    private NoiseReader mNoiseReader = null;
+    private NoiseWriter mNoiseWriter = null;
+    private Thread noiseReaderThread = null;
+    private Thread noiseWriterThread = null;
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -141,10 +153,15 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         mRandomGenerator = new Random();
         mImageCounter = 0;
         mTumblrClient = new JumblrClient(
-                "16svfFXx0K9IMsV8TCCjDhTMrIiKpJLlTTlCOfVJjNREaHjgNm",
-                "tuitRq41Y1QO9shzegw6YkAuYNCqMH6FDvKVQX7d3yLN5ydVS9",
-                "Zhf9R1oEEAn39Q2OAHiEcB4XasHjcJBw2Y5MwbFbAZFQ7R9Icr",
-                "zP50LmZLOsEAVyyMuoF5QPRU7I1tnzTJASHp4na3oZOFEYfqfp");
+                getString(R.string.consumer_key),
+                getString(R.string.consumer_secret),
+                getString(R.string.oauth_token),
+                getString(R.string.oauth_token_secret));
+
+        mNoiseReader = new NoiseReader();
+        mNoiseWriter = new NoiseWriter();
+        noiseReaderThread = new Thread(mNoiseReader);
+        noiseWriterThread = new Thread(mNoiseWriter);
     }
 
     @Override
@@ -162,6 +179,14 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
         if(mNativeDetector != null) mNativeDetector.release();
         if(mOscOut != null) mOscOut.close();
+
+        try{
+            noiseReaderThread.interrupt();
+            noiseWriterThread.interrupt();
+            noiseReaderThread.join(500);
+            noiseWriterThread.join(500);
+        }
+        catch(InterruptedException e){}
     }
 
     @Override
@@ -180,12 +205,17 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             Log.e(TAG, "Socket Exception!!: while starting OscOut with (address, port): "+OSC_OUT_ADDRESS+", "+OSC_OUT_PORT);
         }
 
-        // send first message to motors
-        sendSearchToPlatform().start();
+        // start sound threads
+        noiseReaderThread.start();
+        noiseWriterThread.start();
 
         // initialize state machine
+        mLastState = State.SEARCHING;
         mCurrentState = State.SEARCHING;
-        if(mType == Type.REFLECTER) mCurrentState = State.REFLECTING;
+        Log.d(TAG, "state := SEARCHING");
+        // send first message to motors
+        mLastSearchSendMillis = System.currentTimeMillis();
+        sendCommandToPlatform("search").start();
 
         mLastStateChangeMillis = System.currentTimeMillis();
     }
@@ -211,12 +241,13 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         mTempRgba.release();
     }
 
-    private Thread sendSearchToPlatform(){
+    private Thread sendCommandToPlatform(String cmd){
+        final String theCommand = "/memememe/"+cmd;
         Thread thread = new Thread(new Runnable(){
             @Override
             public void run() {
                 try{
-                    mOscOut.send(new OSCMessage("/memememe/search"));
+                    mOscOut.send(new OSCMessage(theCommand));
                 }
                 catch(IOException e){
                     Log.e(TAG, "IO Exception!!: while sending search osc message.");
@@ -264,7 +295,13 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
         // states
         if(mCurrentState == State.SEARCHING){
-            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+            mTempRgba.setTo(SCREEN_COLOR_BLACK);
+
+            // send search to motors
+            if(System.currentTimeMillis()-mLastSearchSendMillis > 1000){
+                mLastSearchSendMillis = System.currentTimeMillis();
+                sendCommandToPlatform("search").start();
+            }
 
             // keep from finding too often
             if((System.currentTimeMillis()-mLastStateChangeMillis > 5000) && (detectedArray.length > 0)){
@@ -319,76 +356,158 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                             Log.e(TAG, "Null Pointer Exception!!: while sending look osc message.");
                         }
                         mLastStateChangeMillis = System.currentTimeMillis();
-                        mCurrentState = (mRandomGenerator.nextBoolean())?State.LOOKING:State.REFLECTING;
-                        if(mType == Type.LOOKER) mCurrentState = State.LOOKING;
+                        mNoiseWriter.makeReflectNoise();
+                        mLastState = State.WAITING;
+                        mCurrentState = State.MAKING_REFLECT_NOISE;
+                        Log.d(TAG, "state := MAKING_REFLECT_NOISE");
                     }
                 });
                 mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.SEARCHING;
                 mCurrentState = State.WAITING;
+                Log.d(TAG, "state := WAITING");
                 thread.start();
             }
-        }
-        else if(mCurrentState == State.REFLECTING){
-            Log.d(TAG, "state := REFLECTING");
-            // do nothing to image
 
-            // if reflecting for 5 seconds, go back to searching
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 5000){
+            // no phone detected, check for noises
+            else if(mNoiseReader.isHearingReflect()){
                 mLastStateChangeMillis = System.currentTimeMillis();
-                mCurrentState = State.SEARCHING;
-                if(mType == Type.REFLECTER) mCurrentState = State.REFLECTING;
-                sendSearchToPlatform().start();
+                mLastState = State.SEARCHING;
+                mCurrentState = State.REFLECTING;
+                Log.d(TAG, "state := REFLECTING");
+                sendCommandToPlatform("scan").start();
             }
         }
-        else if(mCurrentState == State.LOOKING){
-            Log.d(TAG, "state := LOOKING");
-            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+        else if(mCurrentState == State.MAKING_REFLECT_NOISE){
+            mTempRgba.setTo(SCREEN_COLOR_FLASH);
 
-            if((System.currentTimeMillis()-mLastStateChangeMillis > 100) && (detectedArray.length > 0)){
-                Log.d(TAG, "found something while LOOKING");
+            if((System.currentTimeMillis()-mLastStateChangeMillis) > TIMEOUT_MAKING_NOISE){
+                mNoiseWriter.stopNoise();
 
+                // next state logic
+                if(mLastState == State.SCANNING){
+                    sendCommandToPlatform("stop").start();
+                    mCurrentState = State.FLASHING;
+                    Log.d(TAG, "state := FLASHING");
+                }
+                else{
+                    mCurrentState = State.SCANNING;
+                    Log.d(TAG, "state := SCANNING");
+                    sendCommandToPlatform("scan").start();
+                }
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.MAKING_REFLECT_NOISE;
+            }
+        }
+        else if(mCurrentState == State.SCANNING){
+            mTempRgba.setTo(SCREEN_COLOR_BLACK);
+
+            if((System.currentTimeMillis()-mLastStateChangeMillis > 500) && (detectedArray.length > 0)){
+                Log.d(TAG, "found something while SCANNING/LOOKING");
+
+                // get ready for FLASH state
                 // in mTempRgba coordinates!!!
                 mCurrentFlashPosition = new Point(
                         mTempRgba.width()-detectedArray[0].tl().y-detectedArray[0].height/2,
                         detectedArray[0].br().x-detectedArray[0].width/2);
 
-                mCurrentFlashColor = new Scalar(160, 160, 160, 255);
-                mCurrentFlashText = TEXTS[mRandomGenerator.nextInt(TEXTS.length)];
-                mTempRgba.setTo(mCurrentFlashColor);
                 mLastStateChangeMillis = System.currentTimeMillis();
-                mCurrentState = State.FLASHING;
+                mNoiseWriter.makeReflectNoise();
+                mLastState = State.SCANNING;
+                mCurrentState = State.MAKING_REFLECT_NOISE;
+                Log.d(TAG, "state := MAKING_REFLECT_NOISE");
+            }
+            // if other phone reflects me
+            else if(mNoiseReader.isHearingPicture()){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.SCANNING;
+                mCurrentState = State.POSTING;
+                Log.d(TAG, "state := POSTING");
+                sendCommandToPlatform("stop").start();
+            }
+            // if other phone sees me
+            else if((System.currentTimeMillis()-mLastStateChangeMillis > 500) && mNoiseReader.isHearingReflect()){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.SCANNING;
+                mCurrentState = State.REFLECTING;
+                Log.d(TAG, "state := REFLECTING");
+                sendCommandToPlatform("scan").start();
             }
 
-            // if looking for more than 5 seconds, go back to searching
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 5000){
+            // if scanning for a while, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_SCANNING){
                 mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.SCANNING;
                 mCurrentState = State.SEARCHING;
-                sendSearchToPlatform().start();
+                Log.d(TAG, "state := SEARCHING");
+                sendCommandToPlatform("search").start();
+            }
+        }
+        else if(mCurrentState == State.REFLECTING){
+            // do nothing to image
+
+            // if detect other phone, stop
+            if(detectedArray.length > 0){
+                Log.d(TAG, "found something while REFLECTING");
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mNoiseWriter.makePictureNoise();
+                mLastState = State.REFLECTING;
+                mCurrentState = State.MAKING_PICTURE_NOISE;
+                Log.d(TAG, "state := MAKING_PICTURE_NOISE");
+                sendCommandToPlatform("stop").start();
+            }
+            // if other phone sees me
+            else if(mNoiseReader.isHearingReflect()){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.REFLECTING;
+                mCurrentState = State.REFLECTING;
+                Log.d(TAG, "state := REFLECTING");
+                sendCommandToPlatform("scan").start();
+            }
+
+            // if reflecting for a while, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_REFLECTING){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.REFLECTING;
+                mCurrentState = State.SEARCHING;
+                Log.d(TAG, "state := SEARCHING");
+                sendCommandToPlatform("search").start();
+            }
+        }
+        else if(mCurrentState == State.MAKING_PICTURE_NOISE){
+            // do nothing to image
+
+            // if making noise for a while, move on
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_MAKING_NOISE){
+                mNoiseWriter.stopNoise();
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.MAKING_PICTURE_NOISE;
+                mCurrentState = State.SEARCHING;
+                Log.d(TAG, "state := SEARCHING");
+                sendCommandToPlatform("search").start();
             }
         }
         else if(mCurrentState == State.FLASHING){
-            Log.d(TAG, "state := FLASHING");
-
             byte detectedColor[] = new byte[4];
             mTempRgba.get((int)mCurrentFlashPosition.y,(int)mCurrentFlashPosition.x,detectedColor);
+            mTempRgba.setTo(SCREEN_COLOR_FLASH);
 
             // checking these 2 values seem to be enough
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 2000){
-                if((detectedColor[1]&0xff)>200 && (detectedColor[2]&0xff)>200){
-                    mLastStateChangeMillis = System.currentTimeMillis();
-                    mCurrentState = State.POSTING;
-                    mTempRgba.setTo(new Scalar(160, 160, 160, 255));
-                }
-            }
-            else{
-                mTempRgba.setTo(mCurrentFlashColor);
+            if((System.currentTimeMillis()-mLastStateChangeMillis > DELAY_FLASHING) &&
+                    ((detectedColor[1]&0xff)>200 && (detectedColor[2]&0xff)>200)){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.FLASHING;
+                mCurrentState = State.POSTING;
+                Log.d(TAG, "state := POSTING");
             }
 
-            // if flashing for more than 1 second, go back to searching
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 4000){
+            // if flashing for a while, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_FLASHING){
                 mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.FLASHING;
                 mCurrentState = State.SEARCHING;
-                sendSearchToPlatform().start();
+                Log.d(TAG, "state := SEARCHING");
+                sendCommandToPlatform("search").start();
             }
 
             Core.flip(mTempRgba.t(), mRgba, 1);
@@ -400,23 +519,22 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 Point mTextOrigin = new Point(
                         mRandomGenerator.nextInt((int)(mRgba.width() - mTextSize.width)),
                         mRandomGenerator.nextInt((int)(mRgba.height() - mTextSize.height)));
-                Core.putText(mRgba, mCurrentFlashText, mTextOrigin, Core.FONT_HERSHEY_PLAIN, mWidthScale, BLACK_SCREEN_COLOR, 16);
+                Core.putText(mRgba, mCurrentFlashText, mTextOrigin, Core.FONT_HERSHEY_PLAIN, mWidthScale, SCREEN_COLOR_BLACK, 16);
             }
             Core.flip(mRgba.t(), mTempRgba, 1);
         }
         else if(mCurrentState == State.WAITING){
-            Log.d(TAG, "state := WAITING");
-            mTempRgba.setTo(BLACK_SCREEN_COLOR);
-            // if waiting for 2 seconds, go back to searching
-            if(System.currentTimeMillis()-mLastStateChangeMillis > 2000){
+            mTempRgba.setTo(SCREEN_COLOR_BLACK);
+            // if waiting for a while, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_WAITING){
                 mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.WAITING;
                 mCurrentState = State.SEARCHING;
-                sendSearchToPlatform().start();
+                Log.d(TAG, "state := SEARCHING");
+                sendCommandToPlatform("search").start();
             }
         }
         else if(mCurrentState == State.POSTING){
-            Log.d(TAG, "state := POSTING");
-
             Core.flip(mTempRgba.t(), mRgba, 0);
             Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
 
@@ -427,7 +545,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 @Override
                 public void run() {
                     try{
-                        PhotoPost mPP = mTumblrClient.newPost("memememeselfie.tumblr.com", PhotoPost.class);
+                        PhotoPost mPP = mTumblrClient.newPost(TUMBLR_BLOG_ADDRESS, PhotoPost.class);
                         mPP.setData(file);
                         mPP.save();
                     }
@@ -448,9 +566,11 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             tumblrThread.start();
 
             mLastStateChangeMillis = System.currentTimeMillis();
+            mLastState = State.POSTING;
             mCurrentState = State.SEARCHING;
-            sendSearchToPlatform().start();
-            mTempRgba.setTo(BLACK_SCREEN_COLOR);
+            Log.d(TAG, "state := SEARCHING");
+            sendCommandToPlatform("search").start();
+            mTempRgba.setTo(SCREEN_COLOR_BLACK);
         }
 
         Core.flip(mTempRgba, mRgba, 1);
