@@ -35,6 +35,8 @@ public class SoundActivity extends Activity {
 	private float[] mTones = {0,0,0,0};
 	private int toneIndex = 0;
 	private boolean playSound = false;
+	private int currentBackgroundColor = Color.BLACK;
+	private long lastBackgroundColorChangeMillis = System.currentTimeMillis();
 
 	/**/
 	public class DrawView extends View {
@@ -54,7 +56,7 @@ public class SoundActivity extends Activity {
 
 	    @Override
 	    public synchronized void onDraw(Canvas canvas) {
-	        canvas.drawColor(Color.BLACK);
+	        canvas.drawColor(currentBackgroundColor);
 	        paint.setColor(Color.WHITE);
 	        for(int x=0; x<mData.length; x++){
 	            canvas.drawLine(x+20, 700, x+20, 700-mData[x], paint);
@@ -216,9 +218,17 @@ public class SoundActivity extends Activity {
                         
                         if(deltaFreq > lastFreqs.length-2){
                             Log.d(TAG, "YESSS");
+                            currentBackgroundColor = Color.rgb(12,116,12);
+                            lastBackgroundColorChangeMillis = System.currentTimeMillis();
                         }
                         else if(-deltaFreq > lastFreqs.length-2){
                             Log.d(TAG, "NOOOO");
+                            currentBackgroundColor = Color.rgb(116,12,12);
+                            lastBackgroundColorChangeMillis = System.currentTimeMillis();
+                        }
+                        else if(System.currentTimeMillis()-lastBackgroundColorChangeMillis > 800){
+                            currentBackgroundColor = Color.BLACK;
+                            lastBackgroundColorChangeMillis = System.currentTimeMillis();
                         }
 
                         bRun = !(Thread.currentThread().isInterrupted());
