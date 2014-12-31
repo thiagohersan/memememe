@@ -37,6 +37,7 @@ public class SoundActivity extends Activity {
 	private boolean playSound = false;
 	private int currentBackgroundColor = Color.BLACK;
 	private long lastBackgroundColorChangeMillis = System.currentTimeMillis();
+	private long lastToneChangeMillis = System.currentTimeMillis();
 
 	/**/
 	public class DrawView extends View {
@@ -105,15 +106,14 @@ public class SoundActivity extends Activity {
                 boolean bRun = true;
                 byte[] mData = new byte[512];
                 long runningSample = 0L;
-                long lastChangeMillis = System.currentTimeMillis();
                 float freqK = 0.0f;
 
                 while(bRun){
                     try{
                         if(playSound){
-                            if(System.currentTimeMillis()-lastChangeMillis > 25){
+                            if(System.currentTimeMillis()-lastToneChangeMillis > 25){
                                 freqK = (float)(2.0*Math.PI*mTones[toneIndex%mTones.length]/44100.0);
-                                lastChangeMillis = System.currentTimeMillis();
+                                lastToneChangeMillis = System.currentTimeMillis();
                                 toneIndex++;
                                 if(toneIndex > 8*mTones.length){
                                     playSound = false;
@@ -218,13 +218,17 @@ public class SoundActivity extends Activity {
                         
                         if(deltaFreq > lastFreqs.length-2){
                             Log.d(TAG, "YESSS");
-                            currentBackgroundColor = Color.rgb(12,116,12);
-                            lastBackgroundColorChangeMillis = System.currentTimeMillis();
+                            if(System.currentTimeMillis()-lastToneChangeMillis > 500){
+                                currentBackgroundColor = Color.rgb(12,116,12);
+                                lastBackgroundColorChangeMillis = System.currentTimeMillis();
+                            }
                         }
                         else if(-deltaFreq > lastFreqs.length-2){
                             Log.d(TAG, "NOOOO");
-                            currentBackgroundColor = Color.rgb(116,12,12);
-                            lastBackgroundColorChangeMillis = System.currentTimeMillis();
+                            if(System.currentTimeMillis()-lastToneChangeMillis > 500){
+                                currentBackgroundColor = Color.rgb(116,12,12);
+                                lastBackgroundColorChangeMillis = System.currentTimeMillis();
+                            }
                         }
                         else if(System.currentTimeMillis()-lastBackgroundColorChangeMillis > 800){
                             currentBackgroundColor = Color.BLACK;
