@@ -15,11 +15,11 @@ class Platform {
    -8*PI/3, PI/3, 0, -PI, -4*PI/3, -7*PI/3};
 
   // REAL MEASUREMENTS
-  private final float SCALE_INITIAL_HEIGHT = 250;
-  private final float SCALE_BASE_RADIUS = 140;
+  private final float SCALE_INITIAL_HEIGHT = 120; //  250
+  private final float SCALE_BASE_RADIUS = 53.2; //140
   private final float SCALE_PLATFORM_RADIUS = 32;
   private final float SCALE_HORN_LENGTH = 36;
-  private final float SCALE_LEG_LENGTH = 270;
+  private final float SCALE_LEG_LENGTH = 125; // 270
 
   public Platform(float s) {
     translation = new PVector();
@@ -162,4 +162,3 @@ class Platform {
     popMatrix();
   }
 }
-

@@ -22,7 +22,7 @@ void setup() {
   smooth();
   frameRate(60);
 
-  mOscOut = new NetAddress("meme00.local", 8888);
+  mOscOut = new NetAddress("192.168.0.28", 8888);
 
   textSize(20);
 
@@ -124,7 +124,7 @@ void mouseDragged () {
     float py = map(mouseY, 0, height, -1, 1);
     posX = px;
     posY = py;
-    sendOSC();
+   // sendOSC();
   }
 }
 
@@ -146,4 +146,3 @@ void keyReleased() {
     ctlPressed = false;
   }
 }
-
