@@ -1,4 +1,4 @@
-import peasy.*;
+import peasy.*; //<>//
 import controlP5.*;
 import oscP5.*;
 import netP5.*; //osc library
@@ -22,7 +22,7 @@ void setup() {
   smooth();
   frameRate(60);
 
-  mOscOut = new NetAddress("192.168.0.28", 8888);
+  mOscOut = new NetAddress("192.168.0.24", 8888);
 
   textSize(20);
 
@@ -37,23 +37,23 @@ void setup() {
 
   cp5.addSlider("posX")
     .setPosition(20, 20)
-      .setSize(180, 40).setRange(-1, 1);
+    .setSize(180, 40).setRange(-1, 1);
   cp5.addSlider("posY")
     .setPosition(20, 70)
-      .setSize(180, 40).setRange(-1, 1);
+    .setSize(180, 40).setRange(-1, 1);
   cp5.addSlider("posZ")
     .setPosition(20, 120)
-      .setSize(180, 40).setRange(-1, 1);
+    .setSize(180, 40).setRange(-1, 1);
 
   cp5.addSlider("rotX")
     .setPosition(width-200, 20)
-      .setSize(180, 40).setRange(-1, 1);
+    .setSize(180, 40).setRange(-1, 1);
   cp5.addSlider("rotY")
     .setPosition(width-200, 70)
-      .setSize(180, 40).setRange(-1, 1);
+    .setSize(180, 40).setRange(-1, 1);
   cp5.addSlider("rotZ")
     .setPosition(width-200, 120)
-      .setSize(180, 40).setRange(-1, 1);
+    .setSize(180, 40).setRange(-1, 1);
 
   cp5.setAutoDraw(false);
   camera.setActive(true);
@@ -64,8 +64,8 @@ float r = 1;
 void draw() {
   println("FRAME RATE --------------------------------------- " + frameRate); 
   background(200);
-  mPlatform.applyTranslationAndRotation(PVector.mult(new PVector(posX, posY, posZ), 1), 
-  PVector.mult(new PVector(rotX, rotY, rotZ), MAX_ROTATION));
+  mPlatform.applyTranslationAndRotation(PVector.mult(new PVector(posX, posY, posZ), MAX_TRANSLATION), 
+    PVector.mult(new PVector(rotX, rotY, rotZ), MAX_ROTATION));
   mPlatform.draw();
 
   hint(DISABLE_DEPTH_TEST);
@@ -77,9 +77,9 @@ void draw() {
 
   px = abs(r)*cos(a);
   py = abs(r)*sin(a);
-  a +=PI/50;
-  if(frameCount%10==0) r+=5;
-  if(r >=50) r=-50;
+  a +=PI/80;
+  //if(frameCount%10==0) r+=1;
+  //if(r >=50) r=-50;
   if (a >= TWO_PI) a = 0;
 
   posX = px;
@@ -106,10 +106,10 @@ void sendOSC() {
     }
   }
 
-//  for (float f : angles) {
-//    print(degrees(f) + " ");
-//  }
-//  println();
+  //  for (float f : angles) {
+  //    print(degrees(f) + " ");
+  //  }
+  //  println();
 
   OscMessage myMessage = new OscMessage("/angles");
   myMessage.add(angles); /* add an int array to the osc message */
@@ -124,7 +124,7 @@ void mouseDragged () {
     float py = map(mouseY, 0, height, -1, 1);
     posX = px;
     posY = py;
-   // sendOSC();
+    // sendOSC();
   }
 }
 
