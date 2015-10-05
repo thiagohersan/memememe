@@ -3,7 +3,7 @@ import controlP5.*;
 import oscP5.*;
 import netP5.*; //osc library
 
-float MAX_TRANSLATION = 500;
+float MAX_TRANSLATION = 50;
 float MAX_ROTATION = PI/2;
 
 ControlP5 cp5;

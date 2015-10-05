@@ -30,7 +30,8 @@ def moveMotors():
         angPos = 820 if angPos > 820 else angPos
         angPos = 220 if angPos < 220 else angPos
         anglesInt.append(angPos)
-        angPos = angPos if (i+1)%2==0 else 1024-angPos
+        #now even motors must be inverted
+        angPos = angPos if (i+1)%2==1 else 1024-angPos
         try:
             servos.moveSpeedRW(i+1,angPos,1023)
         except:
