@@ -3,7 +3,7 @@ import controlP5.*;
 import oscP5.*;
 import netP5.*; //osc library
 
-float MAX_TRANSLATION = 50;
+float MAX_TRANSLATION = 500;
 float MAX_ROTATION = PI/2;
 
 ControlP5 cp5;
@@ -62,7 +62,7 @@ void setup() {
 float px = 0, py = 0, a = 0;
 float r = 1;
 void draw() {
-  println("FRAME RATE --------------------------------------- " + frameRate); 
+  //println("FRAME RATE --------------------------------------- " + frameRate); 
   background(200);
   mPlatform.applyTranslationAndRotation(PVector.mult(new PVector(posX, posY, posZ), MAX_TRANSLATION), 
     PVector.mult(new PVector(rotX, rotY, rotZ), MAX_ROTATION));
@@ -75,16 +75,6 @@ void draw() {
   hint(ENABLE_DEPTH_TEST);
 
 
-  px = abs(r)*cos(a);
-  py = abs(r)*sin(a);
-  a +=PI/80;
-  //if(frameCount%10==0) r+=1;
-  //if(r >=50) r=-50;
-  if (a >= TWO_PI) a = 0;
-
-  posX = px;
-  posY = py; 
-  sendOSC();
 }
 
 void controlEvent(ControlEvent theEvent) {
