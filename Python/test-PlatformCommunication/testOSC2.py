@@ -56,13 +56,15 @@ def initMotors():
             servos.setAngleLimit(mt, MINANGLE, MAXANGLE)
         else:
             servos.setAngleLimit(mt, 1024-MAXANGLE, 1024-MINANGLE)
+        #need to sleep between each command
+        sleep(0.05)
 
     p = 800
     for i in range(2):
         for mt in range(1,6+1):
             #even motors now doesn't change
             pp = p if mt%2==1 else 1024-p
-            servos.moveSpeedRW(mt,pp,450)
+            servos.moveSpeedRW(mt,pp,250)
             sleep(0.01)
         servos.action()
         p = 1320 - p
