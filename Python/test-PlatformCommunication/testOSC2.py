@@ -53,9 +53,9 @@ def initMotors():
     #set max min angles in the motors
     for mt in range (1, 6+1):
         if(mt%2==1):
-            servos.setAngleLimit(mt, MAXANGLE, MINANGLE)
+            servos.setAngleLimit(mt, MINANGLE, MAXANGLE)
         else:
-            servos.setAngleLimit(mt, 1024-MINANGLE, 1024-MAXANGLE)
+            servos.setAngleLimit(mt, 1024-MAXANGLE, 1024-MINANGLE)
 
     p = 800
     for i in range(2):
