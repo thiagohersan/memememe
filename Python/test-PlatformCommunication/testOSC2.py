@@ -27,8 +27,8 @@ def moveMotors():
         angRadians = math.degrees(v)
         angInt = int(angRadians*1024/300)
         angPos = 520 + angInt
-        angPos = 820 if angPos > 820 else angPos
-        angPos = 220 if angPos < 220 else angPos
+        angPos = 850 if angPos > 850 else angPos
+        angPos = 330 if angPos < 330 else angPos
         anglesInt.append(angPos)
         #now even motors must be inverted
         angPos = angPos if (i+1)%2==1 else 1024-angPos
@@ -46,12 +46,22 @@ def moveMotors():
 
 def initMotors():
     global servos
+    MAXANGLE = 850
+    MINANGLE = 330
+
+    #set max min angles in the motors
+    for mt in range (1, 6+1):
+        if(mt%2==1):
+            servos.setAngleLimit(mt, MAXANGLE, MINANGLE)
+        else:
+            servos.setAngleLimit(mt, 1024-MINANGLE, 1024-MAXANGLE)
 
     servos = ax12.Ax12()
     p = 800
     for i in range(2):
         for mt in range(1,6+1):
-            pp = p if mt%2==0 else 1024-p
+            #even motors now doesn't change
+            pp = p if mt%2==1 else 1024-p
             servos.moveSpeedRW(mt,pp,450)
             sleep(0.01)
         servos.action()
