@@ -17,12 +17,12 @@ def _oscHandler(addr, tags, stuff, source):
         angles = []
         for (i,v) in enumerate(stuff):
             ang = math.degrees(v)
-            angInt = int(ang*1024/300 )
+            angInt = int(ang*1024/300)
             angPos = 520 + angInt
-            angPos = 820 if angPos > 820 else angPos
-            angPos = 220 if angPos < 220 else angPos
+            angPos = 850 if angPos > 850 else angPos
+            angPos = 330 if angPos < 330 else angPos
             angles.append(angPos)
-            angPos = angPos if (i+1)%2==0 else 1024-angPos
+            angPos = angPos if (i+1)%2==1 else 1024-angPos
             servos.moveSpeedRW(i+1,angPos,244)
             sleep(0.02)
         print angles
@@ -40,16 +40,25 @@ print "\nStarting OSCServer. Use ctrl-C to quit."
 serverThread = threading.Thread( target = server.serve_forever )
 serverThread.start()
 
-
-
-
 servos = ax12.Ax12()
+MINANGLE = 330
+MAXANGLE = 850
+
 p = 500
 
 try :
+    #set max min angles in the motors
+    for mt in range (1,6+1):
+        if(mt%2==1):
+            servos.setAngleLimit(mt, MINANGLE, MAXANGLE)
+        else:
+            servos.setAngleLimit(mt, 1024-MAXANGLE, 1024-MINANGLE)
+        #need to sleep between each command
+        sleep(0.05)
+
     for i in range(2):
         for mt in range(1,6+1):
-            pp = p if mt%2==0 else 1024-p
+            pp = p if mt%2==1 else 1024-p
             servos.moveSpeedRW(mt,pp,50)
             sleep(0.01)
         servos.action()
