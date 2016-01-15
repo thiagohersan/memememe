@@ -1,10 +1,10 @@
-import peasy.*;
+import peasy.*; //<>//
 import controlP5.*;
 import oscP5.*;
 import netP5.*; //osc library
 
-float MAX_TRANSLATION = 60;
-float MAX_ROTATION = PI/6;
+float MAX_TRANSLATION = 50;
+float MAX_ROTATION = PI/2;
 
 ControlP5 cp5;
 PeasyCam camera;
@@ -15,11 +15,14 @@ NetAddress mOscOut; // address of the pi connected to the motors
 
 
 float posX=0, posY=0, posZ=0, rotX=0, rotY=0, rotZ=0;
+boolean ctlPressed = false;
 
 void setup() {
   size(1024, 768, P3D);
   smooth();
-  mOscOut = new NetAddress("meme00.local", 8888);
+  frameRate(60);
+
+  mOscOut = new NetAddress("192.168.0.24", 8888);
 
   textSize(20);
 
@@ -34,32 +37,35 @@ void setup() {
 
   cp5.addSlider("posX")
     .setPosition(20, 20)
-      .setSize(180, 40).setRange(-1, 1);
+    .setSize(180, 40).setRange(-1, 1);
   cp5.addSlider("posY")
     .setPosition(20, 70)
-      .setSize(180, 40).setRange(-1, 1);
+    .setSize(180, 40).setRange(-1, 1);
   cp5.addSlider("posZ")
     .setPosition(20, 120)
-      .setSize(180, 40).setRange(-1, 1);
+    .setSize(180, 40).setRange(-1, 1);
 
   cp5.addSlider("rotX")
     .setPosition(width-200, 20)
-      .setSize(180, 40).setRange(-1, 1);
+    .setSize(180, 40).setRange(-1, 1);
   cp5.addSlider("rotY")
     .setPosition(width-200, 70)
-      .setSize(180, 40).setRange(-1, 1);
+    .setSize(180, 40).setRange(-1, 1);
   cp5.addSlider("rotZ")
     .setPosition(width-200, 120)
-      .setSize(180, 40).setRange(-1, 1);
+    .setSize(180, 40).setRange(-1, 1);
 
   cp5.setAutoDraw(false);
   camera.setActive(true);
 }
 
+float px = 0, py = 0, a = 0;
+float r = 1;
 void draw() {
+  //println("FRAME RATE --------------------------------------- " + frameRate); 
   background(200);
   mPlatform.applyTranslationAndRotation(PVector.mult(new PVector(posX, posY, posZ), MAX_TRANSLATION), 
-  PVector.mult(new PVector(rotX, rotY, rotZ), MAX_ROTATION));
+    PVector.mult(new PVector(rotX, rotY, rotZ), MAX_ROTATION));
   mPlatform.draw();
 
   hint(DISABLE_DEPTH_TEST);
@@ -67,33 +73,66 @@ void draw() {
   cp5.draw();
   camera.endHUD();
   hint(ENABLE_DEPTH_TEST);
+
+
 }
 
 void controlEvent(ControlEvent theEvent) {
   camera.setActive(false);
-
-  //after a UI event send a OSC packege
-  float[] angles = mPlatform.getAlpha();
- 
-  for (float f : angles) {
-    if(Float.isNaN(f)){
-      return;
-    }
-  }
-
-   OscMessage myMessage = new OscMessage("/angles");
-   myMessage.add(angles); /* add an int array to the osc message */
-   oscP5.flush(myMessage, mOscOut);  
 }
 void mouseReleased() {
   camera.setActive(true);
 }
+
+long lastTime = 0;
+
+void sendOSC() {
+  //after a UI event send a OSC packege
+  float[] angles = mPlatform.getAlpha();
+
+  for (float f : angles) {
+    if (Float.isNaN(f)) {
+      return;
+    }
+  }
+
+  //  for (float f : angles) {
+  //    print(degrees(f) + " ");
+  //  }
+  //  println();
+
+  OscMessage myMessage = new OscMessage("/angles");
+  myMessage.add(angles); /* add an int array to the osc message */
+
+  oscP5.flush(myMessage, mOscOut);
+  lastTime = millis();
+}
+
+void mouseDragged () {
+  if (ctlPressed) {
+    float px = map(mouseX, 0, width, -1, 1);
+    float py = map(mouseY, 0, height, -1, 1);
+    posX = px;
+    posY = py;
+    // sendOSC();
+  }
+}
+
 
 void keyPressed() {
   if (key == ' ') {
     camera.setRotations(-1.0, 0.0, 0.0);
     camera.lookAt(8.0, -50.0, 80.0);
     camera.setDistance(666);
+  } else if (keyCode == CONTROL) {
+    camera.setActive(false);
+    ctlPressed = true;
   }
 }
 
+void keyReleased() {
+  if (keyCode == CONTROL) {
+    camera.setActive(true);
+    ctlPressed = false;
+  }
+}

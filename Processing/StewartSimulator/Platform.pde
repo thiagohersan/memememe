@@ -5,21 +5,23 @@ class Platform {
   private float baseRadius, platformRadius, hornLength, legLength;
 
   // REAL ANGLES
+  
+  //new angles new small platform, need to invert the servo horns 
   private final float baseAngles[] = {
-   308.5, 351.5, 68.5, 111.5, 188.5, 231.5 };
+   314.9, 345.1, 74.9, 105.1, 194.9, 225.1 };
 
   private final float platformAngles[]  = {
-   286.10, 13.9, 46.1,  133.9, 166.1, 253.9};
+   322.9, 337.1, 82.9, 97.1, 202.9,   217.1};
 
    private final float beta[] = {
    -8*PI/3, PI/3, 0, -PI, -4*PI/3, -7*PI/3};
 
   // REAL MEASUREMENTS
-  private final float SCALE_INITIAL_HEIGHT = 250;
-  private final float SCALE_BASE_RADIUS = 140;
-  private final float SCALE_PLATFORM_RADIUS = 32;
+  private final float SCALE_INITIAL_HEIGHT = 120; //  250
+  private final float SCALE_BASE_RADIUS = 65.43; //140
+  private final float SCALE_PLATFORM_RADIUS = 76.35;
   private final float SCALE_HORN_LENGTH = 36;
-  private final float SCALE_LEG_LENGTH = 270;
+  private final float SCALE_LEG_LENGTH = 125; // 270
 
   public Platform(float s) {
     translation = new PVector();
@@ -162,4 +164,3 @@ class Platform {
     popMatrix();
   }
 }
-
