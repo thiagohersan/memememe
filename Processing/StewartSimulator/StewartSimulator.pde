@@ -21,10 +21,9 @@ void setup() {
   size(1024, 768, P3D);
   smooth();
   frameRate(60);
+  textSize(20);
 
   mOscOut = new NetAddress("192.168.0.24", 8888);
-
-  textSize(20);
 
   camera = new PeasyCam(this, 666);
   camera.setRotations(-1.0, 0.0, 0.0);
@@ -59,10 +58,7 @@ void setup() {
   camera.setActive(true);
 }
 
-float px = 0, py = 0, a = 0;
-float r = 1;
 void draw() {
-  //println("FRAME RATE --------------------------------------- " + frameRate); 
   background(200);
   mPlatform.applyTranslationAndRotation(PVector.mult(new PVector(posX, posY, posZ), MAX_TRANSLATION), 
     PVector.mult(new PVector(rotX, rotY, rotZ), MAX_ROTATION));
@@ -73,8 +69,6 @@ void draw() {
   cp5.draw();
   camera.endHUD();
   hint(ENABLE_DEPTH_TEST);
-
-
 }
 
 void controlEvent(ControlEvent theEvent) {
@@ -96,11 +90,6 @@ void sendOSC() {
     }
   }
 
-  //  for (float f : angles) {
-  //    print(degrees(f) + " ");
-  //  }
-  //  println();
-
   OscMessage myMessage = new OscMessage("/angles");
   myMessage.add(angles); /* add an int array to the osc message */
 
@@ -110,11 +99,8 @@ void sendOSC() {
 
 void mouseDragged () {
   if (ctlPressed) {
-    float px = map(mouseX, 0, width, -1, 1);
-    float py = map(mouseY, 0, height, -1, 1);
-    posX = px;
-    posY = py;
-    // sendOSC();
+    posX = map(mouseX, 0, width, -1, 1);
+    posY = map(mouseY, 0, height, -1, 1);
   }
 }
 
