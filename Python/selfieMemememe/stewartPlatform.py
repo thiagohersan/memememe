@@ -49,7 +49,7 @@ class StewartPlatform:
     def getServoAngleValue(servoNumber, angleRadians):
         angPos = StewartPlatform.SERVO_CENTER_ANGLE_VALUE + int(angleRadians*StewartPlatform.SCALE_RADIANS_TO_SERVO_VALUE)
         angPos = min(StewartPlatform.SERVO_MAX_ANGLE_VALUE, max(StewartPlatform.SERVO_MIN_ANGLE_VALUE, angPos))
-        return angPos if servoNumber%2==1 else 1024-angPos
+        return angPos if servoNumber%2==0 else 1024-angPos
 
     # tries to pick a value that's far from current value
     #     it sometimes flips the current position (x -> -x)
@@ -75,8 +75,22 @@ class StewartPlatform:
         self.lastPosition = PlatformPosition()
         self.updateFunction = self.updateLinear
 
+        ## add angle limits to servo motors
+        for i in range(6):
+            if (i%2==0):
+                self.servos.setAngleLimit((i+1),
+                                          StewartPlatform.SERVO_MIN_ANGLE_VALUE,
+                                          StewartPlatform.SERVO_MAX_ANGLE_VALUE)
+            else:
+                self.servos.setAngleLimit((i+1),
+                                          1024-StewartPlatform.SERVO_MAX_ANGLE_VALUE,
+                                          1024-StewartPlatform.SERVO_MIN_ANGLE_VALUE)
+            sleep(0.1)
+
+        ## initially set platform to (0,0,0), (0,0,0)
         self.setTargetAnglesSuccessfully()
 
+        ## move motors to initial position
         for (i,targetAngle) in enumerate(self.targetAngle):
             self.currentAngle[i] = targetAngle
             servoValue = StewartPlatform.getServoAngleValue(i, self.currentAngle[i])

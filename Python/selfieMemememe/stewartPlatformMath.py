@@ -2,17 +2,17 @@ from math import radians, pi, cos, sin, asin, atan2, sqrt
 from vector3 import Vector3
 
 class StewartPlatformMath:
-    # real angles from platform v1.0
-    baseAngles = [308.5, 351.5, 68.5, 111.5, 188.5, 231.5 ]
-    platformAngles = [286.10, 13.9, 46.1, 133.9, 166.1, 253.9]
+    # real angles from small platform (Liverpool 2016)
+    baseAngles = [314.9, 345.1, 74.9, 105.1, 194.9, 225.1 ]
+    platformAngles = [322.9, 337.1, 82.9, 97.1, 202.9, 217.1]
     beta = [-8*pi/3, pi/3, 0, -pi, -4*pi/3, -7*pi/3]
 
-    # real measurements from platform v1.0
-    SCALE_INITIAL_HEIGHT = 239
-    SCALE_BASE_RADIUS = 140
-    SCALE_PLATFORM_RADIUS = 32
+    # real measurements from small platform (Liverpool 2016)
+    SCALE_INITIAL_HEIGHT = 120
+    SCALE_BASE_RADIUS = 65.43
+    SCALE_PLATFORM_RADIUS = 76.35
     SCALE_HORN_LENGTH = 36
-    SCALE_LEG_LENGTH = 270
+    SCALE_LEG_LENGTH = 125
 
     def __init__(self, scale=1.0):
         self.translation = Vector3()
