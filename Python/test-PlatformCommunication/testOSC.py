@@ -20,7 +20,7 @@ def _oscHandler(addr, tags, stuff, source):
             angInt = int(ang*1024/300)
             angPos = 520 + angInt
             angPos = 850 if angPos > 850 else angPos
-            angPos = 330 if angPos < 330 else angPos
+            angPos = 310 if angPos < 310 else angPos
             angles.append(angPos)
             angPos = angPos if (i+1)%2==1 else 1024-angPos
             servos.moveSpeedRW(i+1,angPos,244)
@@ -41,7 +41,7 @@ serverThread = threading.Thread( target = server.serve_forever )
 serverThread.start()
 
 servos = ax12.Ax12()
-MINANGLE = 330
+MINANGLE = 310
 MAXANGLE = 850
 
 p = 500
