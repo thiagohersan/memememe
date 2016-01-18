@@ -206,6 +206,9 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         }
 
         // start sound threads
+        // TODO: if #selfie:
+        //          - don't start noise threads
+        //            (no noise is made or heard if thread not running)
         noiseReaderThread.start();
         noiseWriterThread.start();
 
@@ -360,6 +363,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                         mLastState = State.WAITING;
                         mCurrentState = State.MAKING_REFLECT_NOISE;
                         Log.d(TAG, "state := MAKING_REFLECT_NOISE");
+                        // TODO: if #selfie:
+                        //          - go to SCANNING
                     }
                 });
                 mLastStateChangeMillis = System.currentTimeMillis();
@@ -416,6 +421,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mLastState = State.SCANNING;
                 mCurrentState = State.MAKING_REFLECT_NOISE;
                 Log.d(TAG, "state := MAKING_REFLECT_NOISE");
+                // TODO: if #selfie:
+                //          - go to FLASHING
             }
             // if other phone reflects me
             else if(mNoiseReader.isHearingPicture()){
