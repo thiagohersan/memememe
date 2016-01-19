@@ -35,7 +35,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -61,6 +60,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private static final int TIMEOUT_FLASHING = 4000;
     private static final int DELAY_FLASHING = 1000;
     private static final int TIMEOUT_WAITING = 2000;
+
+    private static final boolean MEMEMEME_SELFIE = false;
 
     private Mat mRgba;
     private Mat mGray;
@@ -205,12 +206,13 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             Log.e(TAG, "Socket Exception!!: while starting OscOut with (address, port): "+OSC_OUT_ADDRESS+", "+OSC_OUT_PORT);
         }
 
-        // start sound threads
-        // TODO: if #selfie:
-        //          - don't start noise threads
-        //            (no noise is made or heard if thread not running)
-        noiseReaderThread.start();
-        noiseWriterThread.start();
+        // start sound threads if not running mememe#selfie mode
+        // (no noise is made or heard if thread not running)
+        // TODO: TEST: if #selfie
+        if(!MEMEMEME_SELFIE){
+            noiseReaderThread.start();
+            noiseWriterThread.start();
+        }
 
         // initialize state machine
         mLastState = State.SEARCHING;
@@ -363,8 +365,12 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                         mLastState = State.WAITING;
                         mCurrentState = State.MAKING_REFLECT_NOISE;
                         Log.d(TAG, "state := MAKING_REFLECT_NOISE");
-                        // TODO: if #selfie:
-                        //          - go to SCANNING
+                        // TODO: TEST: if #selfie
+                        if(MEMEMEME_SELFIE){
+                            sendCommandToPlatform("scan").start();
+                            mCurrentState = State.SCANNING;
+                            Log.d(TAG, "state := SCANNING");
+                        }
                     }
                 });
                 mLastStateChangeMillis = System.currentTimeMillis();
@@ -421,8 +427,12 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mLastState = State.SCANNING;
                 mCurrentState = State.MAKING_REFLECT_NOISE;
                 Log.d(TAG, "state := MAKING_REFLECT_NOISE");
-                // TODO: if #selfie:
-                //          - go to FLASHING
+                // TODO: TEST: if #selfie
+                if(MEMEMEME_SELFIE){
+                    //sendCommandToPlatform("stop").start();
+                    mCurrentState = State.FLASHING;
+                    Log.d(TAG, "state := FLASHING");
+                }
             }
             // if other phone reflects me
             else if(mNoiseReader.isHearingPicture()){
