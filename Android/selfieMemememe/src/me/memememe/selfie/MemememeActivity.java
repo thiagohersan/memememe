@@ -52,7 +52,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     private static final Scalar FACE_RECT_COLOR = new Scalar(0, 255, 0, 255);
     private static final Scalar SCREEN_COLOR_FLASH = new Scalar(160, 160, 160, 255);
     private static final Scalar SCREEN_COLOR_BLACK = new Scalar(0, 0, 0, 255);
-    private static final String OSC_OUT_ADDRESS = Build.SERIAL.equals("04d8d9b29715d6ef")?"10.10.0.110":"10.10.0.111";
+    private static final String OSC_OUT_ADDRESS = "10.10.0.1";
     private static final int OSC_OUT_PORT = 8888;
 
     private static final int TIMEOUT_SCANNING = 10000;
