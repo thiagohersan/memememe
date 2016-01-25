@@ -45,7 +45,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                                MAKING_REFLECT_NOISE, MAKING_PICTURE_NOISE};
 
     private static final String TAG = "MEMEMEME::SELFIE";
-    private static final String SELFIE_FILE_NAME = "memememeselfie.jpg";
+    private static final String SELFIE_FILE_NAME = "memememeselfie";
     private static final String[] TEXTS = {"me", "meme", "mememe", "memememe", "#selfie"};
     private static final Scalar FACE_RECT_COLOR = new Scalar(0, 255, 0, 255);
     private static final Scalar SCREEN_COLOR_FLASH = new Scalar(160, 160, 160, 255);
@@ -272,7 +272,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         // save images for video...
         /*
         Core.flip(mTempRgba.t(), mRgba, 0);
-        String dateFilename = SELFIE_FILE_NAME.replace(".jpg", "")+String.format("%04d", mImageCounter++)+".jpg";
+        String dateFilename = SELFIE_FILE_NAME+String.format("%04d", mImageCounter++)+".jpg";
         final File movFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), dateFilename);
         Highgui.imwrite(movFile.toString(), mRgba);
         */
@@ -555,7 +555,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             Core.flip(mTempRgba.t(), mRgba, 0);
             Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
 
-            final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), SELFIE_FILE_NAME);
+            String selfieFilename = SELFIE_FILE_NAME+(System.currentTimeMillis()/1000)+".jpg";
+            final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), selfieFilename);
             Highgui.imwrite(file.toString(), mRgba);
 
             Thread tumblrThread = new Thread(new Runnable(){
