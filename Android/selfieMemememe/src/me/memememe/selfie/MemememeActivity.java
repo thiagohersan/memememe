@@ -427,13 +427,15 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mNoiseWriter.makeReflectNoise();
                 mLastState = State.SCANNING;
-                mCurrentState = State.MAKING_REFLECT_NOISE;
-                Log.d(TAG, "state := MAKING_REFLECT_NOISE");
                 // TODO: TEST: if #selfie
                 if(MEMEMEME_SELFIE){
                     //sendCommandToPlatform("stop").start();
                     mCurrentState = State.FLASHING;
                     Log.d(TAG, "state := FLASHING");
+                }
+                else{
+                    mCurrentState = State.MAKING_REFLECT_NOISE;
+                    Log.d(TAG, "state := MAKING_REFLECT_NOISE");
                 }
             }
             // if other phone reflects me
