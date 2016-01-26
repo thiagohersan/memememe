@@ -230,17 +230,23 @@ class StewartPlatform:
 
     # small nudge by rotation
     # parameters {x,y} should be within [-1, 1]
+    # ****Very Important*****
+    #     x = -1 means phone has to look to its left
+    #     x = +1 means phone has to look to its right
+    #     y = -1 means phone has to look to its down
+    #     y = +1 means phone has to look to its up
+    # How this is actually accomplished depends on the exact platform
     def setNextPositionLook(self, x=0, y=0):
         self.updateFunction = self.updateLinear
         self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT/4
 
-        # look x actually means rotate around z-axis
+        # look x actually means rotate around y-axis
         #     and look y needs to rotate around x-axis
-        #     and y shouldn't matter, so we pick a random value
+        #     and z shouldn't matter, so we pick a random value
         deltaAngles = (
             StewartPlatform.MOVE_SHORT_ANGLE*y,
-            StewartPlatform.MOVE_SHORT_ANGLE*choice([-1, 0, 1, 0]),
-            StewartPlatform.MOVE_SHORT_ANGLE*-x)
+            StewartPlatform.MOVE_SHORT_ANGLE*-x,
+            StewartPlatform.MOVE_SHORT_ANGLE*choice([-1, 0, 1, 0]))
 
         # move platform slightly closer to its initial height
         currentTranslation = self.currentPosition.translation
