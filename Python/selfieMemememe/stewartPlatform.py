@@ -175,22 +175,22 @@ class StewartPlatform:
         else:
             self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT*2
 
-        t = (time()-StewartPlatform.INIT_TIME) * StewartPlatform.PERLIN_TIME_SCALE
+        thisTimeScale = (time()-StewartPlatform.INIT_TIME) * StewartPlatform.PERLIN_TIME_SCALE
         (x,y,z) = self.currentPosition.getTranslationAsList()
 
         # direction
         u = snoise4(x*StewartPlatform.PERLIN_POSITION_SCALE + 1*StewartPlatform.PERLIN_PHASE,
             y*StewartPlatform.PERLIN_POSITION_SCALE + 1*StewartPlatform.PERLIN_PHASE,
             z*StewartPlatform.PERLIN_POSITION_SCALE + 1*StewartPlatform.PERLIN_PHASE,
-            t + 1*StewartPlatform.PERLIN_PHASE)
+            thisTimeScale + 1*StewartPlatform.PERLIN_PHASE)
         v = snoise4(x*StewartPlatform.PERLIN_POSITION_SCALE + 2*StewartPlatform.PERLIN_PHASE,
             y*StewartPlatform.PERLIN_POSITION_SCALE + 2*StewartPlatform.PERLIN_PHASE,
             z*StewartPlatform.PERLIN_POSITION_SCALE + 2*StewartPlatform.PERLIN_PHASE,
-            t + 2*StewartPlatform.PERLIN_PHASE)
+            thisTimeScale + 2*StewartPlatform.PERLIN_PHASE)
         w = snoise4(x*StewartPlatform.PERLIN_POSITION_SCALE + 3*StewartPlatform.PERLIN_PHASE,
             y*StewartPlatform.PERLIN_POSITION_SCALE + 3*StewartPlatform.PERLIN_PHASE,
             z*StewartPlatform.PERLIN_POSITION_SCALE + 3*StewartPlatform.PERLIN_PHASE,
-            t + 3*StewartPlatform.PERLIN_PHASE)
+            thisTimeScale + 3*StewartPlatform.PERLIN_PHASE)
 
         #magnitude
         thisSpeedScale = StewartPlatform.PERLIN_SPEED_SCALE/3 if ('slow' in args) else StewartPlatform.PERLIN_SPEED_SCALE
