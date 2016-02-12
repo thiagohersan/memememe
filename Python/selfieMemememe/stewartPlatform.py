@@ -43,8 +43,6 @@ class StewartPlatform:
     PERLIN_DISTANCE_LIMIT = 16.0
     PERLIN_ANGLE_LIMIT = 0.25
 
-    INIT_TIME = time()
-
     @staticmethod
     def getServoAngleValue(servoNumber, angleRadians):
         angPos = StewartPlatform.SERVO_CENTER_ANGLE_VALUE + int(angleRadians*StewartPlatform.SCALE_RADIANS_TO_SERVO_VALUE)
@@ -74,6 +72,7 @@ class StewartPlatform:
         self.currentPosition = PlatformPosition()
         self.lastPosition = PlatformPosition()
         self.updateFunction = self.updateLinear
+        self.perlinTimer = 0
 
         ## add angle limits to servo motors
         for i in range(6):
@@ -175,7 +174,7 @@ class StewartPlatform:
         else:
             self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT*2
 
-        thisTimeScale = (time()-StewartPlatform.INIT_TIME) * StewartPlatform.PERLIN_TIME_SCALE
+        thisTimeScale = self.perlinTimer * StewartPlatform.PERLIN_TIME_SCALE
         (x,y,z) = self.currentPosition.getTranslationAsList()
 
         # direction
@@ -353,6 +352,8 @@ class StewartPlatform:
         self.servos.action()
 
     def updatePerlin(self):
+        self.perlinTimer += 0.016
+
         for (i,targetAngle) in enumerate(self.targetAngle):
             self.currentSpeed[i] = min(self.currentSpeedLimit, abs(targetAngle-self.currentAngle[i]))
             self.maxSpeed[i] = max(self.maxSpeed[i], self.currentSpeed[i])
