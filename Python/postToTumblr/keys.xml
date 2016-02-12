@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="consumer_key">KweN23KlxxlqZKJan33qh0jI2JjnJO4izJTUPI38kf4PlEwk9k</string>
+    <string name="consumer_secret">AR0klNa7SMGwfoS5a3qmFGLfn2UCSmPL4FMs8ieONeW23oPL9f</string>
+    <string name="oauth_token">fK3EWpl9xzFyNnznh18j71kAM3sHQpfB9d0lwkMekjEN09jD0E</string>
+    <string name="oauth_token_secret">9LKs0owlNPe4lbdOneKA39jfmL03pLEP10jeW194Jqwhdy78iO</string>
+</resources>
