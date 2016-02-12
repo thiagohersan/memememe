@@ -211,6 +211,7 @@ class StewartPlatform:
         rotateArg = kwargs.get('rotate', '')
 
         done = False
+        doneCounter = 0
         while not done:
             translation = Vector3(
                 deltaDistances[0] if 'x' in translateArg else 0,
@@ -227,6 +228,12 @@ class StewartPlatform:
             done = self.setTargetAnglesSuccessfully(translation, rotation)
             deltaDistances = map(lambda x:0.9*x, deltaDistances)
             deltaAngles = map(lambda x:0.9*x, deltaAngles)
+            doneCounter += 1
+
+            # DEBUG!
+            if(doneCounter > 16):
+                print "doneCounter > 16 !!"
+                doneCounter = 0
 
     # small nudge by rotation
     # parameters {x,y} should be within [-1, 1]
