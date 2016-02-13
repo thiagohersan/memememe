@@ -193,7 +193,7 @@ class StewartPlatform:
 
         #magnitude
         thisSpeedScale = StewartPlatform.PERLIN_SPEED_SCALE/3 if ('slow' in args) else StewartPlatform.PERLIN_SPEED_SCALE
-        speed = min(StewartPlatform.PERLIN_MAX_SPEED, max(StewartPlatform.PERLIN_MIN_SPEED, thisSpeedScale*(snoise4(u,v,w,t)*0.5+0.5)))
+        speed = min(StewartPlatform.PERLIN_MAX_SPEED, max(StewartPlatform.PERLIN_MIN_SPEED, thisSpeedScale*(snoise4(u,v,w,thisTimeScale)*0.5+0.5)))
 
         # result
         deltaDistances = (
@@ -201,9 +201,9 @@ class StewartPlatform:
             v*speed,
             w*speed)
         deltaAngles = (
-            snoise2(v,t)*StewartPlatform.PERLIN_ANGLE_SCALE,
-            snoise2(w,t)*StewartPlatform.PERLIN_ANGLE_SCALE,
-            snoise2(u,t)*StewartPlatform.PERLIN_ANGLE_SCALE)
+            snoise2(v,thisTimeScale)*StewartPlatform.PERLIN_ANGLE_SCALE,
+            snoise2(w,thisTimeScale)*StewartPlatform.PERLIN_ANGLE_SCALE,
+            snoise2(u,thisTimeScale)*StewartPlatform.PERLIN_ANGLE_SCALE)
 
         # pick new valid position
         translateArg = kwargs.get('translate', '')
