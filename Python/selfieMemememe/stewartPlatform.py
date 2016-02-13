@@ -40,7 +40,7 @@ class StewartPlatform:
     PERLIN_ANGLE_SCALE = 0.05
     PERLIN_MIN_SPEED = 1.0
     PERLIN_MAX_SPEED = 3.0
-    PERLIN_DISTANCE_LIMIT = 16.0
+    PERLIN_DISTANCE_LIMIT = 8.0
     PERLIN_ANGLE_LIMIT = 0.25
 
     @staticmethod
@@ -210,7 +210,6 @@ class StewartPlatform:
         rotateArg = kwargs.get('rotate', '')
 
         done = False
-        doneCounter = 0
         while not done:
             translation = Vector3(
                 deltaDistances[0] if 'x' in translateArg else 0,
@@ -227,12 +226,10 @@ class StewartPlatform:
             done = self.setTargetAnglesSuccessfully(translation, rotation)
             deltaDistances = map(lambda x:0.9*x, deltaDistances)
             deltaAngles = map(lambda x:0.9*x, deltaAngles)
-            doneCounter += 1
 
-            # DEBUG!
-            if(doneCounter > 16):
-                print "doneCounter > 16 !!"
-                doneCounter = 0
+            # deltaDistances got really small, probably stuck
+            if(sum(abs(d) for d in deltaDistances) < 0.05):
+                done = self.setTargetAnglesSuccessfully(Vector3(0,0,0), Vector3(0,0,0))
 
     # small nudge by rotation
     # parameters {x,y} should be within [-1, 1]
