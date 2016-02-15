@@ -86,6 +86,10 @@ class StewartPlatform:
                                           1024-StewartPlatform.SERVO_MIN_ANGLE_VALUE)
             sleep(0.1)
 
+        self.resetPlatform()
+        sleep(1)
+
+    def resetPlatform(self):
         ## initially set platform to (0,0,0), (0,0,0)
         self.setTargetAnglesSuccessfully()
 
@@ -93,9 +97,8 @@ class StewartPlatform:
         for (i,targetAngle) in enumerate(self.targetAngle):
             self.currentAngle[i] = targetAngle
             servoValue = StewartPlatform.getServoAngleValue(i, self.currentAngle[i])
-            self.servos.moveSpeedRW((i+1), servoValue, 450)
+            self.servos.moveSpeedRW((i+1), servoValue, 300)
         self.servos.action()
-        sleep(1)
 
     # ****Very Important*****
     # Possible options/parameters:

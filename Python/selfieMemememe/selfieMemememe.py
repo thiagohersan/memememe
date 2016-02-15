@@ -31,8 +31,8 @@ class OscServer(ServerThread):
         global mState
         print "%s"%path
         mPlatform.stop()
+        mPlatform = StewartPlatform()
         mLookQueue = Queue()
-        mPlatform.setTargetAnglesSuccessfully()
         mState = State.SEARCHING
 
     @make_method('/memememe/search', '')
