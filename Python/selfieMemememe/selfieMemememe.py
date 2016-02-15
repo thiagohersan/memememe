@@ -26,6 +26,15 @@ class OscServer(ServerThread):
         mLookQueue.put((x,y))
         mState = State.LOOKING
 
+    @make_method('/memememe/reset', '')
+    def search_callback(self, path, args):
+        global mState
+        print "%s"%path
+        mPlatform.stop()
+        mLookQueue = Queue()
+        mPlatform.setTargetAnglesSuccessfully()
+        mState = State.SEARCHING
+
     @make_method('/memememe/search', '')
     def search_callback(self, path, args):
         global mState

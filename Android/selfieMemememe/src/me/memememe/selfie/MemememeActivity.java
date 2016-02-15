@@ -219,7 +219,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         Log.d(TAG, "state := SEARCHING");
         // send first message to motors
         mLastSearchSendMillis = System.currentTimeMillis();
-        sendCommandToPlatform("search").start();
+        sendCommandToPlatform("reset").start();
 
         mLastStateChangeMillis = System.currentTimeMillis();
     }
