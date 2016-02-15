@@ -27,11 +27,11 @@ class OscServer(ServerThread):
         mState = State.LOOKING
 
     @make_method('/memememe/reset', '')
-    def search_callback(self, path, args):
+    def reset_callback(self, path, args):
         global mState
         print "%s"%path
         mPlatform.stop()
-        mPlatform = StewartPlatform()
+        mPlatform.setNextPositionLinear('slow', 'far', translate='xyz', rotate='xyz')
         mLookQueue = Queue()
         mState = State.SEARCHING
 
