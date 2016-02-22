@@ -426,7 +426,7 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 mNoiseWriter.makeReflectNoise();
                 mLastState = State.SCANNING;
                 if(MEMEMEME_SELFIE){
-                    //sendCommandToPlatform("stop").start();
+                    sendCommandToPlatform("stop").start();
                     mCurrentState = State.FLASHING;
                     Log.d(TAG, "state := FLASHING");
                 }
