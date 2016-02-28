@@ -26,5 +26,5 @@ if __name__ == "__main__":
             fullPath = join(DATA_DIR, directory, filename)
             print "POSTING %s"%fullPath
             mTumblr.create_photo(directory, state="published", tags=TAGS, data=fullPath)
-            time.sleep(3)
+            time.sleep(1)
             os.remove(fullPath)
