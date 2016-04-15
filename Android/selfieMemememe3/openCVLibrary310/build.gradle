@@ -16,3 +16,17 @@ android {
         }
     }
 }
+
+
+task clearJar(type: Delete) {
+    delete 'build/libs/*.jar'
+}
+
+task makeJar(type: Copy) {
+    from('build/intermediates/bundles/release/')
+    into('release/')
+    include('classes.jar')
+    rename ('classes.jar', 'temp.jar')
+}
+
+makeJar.dependsOn(clearJar, build)

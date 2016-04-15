@@ -1,5 +1,20 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+import com.android.build.gradle.tasks.NdkCompile
+
 apply plugin: 'com.android.application'
 
+String getNdkBuildPath() {
+    def ndkDir = project.plugins.findPlugin('com.android.application').sdkHandler.getNdkFolder()
+    if (ndkDir != null) {
+        def ndkBuildPath = ndkDir.toString() + '/ndk-build';
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            ndkBuildPath += ".cmd"
+        }
+//        println "NDK build path: " + ndkBuildPath
+        return ndkBuildPath
+    }
+    return null
+}
 android {
     compileSdkVersion 22
     buildToolsVersion "23.0.1"
@@ -10,6 +25,29 @@ android {
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"
+
+        ndk {
+            moduleName "NativeCode"
+            cFlags "-I/Users/radames/Development/OpenCV-android-sdk/sdk/native/jni/include"
+            // index header file for jni (can use "Go To Declaration")
+            ldLibs "android", "log"
+        }
+        sourceSets.main {
+            jniLibs.srcDir 'src/main/libs' //set .so files location to libs
+            jni.srcDirs = [] //Disable automatic ndk-build call
+        }
+        task ndkBuild(type: Exec) {
+            def ndkBuildPath = getNdkBuildPath()
+            commandLine ndkBuildPath, '-C', file('src/main/jni').absolutePath
+        }
+        tasks.withType(JavaCompile) {
+            compileTask -> compileTask.dependsOn ndkBuild
+        }
+        task ndkClean(type: Exec) {
+            def ndkBuildPath = getNdkBuildPath()
+            commandLine ndkBuildPath, 'clean', '-C', file('src/main/jni').absolutePath
+        }
+        clean.dependsOn 'ndkClean'
     }
     buildTypes {
         release {
@@ -18,10 +56,20 @@ android {
         }
     }
 }
-
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:22.2.1'
     compile project(':openCVLibrary310')
 }
+
+task copyJniLibs(type: Copy) {
+    from 'src/main/libs/armeabi-v7a'
+    into 'src/main/jniLibs'
+}
+
+tasks.withType(JavaCompile) {
+    compileTask -> compileTask.dependsOn(copyJniLibs)
+}
+
+//clean.dependsOn 'cleanCopyJniLibs'
