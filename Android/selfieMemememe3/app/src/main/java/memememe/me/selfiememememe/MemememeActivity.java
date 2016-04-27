@@ -24,7 +24,6 @@ import android.os.Bundle;
 import android.util.Log;
 
 //OpenCV
-
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.LoaderCallbackInterface;
@@ -41,6 +40,13 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.imgproc.Imgproc;
+
+//extras
+import com.illposed.osc.OSCMessage;
+import com.illposed.osc.OSCPortOut;
+import com.tumblr.jumblr.JumblrClient;
+import com.tumblr.jumblr.exceptions.JumblrException;
+import com.tumblr.jumblr.types.PhotoPost;
 
 
 

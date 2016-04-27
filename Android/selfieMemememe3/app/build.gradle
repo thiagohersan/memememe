@@ -61,6 +61,9 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:22.2.1'
     compile project(':openCVLibrary310')
+    compile files('src/main/libs/JLargeArrays-1.2.jar')
+    compile files('src/main/libs/JTransforms-3.0.jar')
+    compile files('src/main/libs/jumblr-0.0.10-jar-with-dependencies.jar')
 }
 
 task copyJniLibs(type: Copy) {
