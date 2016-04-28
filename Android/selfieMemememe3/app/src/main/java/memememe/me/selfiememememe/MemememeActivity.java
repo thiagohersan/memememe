@@ -1,27 +1,28 @@
 package memememe.me.selfiememememe;
 
+
+
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.Random;
+
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.WindowManager;
 
 // Android Classes
-import android.app.Activity;
 import android.util.Log;
-import android.view.SurfaceView;
-import android.view.WindowManager;
-import android.widget.Toast;
 import android.content.Context;
-import android.os.Bundle;
-import android.util.Log;
+import android.hardware.Camera;
+import android.hardware.Camera.CameraInfo;
+import android.os.Environment;
 
 //OpenCV
 import org.opencv.android.BaseLoaderCallback;
@@ -36,10 +37,9 @@ import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
-import org.opencv.objdetect.CascadeClassifier;
+import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.imgcodecs.Imgcodecs;
 
 //extras
 import com.illposed.osc.OSCMessage;
@@ -49,185 +49,101 @@ import com.tumblr.jumblr.exceptions.JumblrException;
 import com.tumblr.jumblr.types.PhotoPost;
 
 
-
-//public class MemememeActivity extends AppCompatActivity implements CvCameraViewListener2 {
-//    private static final String TAG = "OCVSample::Activity";
-//
-//    private CameraBridgeViewBase mOpenCvCameraView;
-//    private boolean              mIsJavaCamera = true;
-//    private MenuItem             mItemSwitchCamera = null;
-//
-//    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-//        @Override
-//        public void onManagerConnected(int status) {
-//            switch (status) {
-//                case LoaderCallbackInterface.SUCCESS:
-//                {
-//                    Log.i(TAG, "OpenCV loaded successfully");
-//                    mOpenCvCameraView.enableView();
-//                } break;
-//                default:
-//                {
-//                    super.onManagerConnected(status);
-//                } break;
-//            }
-//        }
-//    };
-//
-//
-//    @Override
-//    protected void onCreate(Bundle savedInstanceState) {
-////        super.onCreate(savedInstanceState);
-////        setContentView(R.layout.activity_memememe);
-//
-//        Log.i(TAG, "called onCreate");
-//        super.onCreate(savedInstanceState);
-//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-//
-//        setContentView(R.layout.face_detect_surface_view);
-//
-//        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.show_camera_activity_java_surface_view);
-//        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-//        mOpenCvCameraView.setCvCameraViewListener(this);
-//    }
-//
-//
-//
-//    @Override
-//    public void onPause()
-//    {
-//        super.onPause();
-//        if (mOpenCvCameraView != null)
-//            mOpenCvCameraView.disableView();
-//    }
-//
-//    @Override
-//    public void onResume()
-//    {
-//        super.onResume();
-//        if (!OpenCVLoader.initDebug()) {
-//            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-//            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
-//        } else {
-//            Log.d(TAG, "OpenCV library found inside package. Using it!");
-//            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-//        }
-//    }
-//
-//    public void onDestroy() {
-//        super.onDestroy();
-//        if (mOpenCvCameraView != null)
-//            mOpenCvCameraView.disableView();
-//    }
-//
-//    @Override
-//    public void onCameraViewStarted(int width, int height) {
-//
-//    }
-//
-//    @Override
-//    public void onCameraViewStopped() {
-//
-//    }
-//
-//    @Override
-//    public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-//        return inputFrame.rgba();
-//    }
-//}
-
-
 public class MemememeActivity extends AppCompatActivity implements CvCameraViewListener2 {
+    private static enum State {WAITING, SEARCHING, REFLECTING, FLASHING, POSTING, SCANNING,
+        MAKING_REFLECT_NOISE, MAKING_PICTURE_NOISE};
 
-    private static final String    TAG                 = "OCVSample::Activity";
-    private static final Scalar    FACE_RECT_COLOR     = new Scalar(0, 255, 0, 255);
-    public static final int        JAVA_DETECTOR       = 0;
-    public static final int        NATIVE_DETECTOR     = 1;
+    private static final String TAG = "MEMEMEME::SELFIE";
+    private static final String SELFIE_FILE_NAME = "memememeselfie";
+    private static final String[] TEXTS = {"me", "meme", "mememe", "memememe", "#selfie"};
+    private static final Scalar FACE_RECT_COLOR = new Scalar(0, 255, 0, 255);
+    private static final Scalar SCREEN_COLOR_FLASH = new Scalar(160, 160, 160, 255);
+    private static final Scalar SCREEN_COLOR_BLACK = new Scalar(0, 0, 0, 255);
+    private static final String OSC_OUT_ADDRESS = "10.10.0.1";
+    private static final int OSC_OUT_PORT = 8888;
 
-    private MenuItem               mItemFace50;
-    private MenuItem               mItemFace40;
-    private MenuItem               mItemFace30;
-    private MenuItem               mItemFace20;
-    private MenuItem               mItemType;
+    private static final int TIMEOUT_SCANNING = 10000;
+    private static final int TIMEOUT_REFLECTING = 10000;
+    private static final int TIMEOUT_MAKING_NOISE = 2000;
+    private static final int TIMEOUT_FLASHING = 4000;
+    private static final int DELAY_FLASHING = 1000;
+    private static final int TIMEOUT_WAITING = 2000;
 
-    private Mat                    mRgba;
-    private Mat                    mGray;
-    private File                   mCascadeFile;
-    private CascadeClassifier      mJavaDetector;
-    private DetectionBasedTracker  mNativeDetector;
+    private static final boolean MEMEMEME_SELFIE = false;
+    private static final String TUMBLR_BLOG_ADDRESS = (MEMEMEME_SELFIE)?"memememeselfie.tumblr.com":"memememe2memememe.tumblr.com";
 
-    private int                    mDetectorType       = JAVA_DETECTOR;
-    private String[]               mDetectorName;
+    private Mat mRgba;
+    private Mat mGray;
+    private Mat  mTempRgba;
+    private File mCascadeFile;
 
-    private float                  mRelativeFaceSize   = 0.2f;
-    private int                    mAbsoluteFaceSize   = 0;
+    private float mRelativeDetectSize = 0.15f;
+    private int mAbsoluteDetectSize = 0;
 
-    private CameraBridgeViewBase   mOpenCvCameraView;
+    private DetectionBasedTracker mNativeDetector;
+    private CameraBridgeViewBase mOpenCvCameraView;
+    private OSCPortOut mOscOut;
+
+    private State mCurrentState, mLastState;
+    private long mLastStateChangeMillis;
+    private long mLastSearchSendMillis;
+    private Point mCurrentFlashPosition;
+    private String mCurrentFlashText;
+    private Random mRandomGenerator;
+    private int mImageCounter;
+
+    private JumblrClient mTumblrClient;
+
+    private NoiseReader mNoiseReader = null;
+    private NoiseWriter mNoiseWriter = null;
+    private Thread noiseReaderThread = null;
+    private Thread noiseWriterThread = null;
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS:
-                {
-                    Log.i(TAG, "OpenCV loaded successfully");
+            if(status == LoaderCallbackInterface.SUCCESS){
+                Log.i(TAG, "OpenCV loaded successfully");
 
-                    // Load native library after(!) OpenCV initialization
+                // Load native library after(!) OpenCV initialization
+                System.loadLibrary("detection_based_tracker");
 
-                    try {
-                        System.loadLibrary("detection_based_tracker");
-                    } catch (UnsatisfiedLinkError e) {
-                        e.printStackTrace();
-                        Log.e(TAG, "Failed to load Library. Exception thrown: " + e);
+                try {
+                    // load cascade file from application resources
+
+                    InputStream is = getResources().openRawResource(R.raw.lbpcascade_frontalface);
+                    File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
+                    mCascadeFile = new File(cascadeDir, "lbpcascade_frontalface.xml");
+
+                    //InputStream is = getResources().openRawResource(R.raw.haarcascade_nexus);
+                    //File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
+                    //mCascadeFile = new File(cascadeDir, "cascade.xml");
+                    FileOutputStream os = new FileOutputStream(mCascadeFile);
+
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        os.write(buffer, 0, bytesRead);
                     }
-                    try {
-                        // load cascade file from application resources
-                        InputStream is = getResources().openRawResource(R.raw.lbpcascade_frontalface);
-                        File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
-                        mCascadeFile = new File(cascadeDir, "lbpcascade_frontalface.xml");
-                        FileOutputStream os = new FileOutputStream(mCascadeFile);
+                    is.close();
+                    os.close();
 
-                        byte[] buffer = new byte[4096];
-                        int bytesRead;
-                        while ((bytesRead = is.read(buffer)) != -1) {
-                            os.write(buffer, 0, bytesRead);
-                        }
-                        is.close();
-                        os.close();
+                    mNativeDetector = new DetectionBasedTracker(mCascadeFile.getAbsolutePath(), 0);
 
-                        mJavaDetector = new CascadeClassifier(mCascadeFile.getAbsolutePath());
-                        if (mJavaDetector.empty()) {
-                            Log.e(TAG, "Failed to load cascade classifier");
-                            mJavaDetector = null;
-                        } else
-                            Log.i(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
+                    cascadeDir.delete();
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e(TAG, "Failed to load cascade. Exception thrown: " + e);
+                }
 
-                        mNativeDetector = new DetectionBasedTracker(mCascadeFile.getAbsolutePath(), 0);
-
-                        cascadeDir.delete();
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        Log.e(TAG, "Failed to load cascade. Exception thrown: " + e);
-                    }
-
-                    mOpenCvCameraView.enableView();
-                } break;
-                default:
-                {
-                    super.onManagerConnected(status);
-                } break;
+                mOpenCvCameraView.enableView();
+            }
+            else{
+                super.onManagerConnected(status);
             }
         }
     };
-
-    public MemememeActivity() {
-        mDetectorName = new String[2];
-        mDetectorName[JAVA_DETECTOR] = "Java";
-        mDetectorName[NATIVE_DETECTOR] = "Native (tracking)";
-
-        Log.i(TAG, "Instantiated new " + this.getClass());
-    }
 
     /** Called when the activity is first created. */
     @Override
@@ -236,24 +152,60 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        setContentView(R.layout.face_detect_surface_view);
+        setContentView(R.layout.memememe_selfie_surface_view);
 
-        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.show_camera_activity_java_surface_view);
-        mOpenCvCameraView.setVisibility(CameraBridgeViewBase.VISIBLE);
+        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.fd_activity_surface_view);
         mOpenCvCameraView.setCvCameraViewListener(this);
+
+        // find front-facing camera
+        for(int i=0; i<Camera.getNumberOfCameras(); i++){
+            CameraInfo mInfo = new CameraInfo();
+            Camera.getCameraInfo(i, mInfo);
+            if(mInfo.facing == CameraInfo.CAMERA_FACING_FRONT){
+                mOpenCvCameraView.setCameraIndex(i);
+            }
+        }
+        mRandomGenerator = new Random();
+        mImageCounter = 0;
+        mTumblrClient = new JumblrClient(
+                getString(R.string.consumer_key),
+                getString(R.string.consumer_secret),
+                getString(R.string.oauth_token),
+                getString(R.string.oauth_token_secret));
+
+        mNoiseReader = new NoiseReader();
+        mNoiseWriter = new NoiseWriter();
+        noiseReaderThread = new Thread(mNoiseReader);
+        noiseWriterThread = new Thread(mNoiseWriter);
     }
 
     @Override
-    public void onPause()
-    {
+    public void onPause(){
         super.onPause();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
+        try{
+            mOscOut.send(new OSCMessage("/memememe/stop"));
+        }
+        catch(IOException e){
+            Log.e(TAG, "IO Exception!!: while sending stop osc message.");
+        }
+        catch(NullPointerException e){
+            Log.e(TAG, "Null Pointer Exception!!: while sending stop osc message.");
+        }
+        if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
+        if(mNativeDetector != null) mNativeDetector.release();
+        if(mOscOut != null) mOscOut.close();
+
+        try{
+            noiseReaderThread.interrupt();
+            noiseWriterThread.interrupt();
+            noiseReaderThread.join(500);
+            noiseWriterThread.join(500);
+        }
+        catch(InterruptedException e){}
     }
 
     @Override
-    public void onResume()
-    {
+    public void onResume(){
         super.onResume();
         if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
@@ -262,105 +214,408 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             Log.d(TAG, "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
+
+        // initialize OSC
+        try{
+            mOscOut = new OSCPortOut(InetAddress.getByName(OSC_OUT_ADDRESS), OSC_OUT_PORT);
+        }
+        catch(UnknownHostException e){
+            Log.e(TAG, "Unknown Host Exception!!: while starting OscOut with (address, port): "+OSC_OUT_ADDRESS+", "+OSC_OUT_PORT);
+        }
+        catch(SocketException e){
+            Log.e(TAG, "Socket Exception!!: while starting OscOut with (address, port): "+OSC_OUT_ADDRESS+", "+OSC_OUT_PORT);
+        }
+
+        // start sound threads if not running mememe#selfie mode
+        // (no noise is made or heard if thread not running)
+        if(!MEMEMEME_SELFIE){
+            noiseReaderThread.start();
+            noiseWriterThread.start();
+        }
+
+        // initialize state machine
+        mLastState = State.SEARCHING;
+        mCurrentState = State.SEARCHING;
+        Log.d(TAG, "state := SEARCHING");
+        // send first message to motors
+        mLastSearchSendMillis = System.currentTimeMillis();
+        sendCommandToPlatform("reset").start();
+
+        mLastStateChangeMillis = System.currentTimeMillis();
     }
 
     public void onDestroy() {
         super.onDestroy();
-        mOpenCvCameraView.disableView();
+        if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
+        if(mNativeDetector != null) mNativeDetector.release();
+        if(mOscOut != null) mOscOut.close();
     }
 
     public void onCameraViewStarted(int width, int height) {
         mGray = new Mat();
         mRgba = new Mat();
+        mTempRgba = new Mat();
     }
 
     public void onCameraViewStopped() {
+        mNativeDetector.stop();
+        mAbsoluteDetectSize = 0;
         mGray.release();
         mRgba.release();
+        mTempRgba.release();
+    }
+
+    private Thread sendCommandToPlatform(String cmd){
+        final String theCommand = "/memememe/"+cmd;
+        Thread thread = new Thread(new Runnable(){
+            @Override
+            public void run() {
+                try{
+                    mOscOut.send(new OSCMessage(theCommand));
+                }
+                catch(IOException e){
+                    Log.e(TAG, "IO Exception!!: while sending search osc message.");
+                }
+                catch(NullPointerException e){
+                    Log.e(TAG, "Null Pointer Exception!!: while sending search osc message.");
+                }
+            }
+        });
+        return thread;
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 
-        mRgba = inputFrame.rgba();
-        mGray = inputFrame.gray();
+        mTempRgba = inputFrame.rgba();
+        Core.flip(inputFrame.gray().t(), mGray, 0);
 
-        if (mAbsoluteFaceSize == 0) {
-            int height = mGray.rows();
-            if (Math.round(height * mRelativeFaceSize) > 0) {
-                mAbsoluteFaceSize = Math.round(height * mRelativeFaceSize);
+        // save images for video...
+        /*
+        Core.flip(mTempRgba.t(), mRgba, 0);
+        String dateFilename = SELFIE_FILE_NAME+String.format("%04d", mImageCounter++)+".jpg";
+        final File movFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), dateFilename);
+        Highgui.imwrite(movFile.toString(), mRgba);
+        */
+
+        // only need to do this once
+        if (mAbsoluteDetectSize == 0) {
+            int height = mGray.cols();
+            if (Math.round(height*mRelativeDetectSize) > 0) {
+                mAbsoluteDetectSize = Math.round(height*mRelativeDetectSize);
             }
-            mNativeDetector.setMinFaceSize(mAbsoluteFaceSize);
+            mNativeDetector.setMinFaceSize(mAbsoluteDetectSize);
+            mNativeDetector.start();
         }
 
-        MatOfRect faces = new MatOfRect();
-
-        if (mDetectorType == JAVA_DETECTOR) {
-            if (mJavaDetector != null)
-                mJavaDetector.detectMultiScale(mGray, faces, 1.1, 2, 2, // TODO: objdetect.CV_HAAR_SCALE_IMAGE
-                        new Size(mAbsoluteFaceSize, mAbsoluteFaceSize), new Size());
-        }
-        else if (mDetectorType == NATIVE_DETECTOR) {
-            if (mNativeDetector != null)
-                mNativeDetector.detect(mGray, faces);
+        // always detect in order to keep NativeDetector consistent with camera
+        MatOfRect detectedRects = new MatOfRect();
+        if (mNativeDetector != null) {
+            mNativeDetector.detect(mGray, detectedRects);
         }
         else {
-            Log.e(TAG, "Detection method is not selected!");
+            Log.e(TAG, "Native Detection method is NULL");
         }
+        Rect[] detectedArray = detectedRects.toArray();
+        detectedRects.release();
 
-        Rect[] facesArray = faces.toArray();
-        for (int i = 0; i < facesArray.length; i++)
-            Imgproc.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), FACE_RECT_COLOR, 3);
+        // states
+        if(mCurrentState == State.SEARCHING){
+            mTempRgba.setTo(SCREEN_COLOR_BLACK);
 
-        return mRgba;
-    }
+            // send search to motors
+            if(System.currentTimeMillis()-mLastSearchSendMillis > 1000){
+                mLastSearchSendMillis = System.currentTimeMillis();
+                sendCommandToPlatform("search").start();
+            }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        Log.i(TAG, "called onCreateOptionsMenu");
-        mItemFace50 = menu.add("Face size 50%");
-        mItemFace40 = menu.add("Face size 40%");
-        mItemFace30 = menu.add("Face size 30%");
-        mItemFace20 = menu.add("Face size 20%");
-        mItemType   = menu.add(mDetectorName[mDetectorType]);
-        return true;
-    }
+            // keep from finding too often
+            if((System.currentTimeMillis()-mLastStateChangeMillis > 5000) && (detectedArray.length > 0)){
+                Log.d(TAG, "found something while SEARCHING");
+                /////////////////
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        Log.i(TAG, "called onOptionsItemSelected; selected item: " + item);
-        if (item == mItemFace50)
-            setMinFaceSize(0.5f);
-        else if (item == mItemFace40)
-            setMinFaceSize(0.4f);
-        else if (item == mItemFace30)
-            setMinFaceSize(0.3f);
-        else if (item == mItemFace20)
-            setMinFaceSize(0.2f);
-        else if (item == mItemType) {
-            int tmpDetectorType = (mDetectorType + 1) % mDetectorName.length;
-            item.setTitle(mDetectorName[tmpDetectorType]);
-            setDetectorType(tmpDetectorType);
-        }
-        return true;
-    }
+                Imgproc.rectangle(mTempRgba,
+                        new Point(mTempRgba.width()-detectedArray[0].tl().y, detectedArray[0].br().x),
+                        new Point(mTempRgba.width()-detectedArray[0].br().y, detectedArray[0].tl().x),
+                        FACE_RECT_COLOR,3);
 
-    private void setMinFaceSize(float faceSize) {
-        mRelativeFaceSize = faceSize;
-        mAbsoluteFaceSize = 0;
-    }
+                Point imgCenter = new Point(mGray.width()/2, mGray.height()/2);
+                final Point lookAt = new Point(
+                        ((detectedArray[0].tl().x>imgCenter.x)?1:(detectedArray[0].br().x<imgCenter.x)?-1:0),
+                        ((detectedArray[0].br().y>imgCenter.y)?-1:(detectedArray[0].tl().y<imgCenter.y)?1:0));
 
-    private void setDetectorType(int type) {
-        if (mDetectorType != type) {
-            mDetectorType = type;
+                if(lookAt.x < 0)
+                    Log.d(TAG, "need to look to my LEFT");
+                if(lookAt.x > 0)
+                    Log.d(TAG, "need to look to my RIGHT");
+                if(lookAt.y < 0)
+                    Log.d(TAG, "need to look to my DOWN");
+                if(lookAt.y > 0)
+                    Log.d(TAG, "need to look to my UP");
 
-            if (type == NATIVE_DETECTOR) {
-                Log.i(TAG, "Detection Based Tracker enabled");
-                mNativeDetector.start();
-            } else {
-                Log.i(TAG, "Cascade detector enabled");
-                mNativeDetector.stop();
+                Thread thread = new Thread(new Runnable(){
+                    @Override
+                    public void run() {
+                        try{
+                            mOscOut.send(new OSCMessage("/memememe/stop"));
+                            // like a double take
+                            Point doubleTake = new Point(
+                                    ((mRandomGenerator.nextFloat()>0.5)?1:-1),
+                                    ((mRandomGenerator.nextFloat()>0.5)?1:-1));
+                            OSCMessage lookMessage = new OSCMessage("/memememe/look");
+                            lookMessage.addArgument((int)doubleTake.x);
+                            lookMessage.addArgument((int)doubleTake.y);
+                            mOscOut.send(lookMessage);
+                            lookMessage = new OSCMessage("/memememe/look");
+                            lookMessage.addArgument((int)(-doubleTake.x));
+                            lookMessage.addArgument((int)(-doubleTake.y));
+                            mOscOut.send(lookMessage);
+                            // the lookAt values
+                            lookMessage = new OSCMessage("/memememe/look");
+                            lookMessage.addArgument((int)lookAt.x);
+                            lookMessage.addArgument((int)lookAt.y);
+                            mOscOut.send(lookMessage);
+                        }
+                        catch(IOException e){
+                            Log.e(TAG, "IO Exception!!: while sending look osc message.");
+                        }
+                        catch(NullPointerException e){
+                            Log.e(TAG, "Null Pointer Exception!!: while sending look osc message.");
+                        }
+                        mLastStateChangeMillis = System.currentTimeMillis();
+                        mNoiseWriter.makeReflectNoise();
+                        mLastState = State.WAITING;
+                        if(MEMEMEME_SELFIE){
+                            sendCommandToPlatform("scan").start();
+                            mCurrentState = State.SCANNING;
+                            Log.d(TAG, "state := SCANNING");
+                        }
+                        else{
+                            mCurrentState = State.MAKING_REFLECT_NOISE;
+                            Log.d(TAG, "state := MAKING_REFLECT_NOISE");
+                        }
+                    }
+                });
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.SEARCHING;
+                mCurrentState = State.WAITING;
+                Log.d(TAG, "state := WAITING");
+                thread.start();
+            }
+
+            // no phone detected, check for noises
+            else if(mNoiseReader.isHearingReflect()){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.SEARCHING;
+                mCurrentState = State.REFLECTING;
+                Log.d(TAG, "state := REFLECTING");
+                sendCommandToPlatform("scan").start();
             }
         }
+        else if(mCurrentState == State.MAKING_REFLECT_NOISE){
+            mTempRgba.setTo(SCREEN_COLOR_FLASH);
+
+            if((System.currentTimeMillis()-mLastStateChangeMillis) > TIMEOUT_MAKING_NOISE){
+                mNoiseWriter.stopNoise();
+
+                // next state logic
+                if(mLastState == State.SCANNING){
+                    sendCommandToPlatform("stop").start();
+                    mCurrentState = State.FLASHING;
+                    Log.d(TAG, "state := FLASHING");
+                }
+                else{
+                    mCurrentState = State.SCANNING;
+                    Log.d(TAG, "state := SCANNING");
+                    sendCommandToPlatform("scan").start();
+                }
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.MAKING_REFLECT_NOISE;
+            }
+        }
+        else if(mCurrentState == State.SCANNING){
+            mTempRgba.setTo(SCREEN_COLOR_BLACK);
+
+            if((System.currentTimeMillis()-mLastStateChangeMillis > 500) && (detectedArray.length > 0)){
+                Log.d(TAG, "found something while SCANNING/LOOKING");
+
+                // get ready for FLASH state
+                // in mTempRgba coordinates!!!
+                mCurrentFlashPosition = new Point(
+                        mTempRgba.width()-detectedArray[0].tl().y-detectedArray[0].height/2,
+                        detectedArray[0].br().x-detectedArray[0].width/2);
+
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mNoiseWriter.makeReflectNoise();
+                mLastState = State.SCANNING;
+                if(MEMEMEME_SELFIE){
+                    sendCommandToPlatform("stop").start();
+                    mCurrentState = State.FLASHING;
+                    Log.d(TAG, "state := FLASHING");
+                }
+                else{
+                    mCurrentState = State.MAKING_REFLECT_NOISE;
+                    Log.d(TAG, "state := MAKING_REFLECT_NOISE");
+                }
+            }
+            // if other phone reflects me
+            else if(mNoiseReader.isHearingPicture()){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.SCANNING;
+                mCurrentState = State.POSTING;
+                Log.d(TAG, "state := POSTING");
+                sendCommandToPlatform("stop").start();
+            }
+            // if other phone sees me
+            else if((System.currentTimeMillis()-mLastStateChangeMillis > 500) && mNoiseReader.isHearingReflect()){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.SCANNING;
+                mCurrentState = State.REFLECTING;
+                Log.d(TAG, "state := REFLECTING");
+                sendCommandToPlatform("scan").start();
+            }
+
+            // if scanning for a while, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_SCANNING){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.SCANNING;
+                mCurrentState = State.SEARCHING;
+                Log.d(TAG, "state := SEARCHING");
+                sendCommandToPlatform("search").start();
+            }
+        }
+        else if(mCurrentState == State.REFLECTING){
+            // do nothing to image
+
+            // if detect other phone, stop
+            if(detectedArray.length > 0){
+                Log.d(TAG, "found something while REFLECTING");
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mNoiseWriter.makePictureNoise();
+                mLastState = State.REFLECTING;
+                mCurrentState = State.MAKING_PICTURE_NOISE;
+                Log.d(TAG, "state := MAKING_PICTURE_NOISE");
+                sendCommandToPlatform("stop").start();
+            }
+            // if other phone sees me
+            else if(mNoiseReader.isHearingReflect()){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.REFLECTING;
+                mCurrentState = State.REFLECTING;
+                Log.d(TAG, "state := REFLECTING");
+                sendCommandToPlatform("scan").start();
+            }
+
+            // if reflecting for a while, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_REFLECTING){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.REFLECTING;
+                mCurrentState = State.SEARCHING;
+                Log.d(TAG, "state := SEARCHING");
+                sendCommandToPlatform("search").start();
+            }
+        }
+        else if(mCurrentState == State.MAKING_PICTURE_NOISE){
+            // do nothing to image
+
+            // if making noise for a while, move on
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_MAKING_NOISE){
+                mNoiseWriter.stopNoise();
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.MAKING_PICTURE_NOISE;
+                mCurrentState = State.SEARCHING;
+                Log.d(TAG, "state := SEARCHING");
+                sendCommandToPlatform("search").start();
+            }
+        }
+        else if(mCurrentState == State.FLASHING){
+            byte detectedColor[] = new byte[4];
+            mTempRgba.get((int)mCurrentFlashPosition.y,(int)mCurrentFlashPosition.x,detectedColor);
+            mTempRgba.setTo(SCREEN_COLOR_FLASH);
+
+            // checking these 2 values seem to be enough
+            if((System.currentTimeMillis()-mLastStateChangeMillis > DELAY_FLASHING) &&
+                    ((detectedColor[1]&0xff)>200 && (detectedColor[2]&0xff)>200)){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.FLASHING;
+                mCurrentState = State.POSTING;
+                Log.d(TAG, "state := POSTING");
+            }
+
+            // if flashing for a while, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_FLASHING){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.FLASHING;
+                mCurrentState = State.SEARCHING;
+                Log.d(TAG, "state := SEARCHING");
+                sendCommandToPlatform("search").start();
+            }
+
+            Core.flip(mTempRgba.t(), mRgba, 1);
+            for(int i=0; i<mRandomGenerator.nextInt(5)+2; i++){
+                mCurrentFlashText = TEXTS[mRandomGenerator.nextInt(TEXTS.length)];
+                Size mTextSize = Imgproc.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, 1, 16, null);
+                float mWidthScale = (float)(mRgba.width()/mTextSize.width);
+                mTextSize = Imgproc.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, mWidthScale, 16, null);
+                Point mTextOrigin = new Point(
+                        mRandomGenerator.nextInt((int)(mRgba.width() - mTextSize.width)),
+                        mRandomGenerator.nextInt((int)(mRgba.height() - mTextSize.height)));
+                Imgproc.putText(mRgba, mCurrentFlashText, mTextOrigin, Core.FONT_HERSHEY_PLAIN, mWidthScale, SCREEN_COLOR_BLACK, 16);
+            }
+            Core.flip(mRgba.t(), mTempRgba, 1);
+        }
+        else if(mCurrentState == State.WAITING){
+            mTempRgba.setTo(SCREEN_COLOR_BLACK);
+            // if waiting for a while, go back to searching
+            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_WAITING){
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.WAITING;
+                mCurrentState = State.SEARCHING;
+                Log.d(TAG, "state := SEARCHING");
+                sendCommandToPlatform("search").start();
+            }
+        }
+        else if(mCurrentState == State.POSTING){
+            Core.flip(mTempRgba.t(), mRgba, 0);
+            Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
+
+            String selfieFilename = SELFIE_FILE_NAME+(System.currentTimeMillis()/1000)+".jpg";
+            final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), selfieFilename);
+            Imgcodecs.imwrite(file.toString(), mRgba);
+
+            Thread tumblrThread = new Thread(new Runnable(){
+                @Override
+                public void run() {
+                    try{
+                        PhotoPost mPP = mTumblrClient.newPost(TUMBLR_BLOG_ADDRESS, PhotoPost.class);
+                        mPP.setData(file);
+                        mPP.save();
+                    }
+                    catch(IOException e){
+                        Log.e(TAG, "IO Exception!!: while sending picture to tumblr.");
+                    }
+                    catch(JumblrException e){
+                        Log.e(TAG, "Jumblr Exception!!: while sending picture to tumblr.");
+                        Log.e(TAG, "Response Code: "+e.getResponseCode());
+                        Log.e(TAG, e.toString());
+                    }
+                    catch(Exception e){
+                        Log.e(TAG, "some Exception!!: while sending picture to tumblr.");
+                        Log.e(TAG, e.toString());
+                    }
+                }
+            });
+            tumblrThread.start();
+
+            mLastStateChangeMillis = System.currentTimeMillis();
+            mLastState = State.POSTING;
+            mCurrentState = State.SEARCHING;
+            Log.d(TAG, "state := SEARCHING");
+            sendCommandToPlatform("search").start();
+            mTempRgba.setTo(SCREEN_COLOR_BLACK);
+        }
+
+        Core.flip(mTempRgba, mRgba, 1);
+        return mRgba;
+
     }
 }
-
