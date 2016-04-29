@@ -1,2 +1,2 @@
-include ':OpenCVHaarTestApp'
+include ':app'
 include ':openCVLibrary310'
