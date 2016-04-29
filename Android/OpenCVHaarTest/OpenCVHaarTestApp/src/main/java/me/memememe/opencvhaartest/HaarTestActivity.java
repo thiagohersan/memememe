@@ -168,8 +168,7 @@ public class HaarTestActivity extends AppCompatActivity implements CvCameraViewL
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         Mat mTempRgba = inputFrame.rgba();
-        Mat mTempGray = new Mat();
-        Core.transpose(inputFrame.gray(), mTempGray);
+        Mat mTempGray = inputFrame.gray().t();
         Core.flip(mTempGray, mGray, 0);
 
         if (mAbsoluteFaceSize == 0) {
