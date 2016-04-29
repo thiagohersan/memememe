@@ -11,7 +11,7 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Core;
+//import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
 import org.opencv.core.Point;
@@ -47,10 +47,10 @@ public class HaarTestActivity extends AppCompatActivity implements CvCameraViewL
     private CascadeClassifier mJavaDetector;
     private DetectionBasedTracker mNativeDetector;
 
-    private int mDetectorType = JAVA_DETECTOR;
+    private int mDetectorType = NATIVE_DETECTOR;
     private String[] mDetectorName;
 
-    private float mRelativeFaceSize = 0.2f;
+    private float mRelativeFaceSize = 0.4f;
     private int mAbsoluteFaceSize = 0;
 
     private CameraBridgeViewBase mOpenCvCameraView;
@@ -167,8 +167,8 @@ public class HaarTestActivity extends AppCompatActivity implements CvCameraViewL
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        Mat mTemp = inputFrame.rgba();
-        mGray = inputFrame.gray().t();
+        mRgba = inputFrame.rgba();
+        mGray = inputFrame.gray();
 
         if (mAbsoluteFaceSize == 0) {
             int height = mGray.cols();
@@ -196,15 +196,13 @@ public class HaarTestActivity extends AppCompatActivity implements CvCameraViewL
 
         Rect[] facesArray = faces.toArray();
         for (Rect mRect : facesArray){
-            Imgproc.rectangle(mTemp,
-                    new Point(mRect.tl().y, mRect.tl().x),
-                    new Point(mRect.br().y, mRect.br().x),
-                    FACE_RECT_COLOR, 3);
+            Imgproc.rectangle(mRgba, mRect.tl(), mRect.br(), FACE_RECT_COLOR, 3);
         }
 
-        Core.flip(mTemp, mRgba, 1);
+        //Core.flip(mTemp, mRgba, 1);
+        //mTemp.copyTo(mRgba);
         faces.release();
-        mTemp.release();
+        //mTemp.release();
 
         return mRgba;
     }
@@ -216,7 +214,7 @@ public class HaarTestActivity extends AppCompatActivity implements CvCameraViewL
         mItemFace40 = menu.add("Face size 40%");
         mItemFace30 = menu.add("Face size 30%");
         mItemFace20 = menu.add("Face size 20%");
-        mItemType   = menu.add(mDetectorName[mDetectorType]);
+        mItemType   = menu.add(mDetectorName[(mDetectorType+1)%2]);
         return true;
     }
 
