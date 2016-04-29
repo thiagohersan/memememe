@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">memememe Test Sound</string>
+    <string name="button_quit_text">Quit</string>
+    <string name="button_yes_text">YES</string>
+    <string name="button_no_text">NO</string>
+</resources>
