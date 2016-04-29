@@ -31,7 +31,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 
-
 public class HaarTestActivity extends AppCompatActivity implements CvCameraViewListener2 {
     private static final String TAG = "OpenCV3::HaarTest";
     private static final Scalar FACE_RECT_COLOR = new Scalar(0, 255, 0, 255);
@@ -46,7 +45,7 @@ public class HaarTestActivity extends AppCompatActivity implements CvCameraViewL
 
     private Mat mRgba, mGray;
     private CascadeClassifier mJavaDetector;
-    //private DetectionBasedTracker mNativeDetector;
+    private DetectionBasedTracker mNativeDetector;
 
     private int mDetectorType = JAVA_DETECTOR;
     private String[] mDetectorName;
@@ -65,7 +64,7 @@ public class HaarTestActivity extends AppCompatActivity implements CvCameraViewL
                     Log.i(TAG, "OpenCV loaded successfully");
 
                     // Load native library after(!) OpenCV initialization
-                    //System.loadLibrary("detection_based_tracker");
+                    System.loadLibrary("detection_based_tracker");
 
                     try {
                         // load cascade file from application resources
@@ -90,7 +89,7 @@ public class HaarTestActivity extends AppCompatActivity implements CvCameraViewL
                         } else
                             Log.i(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
 
-                        //mNativeDetector = new DetectionBasedTracker(mCascadeFile.getAbsolutePath(), 0);
+                        mNativeDetector = new DetectionBasedTracker(mCascadeFile.getAbsolutePath(), 0);
 
                         cascadeDir.delete();
 
@@ -154,7 +153,7 @@ public class HaarTestActivity extends AppCompatActivity implements CvCameraViewL
 
     public void onDestroy() {
         super.onDestroy();
-        //mOpenCvCameraView.disableView();
+        mOpenCvCameraView.disableView();
     }
 
     public void onCameraViewStarted(int width, int height) {
@@ -176,7 +175,7 @@ public class HaarTestActivity extends AppCompatActivity implements CvCameraViewL
             if (Math.round(height * mRelativeFaceSize) > 0) {
                 mAbsoluteFaceSize = Math.round(height * mRelativeFaceSize);
             }
-            //mNativeDetector.setMinFaceSize(mAbsoluteFaceSize);
+            mNativeDetector.setMinFaceSize(mAbsoluteFaceSize);
         }
 
         MatOfRect faces = new MatOfRect();
@@ -188,21 +187,19 @@ public class HaarTestActivity extends AppCompatActivity implements CvCameraViewL
             }
         }
         else if (mDetectorType == NATIVE_DETECTOR) {
-            /*
             if (mNativeDetector != null)
                 mNativeDetector.detect(mGray, faces);
-            */
         }
         else {
             Log.e(TAG, "Detection method is not selected!");
         }
 
         Rect[] facesArray = faces.toArray();
-        for (int i = 0; i < facesArray.length; i++){
+        for (Rect mRect : facesArray){
             Imgproc.rectangle(mTemp,
-                              new Point(facesArray[i].tl().y, facesArray[i].tl().x),
-                              new Point(facesArray[i].br().y, facesArray[i].br().x),
-                              FACE_RECT_COLOR, 3);
+                    new Point(mRect.tl().y, mRect.tl().x),
+                    new Point(mRect.br().y, mRect.br().x),
+                    FACE_RECT_COLOR, 3);
         }
 
         Core.flip(mTemp, mRgba, 1);
@@ -253,10 +250,10 @@ public class HaarTestActivity extends AppCompatActivity implements CvCameraViewL
 
             if (type == NATIVE_DETECTOR) {
                 Log.i(TAG, "Detection Based Tracker enabled");
-                //mNativeDetector.start();
+                mNativeDetector.start();
             } else {
                 Log.i(TAG, "Cascade detector enabled");
-                //mNativeDetector.stop();
+                mNativeDetector.stop();
             }
         }
     }
