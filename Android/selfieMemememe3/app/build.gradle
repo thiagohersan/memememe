@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         applicationId "memememe.me.selfiememememe"
-        minSdkVersion 22
+        minSdkVersion 8
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"

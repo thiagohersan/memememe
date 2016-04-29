@@ -292,6 +292,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         mTempRgba = inputFrame.rgba();
         tempT = inputFrame.gray().t();
         Core.flip(tempT, mGray, 0);
+        tempT.release();
 
         // save images for video...
         /*
@@ -557,6 +558,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             }
             tempT = mTempRgba.t();
             Core.flip(tempT, mRgba, 1);
+            tempT.release();
+
             for(int i=0; i<mRandomGenerator.nextInt(5)+2; i++){
                 mCurrentFlashText = TEXTS[mRandomGenerator.nextInt(TEXTS.length)];
                 Size mTextSize = Imgproc.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, 1, 16, null);
@@ -569,6 +572,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             }
             tempT = mRgba.t();
             Core.flip(tempT, mTempRgba, 1);
+            tempT.release();
+
         }
         else if(mCurrentState == State.WAITING){
             mTempRgba.setTo(SCREEN_COLOR_BLACK);
@@ -584,6 +589,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         else if(mCurrentState == State.POSTING){
             tempT = mTempRgba.t();
             Core.flip(tempT, mRgba, 0);
+            tempT.release();
+
             Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
 
             String selfieFilename = SELFIE_FILE_NAME+(System.currentTimeMillis()/1000)+".jpg";
