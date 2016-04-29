@@ -11,7 +11,7 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-//import org.opencv.core.Core;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
 import org.opencv.core.Point;
@@ -167,8 +167,10 @@ public class HaarTestActivity extends AppCompatActivity implements CvCameraViewL
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        mRgba = inputFrame.rgba();
-        mGray = inputFrame.gray();
+        Mat mTempRgba = inputFrame.rgba();
+        Mat mTempGray = new Mat();
+        Core.transpose(inputFrame.gray(), mTempGray);
+        Core.flip(mTempGray, mGray, 0);
 
         if (mAbsoluteFaceSize == 0) {
             int height = mGray.cols();
@@ -194,15 +196,19 @@ public class HaarTestActivity extends AppCompatActivity implements CvCameraViewL
             Log.e(TAG, "Detection method is not selected!");
         }
 
+        Core.flip(mTempRgba, mRgba, 1);
+
         Rect[] facesArray = faces.toArray();
         for (Rect mRect : facesArray){
-            Imgproc.rectangle(mRgba, mRect.tl(), mRect.br(), FACE_RECT_COLOR, 3);
+            Imgproc.rectangle(mRgba,
+                    new Point(mRect.tl().y, mRect.tl().x),
+                    new Point(mRect.br().y, mRect.br().x),
+                    FACE_RECT_COLOR, 3);
         }
 
-        //Core.flip(mTemp, mRgba, 1);
-        //mTemp.copyTo(mRgba);
         faces.release();
-        //mTemp.release();
+        mTempRgba.release();
+        mTempGray.release();
 
         return mRgba;
     }
