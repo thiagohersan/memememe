@@ -74,7 +74,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
 
     private Mat mRgba;
     private Mat mGray;
-    private Mat  mTempRgba;
+    private Mat mTempRgba;
+    private Mat tempT;
     private File mCascadeFile;
 
     private float mRelativeDetectSize = 0.15f;
@@ -129,7 +130,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                     os.close();
 
                     mNativeDetector = new DetectionBasedTracker(mCascadeFile.getAbsolutePath(), 0);
-
+                    mNativeDetector.start();
                     cascadeDir.delete();
                 }
                 catch (IOException e) {
@@ -252,17 +253,19 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     }
 
     public void onCameraViewStarted(int width, int height) {
-        mGray = new Mat();
         mRgba = new Mat();
+        mGray = new Mat();
         mTempRgba = new Mat();
+        tempT = new Mat();
     }
 
     public void onCameraViewStopped() {
         mNativeDetector.stop();
         mAbsoluteDetectSize = 0;
-        mGray.release();
         mRgba.release();
+        mGray.release();
         mTempRgba.release();
+        tempT.release();
     }
 
     private Thread sendCommandToPlatform(String cmd){
@@ -287,7 +290,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 
         mTempRgba = inputFrame.rgba();
-        Core.flip(inputFrame.gray().t(), mGray, 0);
+        tempT = inputFrame.gray().t();
+        Core.flip(tempT, mGray, 0);
 
         // save images for video...
         /*
@@ -298,13 +302,15 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         */
 
         // only need to do this once
+
         if (mAbsoluteDetectSize == 0) {
             int height = mGray.cols();
+            Log.e("NUMNUM", "COLUMUNS:" + String.valueOf(height));
+
             if (Math.round(height*mRelativeDetectSize) > 0) {
                 mAbsoluteDetectSize = Math.round(height*mRelativeDetectSize);
             }
             mNativeDetector.setMinFaceSize(mAbsoluteDetectSize);
-            mNativeDetector.start();
         }
 
         // always detect in order to keep NativeDetector consistent with camera
@@ -549,8 +555,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                 Log.d(TAG, "state := SEARCHING");
                 sendCommandToPlatform("search").start();
             }
-
-            Core.flip(mTempRgba.t(), mRgba, 1);
+            tempT = mTempRgba.t();
+            Core.flip(tempT, mRgba, 1);
             for(int i=0; i<mRandomGenerator.nextInt(5)+2; i++){
                 mCurrentFlashText = TEXTS[mRandomGenerator.nextInt(TEXTS.length)];
                 Size mTextSize = Imgproc.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, 1, 16, null);
@@ -561,7 +567,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                         mRandomGenerator.nextInt((int)(mRgba.height() - mTextSize.height)));
                 Imgproc.putText(mRgba, mCurrentFlashText, mTextOrigin, Core.FONT_HERSHEY_PLAIN, mWidthScale, SCREEN_COLOR_BLACK, 16);
             }
-            Core.flip(mRgba.t(), mTempRgba, 1);
+            tempT = mRgba.t();
+            Core.flip(tempT, mTempRgba, 1);
         }
         else if(mCurrentState == State.WAITING){
             mTempRgba.setTo(SCREEN_COLOR_BLACK);
@@ -575,7 +582,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             }
         }
         else if(mCurrentState == State.POSTING){
-            Core.flip(mTempRgba.t(), mRgba, 0);
+            tempT = mTempRgba.t();
+            Core.flip(tempT, mRgba, 0);
             Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
 
             String selfieFilename = SELFIE_FILE_NAME+(System.currentTimeMillis()/1000)+".jpg";

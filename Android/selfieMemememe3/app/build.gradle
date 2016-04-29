@@ -65,14 +65,3 @@ dependencies {
     compile files('src/main/libs/JTransforms-3.0.jar')
     compile files('src/main/libs/jumblr-0.0.10-jar-with-dependencies.jar')
 }
-
-task copyJniLibs(type: Copy) {
-    from 'src/main/libs/armeabi-v7a'
-    into 'src/main/jniLibs'
-}
-
-tasks.withType(JavaCompile) {
-    compileTask -> compileTask.dependsOn(copyJniLibs)
-}
-
-//clean.dependsOn 'cleanCopyJniLibs'
