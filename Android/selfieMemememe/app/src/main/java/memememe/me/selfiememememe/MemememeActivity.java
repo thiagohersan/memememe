@@ -69,7 +69,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private Mat mRgba;
     private Mat mGray;
     private Mat mTempRgba;
-    private Mat tempT;
+    private Mat mTempT;
 
     private int mAbsoluteDetectSize = 0;
 
@@ -249,7 +249,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         mRgba = new Mat();
         mGray = new Mat();
         mTempRgba = new Mat();
-        tempT = new Mat();
+        mTempT = new Mat();
     }
 
     public void onCameraViewStopped() {
@@ -258,7 +258,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         mRgba.release();
         mGray.release();
         mTempRgba.release();
-        tempT.release();
+        mTempT.release();
     }
 
     private Thread sendCommandToPlatform(String cmd){
@@ -282,15 +282,15 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mTempRgba = inputFrame.rgba();
-        tempT = inputFrame.gray().t();
-        Core.flip(tempT, mGray, 0);
-        tempT.release();
+        mTempT = inputFrame.gray().t();
+        Core.flip(mTempT, mGray, 0);
+        mTempT.release();
 
         // save images for video...
         /*
-        tempT = mTempRgba.t();
-        Core.flip(tempT, mRgba, 0);
-        tempT.release();
+        mTempT = mTempRgba.t();
+        Core.flip(mTempT, mRgba, 0);
+        mTempT.release();
         String dateFilename = SELFIE_FILE_NAME+String.format("%04d", mImageCounter++)+".jpg";
         final File movFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), dateFilename);
         Highgui.imwrite(movFile.toString(), mRgba);
@@ -548,9 +548,9 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                 Log.d(TAG, "state := SEARCHING");
                 sendCommandToPlatform("search").start();
             }
-            tempT = mTempRgba.t();
-            Core.flip(tempT, mRgba, 1);
-            tempT.release();
+            mTempT = mTempRgba.t();
+            Core.flip(mTempT, mRgba, 1);
+            mTempT.release();
 
             for(int i=0; i<mRandomGenerator.nextInt(5)+2; i++){
                 String mCurrentFlashText = TEXTS[mRandomGenerator.nextInt(TEXTS.length)];
@@ -562,9 +562,9 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                         mRandomGenerator.nextInt((int)(mRgba.height() - mTextSize.height)));
                 Imgproc.putText(mRgba, mCurrentFlashText, mTextOrigin, Core.FONT_HERSHEY_PLAIN, mWidthScale, SCREEN_COLOR_BLACK, 16);
             }
-            tempT = mRgba.t();
-            Core.flip(tempT, mTempRgba, 1);
-            tempT.release();
+            mTempT = mRgba.t();
+            Core.flip(mTempT, mTempRgba, 1);
+            mTempT.release();
 
         }
         else if(mCurrentState == State.WAITING){
@@ -579,9 +579,9 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             }
         }
         else if(mCurrentState == State.POSTING){
-            tempT = mTempRgba.t();
-            Core.flip(tempT, mRgba, 0);
-            tempT.release();
+            mTempT = mTempRgba.t();
+            Core.flip(mTempT, mRgba, 0);
+            mTempT.release();
 
             Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
 
