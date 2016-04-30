@@ -1,2 +1,2 @@
 /build
-src/main/libs
+/src/main/libs/**/*.so
