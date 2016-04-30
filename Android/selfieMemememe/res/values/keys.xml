@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="consumer_key">16svfFXx0K9IMsV8TCCjDhTMrIiKpJLlTTlCOfVJjNREaHjgNm</string>
-    <string name="consumer_secret">tuitRq41Y1QO9shzegw6YkAuYNCqMH6FDvKVQX7d3yLN5ydVS9</string>
-    <string name="oauth_token">Zhf9R1oEEAn39Q2OAHiEcB4XasHjcJBw2Y5MwbFbAZFQ7R9Icr</string>
-    <string name="oauth_token_secret">zP50LmZLOsEAVyyMuoF5QPRU7I1tnzTJASHp4na3oZOFEYfqfp</string>
-</resources>
