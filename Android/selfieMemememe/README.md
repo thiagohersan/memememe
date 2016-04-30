@@ -3,9 +3,10 @@
 Android app for detecting cell phones with OpenCV.
 
 ###Notes
-    Project updated for Android Studio, to compile create a symbolik link outside the project folder *selfieMemememe* with the name `OpenCV-android-sdk` pointing the OpenCV sdk folder example:
 
-    ``OpenCV-android-sdk -> /Users/tgh/Dev/OpenCV-android-sdk```
+Project updated for Android Studio, to compile create a symbolik link outside the project folder **selfieMemememe** with the name `OpenCV-android-sdk` pointing the OpenCV sdk folder, example:
+
+```OpenCV-android-sdk -> /Users/tgh/Dev/OpenCV-android-sdk```
 
 ###Dependencies:  
 - JavaOSC ([github](https://github.com/hoijui/JavaOSC), [docs](http://www.illposed.com/software/javaoscdoc/))  
