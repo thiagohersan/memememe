@@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-include ../../../../OpenCV-android-sdk/sdk/native/jni/OpenCV.mk
+include ../../../../../OpenCV-android-sdk/sdk/native/jni/OpenCV.mk
 
 OPENCV_LIB_TYPE  := STATIC
 LOCAL_SRC_FILES  := DetectionBasedTracker.cpp
