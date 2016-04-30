@@ -1,4 +1,5 @@
-package me.memememe.selfie;
+package memememe.me.selfiememememe;
+
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;

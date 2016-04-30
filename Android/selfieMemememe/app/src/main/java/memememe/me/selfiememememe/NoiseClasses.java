@@ -1,4 +1,4 @@
-package me.memememe.selfie;
+package memememe.me.selfiememememe;
 
 import java.util.Random;
 

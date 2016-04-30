@@ -1,4 +1,7 @@
-package me.memememe.selfie;
+package memememe.me.selfiememememe;
+
+
+
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -9,40 +12,46 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Random;
 
+
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.view.WindowManager;
+
+// Android Classes
+import android.util.Log;
+import android.content.Context;
+import android.hardware.Camera;
+import android.hardware.Camera.CameraInfo;
+import android.os.Environment;
+
+//OpenCV
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.core.Core;
 import org.opencv.core.MatOfRect;
-import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
-import org.opencv.highgui.Highgui;
+import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.imgcodecs.Imgcodecs;
 
+//extras
 import com.illposed.osc.OSCMessage;
 import com.illposed.osc.OSCPortOut;
 import com.tumblr.jumblr.JumblrClient;
 import com.tumblr.jumblr.exceptions.JumblrException;
 import com.tumblr.jumblr.types.PhotoPost;
 
-import android.app.Activity;
-import android.content.Context;
-import android.hardware.Camera;
-import android.hardware.Camera.CameraInfo;
-import android.os.Bundle;
-import android.os.Environment;
-import android.util.Log;
-import android.view.WindowManager;
 
-public class MemememeActivity extends Activity implements CvCameraViewListener2 {
+public class MemememeActivity extends AppCompatActivity implements CvCameraViewListener2 {
     private static enum State {WAITING, SEARCHING, REFLECTING, FLASHING, POSTING, SCANNING,
-                               MAKING_REFLECT_NOISE, MAKING_PICTURE_NOISE};
+        MAKING_REFLECT_NOISE, MAKING_PICTURE_NOISE};
 
     private static final String TAG = "MEMEMEME::SELFIE";
     private static final String SELFIE_FILE_NAME = "memememeselfie";
@@ -65,7 +74,8 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
     private Mat mRgba;
     private Mat mGray;
-    private Mat  mTempRgba;
+    private Mat mTempRgba;
+    private Mat tempT;
     private File mCascadeFile;
 
     private float mRelativeDetectSize = 0.15f;
@@ -101,9 +111,14 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
                 try {
                     // load cascade file from application resources
-                    InputStream is = getResources().openRawResource(R.raw.haarcascade_nexus);
+
+                    InputStream is = getResources().openRawResource(R.raw.lbpcascade_frontalface);
                     File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
-                    mCascadeFile = new File(cascadeDir, "cascade.xml");
+                    mCascadeFile = new File(cascadeDir, "lbpcascade_frontalface.xml");
+
+                    //InputStream is = getResources().openRawResource(R.raw.haarcascade_nexus);
+                    //File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
+                    //mCascadeFile = new File(cascadeDir, "cascade.xml");
                     FileOutputStream os = new FileOutputStream(mCascadeFile);
 
                     byte[] buffer = new byte[4096];
@@ -115,9 +130,9 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                     os.close();
 
                     mNativeDetector = new DetectionBasedTracker(mCascadeFile.getAbsolutePath(), 0);
-
+                    mNativeDetector.start();
                     cascadeDir.delete();
-                } 
+                }
                 catch (IOException e) {
                     e.printStackTrace();
                     Log.e(TAG, "Failed to load cascade. Exception thrown: " + e);
@@ -193,7 +208,13 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     @Override
     public void onResume(){
         super.onResume();
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_9, this, mLoaderCallback);
+        if (!OpenCVLoader.initDebug()) {
+            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
+        } else {
+            Log.d(TAG, "OpenCV library found inside package. Using it!");
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        }
 
         // initialize OSC
         try{
@@ -232,17 +253,19 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     }
 
     public void onCameraViewStarted(int width, int height) {
-        mGray = new Mat();
         mRgba = new Mat();
+        mGray = new Mat();
         mTempRgba = new Mat();
+        tempT = new Mat();
     }
 
     public void onCameraViewStopped() {
         mNativeDetector.stop();
         mAbsoluteDetectSize = 0;
-        mGray.release();
         mRgba.release();
+        mGray.release();
         mTempRgba.release();
+        tempT.release();
     }
 
     private Thread sendCommandToPlatform(String cmd){
@@ -265,8 +288,11 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+
         mTempRgba = inputFrame.rgba();
-        Core.flip(inputFrame.gray().t(), mGray, 0);
+        tempT = inputFrame.gray().t();
+        Core.flip(tempT, mGray, 0);
+        tempT.release();
 
         // save images for video...
         /*
@@ -277,13 +303,15 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
         */
 
         // only need to do this once
+
         if (mAbsoluteDetectSize == 0) {
             int height = mGray.cols();
+            Log.e("NUMNUM", "COLUMUNS:" + String.valueOf(height));
+
             if (Math.round(height*mRelativeDetectSize) > 0) {
                 mAbsoluteDetectSize = Math.round(height*mRelativeDetectSize);
             }
             mNativeDetector.setMinFaceSize(mAbsoluteDetectSize);
-            mNativeDetector.start();
         }
 
         // always detect in order to keep NativeDetector consistent with camera
@@ -311,10 +339,11 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             if((System.currentTimeMillis()-mLastStateChangeMillis > 5000) && (detectedArray.length > 0)){
                 Log.d(TAG, "found something while SEARCHING");
                 /////////////////
-                Core.rectangle(mTempRgba,
+
+                Imgproc.rectangle(mTempRgba,
                         new Point(mTempRgba.width()-detectedArray[0].tl().y, detectedArray[0].br().x),
                         new Point(mTempRgba.width()-detectedArray[0].br().y, detectedArray[0].tl().x),
-                        FACE_RECT_COLOR, 3);
+                        FACE_RECT_COLOR,3);
 
                 Point imgCenter = new Point(mGray.width()/2, mGray.height()/2);
                 final Point lookAt = new Point(
@@ -527,19 +556,24 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
                 Log.d(TAG, "state := SEARCHING");
                 sendCommandToPlatform("search").start();
             }
+            tempT = mTempRgba.t();
+            Core.flip(tempT, mRgba, 1);
+            tempT.release();
 
-            Core.flip(mTempRgba.t(), mRgba, 1);
             for(int i=0; i<mRandomGenerator.nextInt(5)+2; i++){
                 mCurrentFlashText = TEXTS[mRandomGenerator.nextInt(TEXTS.length)];
-                Size mTextSize = Core.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, 1, 16, null);
+                Size mTextSize = Imgproc.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, 1, 16, null);
                 float mWidthScale = (float)(mRgba.width()/mTextSize.width);
-                mTextSize = Core.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, mWidthScale, 16, null);
+                mTextSize = Imgproc.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, mWidthScale, 16, null);
                 Point mTextOrigin = new Point(
                         mRandomGenerator.nextInt((int)(mRgba.width() - mTextSize.width)),
                         mRandomGenerator.nextInt((int)(mRgba.height() - mTextSize.height)));
-                Core.putText(mRgba, mCurrentFlashText, mTextOrigin, Core.FONT_HERSHEY_PLAIN, mWidthScale, SCREEN_COLOR_BLACK, 16);
+                Imgproc.putText(mRgba, mCurrentFlashText, mTextOrigin, Core.FONT_HERSHEY_PLAIN, mWidthScale, SCREEN_COLOR_BLACK, 16);
             }
-            Core.flip(mRgba.t(), mTempRgba, 1);
+            tempT = mRgba.t();
+            Core.flip(tempT, mTempRgba, 1);
+            tempT.release();
+
         }
         else if(mCurrentState == State.WAITING){
             mTempRgba.setTo(SCREEN_COLOR_BLACK);
@@ -553,12 +587,15 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
             }
         }
         else if(mCurrentState == State.POSTING){
-            Core.flip(mTempRgba.t(), mRgba, 0);
+            tempT = mTempRgba.t();
+            Core.flip(tempT, mRgba, 0);
+            tempT.release();
+
             Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
 
             String selfieFilename = SELFIE_FILE_NAME+(System.currentTimeMillis()/1000)+".jpg";
             final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), selfieFilename);
-            Highgui.imwrite(file.toString(), mRgba);
+            Imgcodecs.imwrite(file.toString(), mRgba);
 
             Thread tumblrThread = new Thread(new Runnable(){
                 @Override
@@ -594,5 +631,6 @@ public class MemememeActivity extends Activity implements CvCameraViewListener2 
 
         Core.flip(mTempRgba, mRgba, 1);
         return mRgba;
+
     }
 }
