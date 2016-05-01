@@ -1,8 +1,5 @@
 package memememe.me.selfiememememe;
 
-
-
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -12,32 +9,30 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Random;
 
-
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.view.WindowManager;
-
 // Android Classes
-import android.util.Log;
+import android.support.v7.app.AppCompatActivity;
 import android.content.Context;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
+import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
+import android.view.WindowManager;
 
 //OpenCV
 import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Mat;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.core.Core;
+import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
-import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgcodecs.Imgcodecs;
 
@@ -47,7 +42,6 @@ import com.illposed.osc.OSCPortOut;
 import com.tumblr.jumblr.JumblrClient;
 import com.tumblr.jumblr.exceptions.JumblrException;
 import com.tumblr.jumblr.types.PhotoPost;
-
 
 public class MemememeActivity extends AppCompatActivity implements CvCameraViewListener2 {
     private static enum State {WAITING, SEARCHING, REFLECTING, FLASHING, POSTING, SCANNING,
@@ -75,10 +69,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private Mat mRgba;
     private Mat mGray;
     private Mat mTempRgba;
-    private Mat tempT;
-    private File mCascadeFile;
+    private Mat mTempT;
 
-    private float mRelativeDetectSize = 0.15f;
     private int mAbsoluteDetectSize = 0;
 
     private DetectionBasedTracker mNativeDetector;
@@ -89,7 +81,6 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private long mLastStateChangeMillis;
     private long mLastSearchSendMillis;
     private Point mCurrentFlashPosition;
-    private String mCurrentFlashText;
     private Random mRandomGenerator;
     private int mImageCounter;
 
@@ -114,7 +105,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
 
                     InputStream is = getResources().openRawResource(R.raw.lbpcascade_frontalface);
                     File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
-                    mCascadeFile = new File(cascadeDir, "lbpcascade_frontalface.xml");
+                    File mCascadeFile = new File(cascadeDir, "lbpcascade_frontalface.xml");
 
                     //InputStream is = getResources().openRawResource(R.raw.haarcascade_nexus);
                     //File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
@@ -202,7 +193,9 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             noiseReaderThread.join(500);
             noiseWriterThread.join(500);
         }
-        catch(InterruptedException e){}
+        catch(InterruptedException e){
+            Log.e(TAG, "Interrupted Exception!!: while re-joining threads onPause.");
+        }
     }
 
     @Override
@@ -256,7 +249,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         mRgba = new Mat();
         mGray = new Mat();
         mTempRgba = new Mat();
-        tempT = new Mat();
+        mTempT = new Mat();
     }
 
     public void onCameraViewStopped() {
@@ -265,7 +258,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         mRgba.release();
         mGray.release();
         mTempRgba.release();
-        tempT.release();
+        mTempT.release();
     }
 
     private Thread sendCommandToPlatform(String cmd){
@@ -288,26 +281,25 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-
         mTempRgba = inputFrame.rgba();
-        tempT = inputFrame.gray().t();
-        Core.flip(tempT, mGray, 0);
-        tempT.release();
+        mTempT = inputFrame.gray().t();
+        Core.flip(mTempT, mGray, 0);
+        mTempT.release();
 
         // save images for video...
         /*
-        Core.flip(mTempRgba.t(), mRgba, 0);
+        mTempT = mTempRgba.t();
+        Core.flip(mTempT, mRgba, 0);
+        mTempT.release();
         String dateFilename = SELFIE_FILE_NAME+String.format("%04d", mImageCounter++)+".jpg";
         final File movFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), dateFilename);
         Highgui.imwrite(movFile.toString(), mRgba);
         */
 
         // only need to do this once
-
         if (mAbsoluteDetectSize == 0) {
             int height = mGray.cols();
-            Log.e("NUMNUM", "COLUMUNS:" + String.valueOf(height));
-
+            float mRelativeDetectSize = 0.15f;
             if (Math.round(height*mRelativeDetectSize) > 0) {
                 mAbsoluteDetectSize = Math.round(height*mRelativeDetectSize);
             }
@@ -556,12 +548,12 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                 Log.d(TAG, "state := SEARCHING");
                 sendCommandToPlatform("search").start();
             }
-            tempT = mTempRgba.t();
-            Core.flip(tempT, mRgba, 1);
-            tempT.release();
+            mTempT = mTempRgba.t();
+            Core.flip(mTempT, mRgba, 1);
+            mTempT.release();
 
             for(int i=0; i<mRandomGenerator.nextInt(5)+2; i++){
-                mCurrentFlashText = TEXTS[mRandomGenerator.nextInt(TEXTS.length)];
+                String mCurrentFlashText = TEXTS[mRandomGenerator.nextInt(TEXTS.length)];
                 Size mTextSize = Imgproc.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, 1, 16, null);
                 float mWidthScale = (float)(mRgba.width()/mTextSize.width);
                 mTextSize = Imgproc.getTextSize(mCurrentFlashText, Core.FONT_HERSHEY_PLAIN, mWidthScale, 16, null);
@@ -570,9 +562,9 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                         mRandomGenerator.nextInt((int)(mRgba.height() - mTextSize.height)));
                 Imgproc.putText(mRgba, mCurrentFlashText, mTextOrigin, Core.FONT_HERSHEY_PLAIN, mWidthScale, SCREEN_COLOR_BLACK, 16);
             }
-            tempT = mRgba.t();
-            Core.flip(tempT, mTempRgba, 1);
-            tempT.release();
+            mTempT = mRgba.t();
+            Core.flip(mTempT, mTempRgba, 1);
+            mTempT.release();
 
         }
         else if(mCurrentState == State.WAITING){
@@ -587,9 +579,9 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             }
         }
         else if(mCurrentState == State.POSTING){
-            tempT = mTempRgba.t();
-            Core.flip(tempT, mRgba, 0);
-            tempT.release();
+            mTempT = mTempRgba.t();
+            Core.flip(mTempT, mRgba, 0);
+            mTempT.release();
 
             Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
 
@@ -631,6 +623,5 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
 
         Core.flip(mTempRgba, mRgba, 1);
         return mRgba;
-
     }
 }
