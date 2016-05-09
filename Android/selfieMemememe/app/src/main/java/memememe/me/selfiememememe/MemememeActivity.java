@@ -174,15 +174,9 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     @Override
     public void onPause(){
         super.onPause();
-        try{
-            mOscOut.send(new OSCMessage("/memememe/stop"));
-        }
-        catch(IOException e){
-            Log.e(TAG, "IO Exception!!: while sending stop osc message.");
-        }
-        catch(NullPointerException e){
-            Log.e(TAG, "Null Pointer Exception!!: while sending stop osc message.");
-        }
+        sendCommandToPlatform("stop").start();
+        Log.d(TAG, "Pausing...: Send stop");
+
         if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
         if(mNativeDetector != null) mNativeDetector.release();
         if(mOscOut != null) mOscOut.close();
