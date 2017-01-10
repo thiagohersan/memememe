@@ -586,22 +586,30 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             Thread tumblrThread = new Thread(new Runnable(){
                 @Override
                 public void run() {
+                    boolean success = true;
                     try{
                         PhotoPost mPP = mTumblrClient.newPost(TUMBLR_BLOG_ADDRESS, PhotoPost.class);
                         mPP.setData(file);
                         mPP.save();
                     }
                     catch(IOException e){
+                        success = false;
                         Log.e(TAG, "IO Exception!!: while sending picture to tumblr.");
                     }
                     catch(JumblrException e){
+                        success = false;
                         Log.e(TAG, "Jumblr Exception!!: while sending picture to tumblr.");
                         Log.e(TAG, "Response Code: "+e.getResponseCode());
                         Log.e(TAG, e.toString());
                     }
                     catch(Exception e){
+                        success = false;
                         Log.e(TAG, "some Exception!!: while sending picture to tumblr.");
                         Log.e(TAG, e.toString());
+                    }
+
+                    if(success){
+                        file.delete();
                     }
                 }
             });
