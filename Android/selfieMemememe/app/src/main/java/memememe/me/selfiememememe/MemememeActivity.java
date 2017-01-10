@@ -62,6 +62,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private static final int TIMEOUT_FLASHING = 4000;
     private static final int DELAY_FLASHING = 1000;
     private static final int TIMEOUT_WAITING = 2000;
+    private static final int PERIOD_POSTING = 180000;
 
     private static final boolean MEMEMEME_SELFIE = false;
     private static final String TUMBLR_BLOG_ADDRESS = (MEMEMEME_SELFIE)?"memememeselfie.tumblr.com":"memememe2memememe.tumblr.com";
@@ -80,6 +81,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private State mCurrentState, mLastState;
     private long mLastStateChangeMillis;
     private long mLastSearchSendMillis;
+    private long mLastSuccessfulTumblrPostMillis;
     private Point mCurrentFlashPosition;
     private Random mRandomGenerator;
     private int mImageCounter;
@@ -230,6 +232,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         sendCommandToPlatform("reset").start();
 
         mLastStateChangeMillis = System.currentTimeMillis();
+        mLastSuccessfulTumblrPostMillis = System.currentTimeMillis();
     }
 
     public void onDestroy() {
@@ -573,47 +576,50 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             }
         }
         else if(mCurrentState == State.POSTING){
-            mTempT = mTempRgba.t();
-            Core.flip(mTempT, mRgba, 0);
-            mTempT.release();
+            if(System.currentTimeMillis()-mLastSuccessfulTumblrPostMillis > PERIOD_POSTING){
+                mTempT = mTempRgba.t();
+                Core.flip(mTempT, mRgba, 0);
+                mTempT.release();
 
-            Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
+                Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
 
-            String selfieFilename = SELFIE_FILE_NAME+(System.currentTimeMillis()/1000)+".jpg";
-            final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), selfieFilename);
-            Imgcodecs.imwrite(file.toString(), mRgba);
+                String selfieFilename = SELFIE_FILE_NAME+(System.currentTimeMillis()/1000)+".jpg";
+                final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), selfieFilename);
+                Imgcodecs.imwrite(file.toString(), mRgba);
 
-            Thread tumblrThread = new Thread(new Runnable(){
-                @Override
-                public void run() {
-                    boolean success = true;
-                    try{
-                        PhotoPost mPP = mTumblrClient.newPost(TUMBLR_BLOG_ADDRESS, PhotoPost.class);
-                        mPP.setData(file);
-                        mPP.save();
-                    }
-                    catch(IOException e){
-                        success = false;
-                        Log.e(TAG, "IO Exception!!: while sending picture to tumblr.");
-                    }
-                    catch(JumblrException e){
-                        success = false;
-                        Log.e(TAG, "Jumblr Exception!!: while sending picture to tumblr.");
-                        Log.e(TAG, "Response Code: "+e.getResponseCode());
-                        Log.e(TAG, e.toString());
-                    }
-                    catch(Exception e){
-                        success = false;
-                        Log.e(TAG, "some Exception!!: while sending picture to tumblr.");
-                        Log.e(TAG, e.toString());
-                    }
+                Thread tumblrThread = new Thread(new Runnable(){
+                    @Override
+                    public void run() {
+                        boolean success = true;
+                        try{
+                            PhotoPost mPP = mTumblrClient.newPost(TUMBLR_BLOG_ADDRESS, PhotoPost.class);
+                            mPP.setData(file);
+                            mPP.save();
+                        }
+                        catch(IOException e){
+                            success = false;
+                            Log.e(TAG, "IO Exception!!: while sending picture to tumblr.");
+                        }
+                        catch(JumblrException e){
+                            success = false;
+                            Log.e(TAG, "Jumblr Exception!!: while sending picture to tumblr.");
+                            Log.e(TAG, "Response Code: "+e.getResponseCode());
+                            Log.e(TAG, e.toString());
+                        }
+                        catch(Exception e){
+                            success = false;
+                            Log.e(TAG, "some Exception!!: while sending picture to tumblr.");
+                            Log.e(TAG, e.toString());
+                        }
 
-                    if(success){
-                        file.delete();
+                        if(success){
+                            file.delete();
+                            mLastSuccessfulTumblrPostMillis = System.currentTimeMillis();
+                        }
                     }
-                }
-            });
-            tumblrThread.start();
+                });
+                tumblrThread.start();
+            }
 
             mLastStateChangeMillis = System.currentTimeMillis();
             mLastState = State.POSTING;
