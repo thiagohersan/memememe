@@ -67,7 +67,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private static final int PERIOD_POSTING = 180000;
     private static final int NUMBER_OF_LOOKS_WHILE_CHILLING = 20;
 
-    private static final boolean MEMEMEME_SELFIE = true ;
+    private static final boolean MEMEMEME_SELFIE = false ;
     private static final String TUMBLR_BLOG_ADDRESS = (MEMEMEME_SELFIE)?"memememeselfie.tumblr.com":"memememe2memememe.tumblr.com";
 
     private Mat mRgba;
