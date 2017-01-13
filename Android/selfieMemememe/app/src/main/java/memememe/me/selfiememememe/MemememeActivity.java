@@ -44,7 +44,7 @@ import com.tumblr.jumblr.exceptions.JumblrException;
 import com.tumblr.jumblr.types.PhotoPost;
 
 public class MemememeActivity extends AppCompatActivity implements CvCameraViewListener2 {
-    private static enum State {WAITING, SEARCHING, REFLECTING, FLASHING, POSTING, SCANNING,
+    private static enum State {WAITING, SEARCHING, CHILLING, REFLECTING, FLASHING, POSTING, SCANNING,
         MAKING_REFLECT_NOISE, MAKING_PICTURE_NOISE};
 
     private static final String TAG = "MEMEMEME::SELFIE";
@@ -56,12 +56,16 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private static final String OSC_OUT_ADDRESS = "10.10.0.1";
     private static final int OSC_OUT_PORT = 8888;
 
+    private static final int TIMEOUT_SEARCHING = 15000;
     private static final int TIMEOUT_SCANNING = 10000;
     private static final int TIMEOUT_REFLECTING = 10000;
     private static final int TIMEOUT_MAKING_NOISE = 2000;
     private static final int TIMEOUT_FLASHING = 4000;
     private static final int DELAY_FLASHING = 1000;
     private static final int TIMEOUT_WAITING = 2000;
+    private static final int TIMEOUT_CHILLING = 45000;
+    private static final int PERIOD_POSTING = 180000;
+    private static final int NUMBER_OF_LOOKS_WHILE_CHILLING = 20;
 
     private static final boolean MEMEMEME_SELFIE = true ;
     private static final String TUMBLR_BLOG_ADDRESS = (MEMEMEME_SELFIE)?"memememeselfie.tumblr.com":"memememe2memememe.tumblr.com";
@@ -80,6 +84,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private State mCurrentState, mLastState;
     private long mLastStateChangeMillis;
     private long mLastSearchSendMillis;
+    private long mLastSuccessfulTumblrPostMillis;
+    private long mCurrentWaitingPeriodMillis;
     private Point mCurrentFlashPosition;
     private Random mRandomGenerator;
     private int mImageCounter;
@@ -230,6 +236,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         sendCommandToPlatform("reset").start();
 
         mLastStateChangeMillis = System.currentTimeMillis();
+        mLastSuccessfulTumblrPostMillis = System.currentTimeMillis();
+        mCurrentWaitingPeriodMillis = TIMEOUT_WAITING;
     }
 
     public void onDestroy() {
@@ -390,6 +398,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                 });
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mLastState = State.SEARCHING;
+                mCurrentWaitingPeriodMillis = TIMEOUT_WAITING;
                 mCurrentState = State.WAITING;
                 Log.d(TAG, "state := WAITING");
                 thread.start();
@@ -402,6 +411,48 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                 mCurrentState = State.REFLECTING;
                 Log.d(TAG, "state := REFLECTING");
                 sendCommandToPlatform("scan").start();
+            }
+
+            else if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_SEARCHING) {
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.SEARCHING;
+                mCurrentState = State.CHILLING;
+                Log.d(TAG, "state := CHILLING");
+                sendCommandToPlatform("scan").start();
+            }
+        }
+        else if(mCurrentState == State.CHILLING){
+            long timeChilling = System.currentTimeMillis()-mLastStateChangeMillis;
+
+            if((timeChilling > 0.333*TIMEOUT_CHILLING) && (timeChilling < 0.4*TIMEOUT_CHILLING)){
+                sendCommandToPlatform("stop").start();
+            }
+            else {
+                Thread thread = new Thread(new Runnable(){
+                    @Override
+                    public void run() {
+                        try{
+                            for(int i=0; i<NUMBER_OF_LOOKS_WHILE_CHILLING; i++){
+                                OSCMessage lookMessage = new OSCMessage("/memememe/look");
+                                lookMessage.addArgument(((mRandomGenerator.nextFloat()>0.5)?1:-1));
+                                lookMessage.addArgument(((mRandomGenerator.nextFloat()>0.5)?1:-1));
+                                mOscOut.send(lookMessage);
+                            }
+                        }
+                        catch(IOException e){
+                            Log.e(TAG, "IO Exception!!: while sending look osc message.");
+                        }
+                        catch(NullPointerException e){
+                            Log.e(TAG, "Null Pointer Exception!!: while sending look osc message.");
+                        }
+                    }
+                });
+                mLastStateChangeMillis = System.currentTimeMillis();
+                mLastState = State.CHILLING;
+                mCurrentWaitingPeriodMillis = (long)(0.6*TIMEOUT_CHILLING);
+                mCurrentState = State.WAITING;
+                Log.d(TAG, "state := WAITING");
+                thread.start();
             }
         }
         else if(mCurrentState == State.MAKING_REFLECT_NOISE){
@@ -564,7 +615,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         else if(mCurrentState == State.WAITING){
             mTempRgba.setTo(SCREEN_COLOR_BLACK);
             // if waiting for a while, go back to searching
-            if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_WAITING){
+            if(System.currentTimeMillis()-mLastStateChangeMillis > mCurrentWaitingPeriodMillis){
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mLastState = State.WAITING;
                 mCurrentState = State.SEARCHING;
@@ -573,39 +624,50 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             }
         }
         else if(mCurrentState == State.POSTING){
-            mTempT = mTempRgba.t();
-            Core.flip(mTempT, mRgba, 0);
-            mTempT.release();
+            if(System.currentTimeMillis()-mLastSuccessfulTumblrPostMillis > PERIOD_POSTING){
+                mTempT = mTempRgba.t();
+                Core.flip(mTempT, mRgba, 0);
+                mTempT.release();
 
-            Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
+                Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
 
-            String selfieFilename = SELFIE_FILE_NAME+(System.currentTimeMillis()/1000)+".jpg";
-            final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), selfieFilename);
-            Imgcodecs.imwrite(file.toString(), mRgba);
+                String selfieFilename = SELFIE_FILE_NAME+(System.currentTimeMillis()/1000)+".jpg";
+                final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), selfieFilename);
+                Imgcodecs.imwrite(file.toString(), mRgba);
 
-            Thread tumblrThread = new Thread(new Runnable(){
-                @Override
-                public void run() {
-                    try{
-                        PhotoPost mPP = mTumblrClient.newPost(TUMBLR_BLOG_ADDRESS, PhotoPost.class);
-                        mPP.setData(file);
-                        mPP.save();
+                Thread tumblrThread = new Thread(new Runnable(){
+                    @Override
+                    public void run() {
+                        boolean success = true;
+                        try{
+                            PhotoPost mPP = mTumblrClient.newPost(TUMBLR_BLOG_ADDRESS, PhotoPost.class);
+                            mPP.setData(file);
+                            mPP.save();
+                        }
+                        catch(IOException e){
+                            success = false;
+                            Log.e(TAG, "IO Exception!!: while sending picture to tumblr.");
+                        }
+                        catch(JumblrException e){
+                            success = false;
+                            Log.e(TAG, "Jumblr Exception!!: while sending picture to tumblr.");
+                            Log.e(TAG, "Response Code: "+e.getResponseCode());
+                            Log.e(TAG, e.toString());
+                        }
+                        catch(Exception e){
+                            success = false;
+                            Log.e(TAG, "some Exception!!: while sending picture to tumblr.");
+                            Log.e(TAG, e.toString());
+                        }
+
+                        if(success){
+                            file.delete();
+                            mLastSuccessfulTumblrPostMillis = System.currentTimeMillis();
+                        }
                     }
-                    catch(IOException e){
-                        Log.e(TAG, "IO Exception!!: while sending picture to tumblr.");
-                    }
-                    catch(JumblrException e){
-                        Log.e(TAG, "Jumblr Exception!!: while sending picture to tumblr.");
-                        Log.e(TAG, "Response Code: "+e.getResponseCode());
-                        Log.e(TAG, e.toString());
-                    }
-                    catch(Exception e){
-                        Log.e(TAG, "some Exception!!: while sending picture to tumblr.");
-                        Log.e(TAG, e.toString());
-                    }
-                }
-            });
-            tumblrThread.start();
+                });
+                tumblrThread.start();
+            }
 
             mLastStateChangeMillis = System.currentTimeMillis();
             mLastState = State.POSTING;
