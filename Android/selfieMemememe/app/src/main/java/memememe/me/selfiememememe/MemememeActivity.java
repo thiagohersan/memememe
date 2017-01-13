@@ -67,7 +67,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private static final int PERIOD_POSTING = 180000;
     private static final int NUMBER_OF_LOOKS_WHILE_CHILLING = 20;
 
-    private static final boolean MEMEMEME_SELFIE = false;
+    private static final boolean MEMEMEME_SELFIE = false ;
     private static final String TUMBLR_BLOG_ADDRESS = (MEMEMEME_SELFIE)?"memememeselfie.tumblr.com":"memememe2memememe.tumblr.com";
 
     private Mat mRgba;
@@ -109,9 +109,9 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                 try {
                     // load cascade file from application resources
 
-                    InputStream is = getResources().openRawResource(R.raw.lbpcascade_frontalface);
+                    InputStream is = getResources().openRawResource(R.raw.haarcascade_nexus);
                     File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
-                    File mCascadeFile = new File(cascadeDir, "lbpcascade_frontalface.xml");
+                    File mCascadeFile = new File(cascadeDir, "haarcascade_nexus.xml");
 
                     //InputStream is = getResources().openRawResource(R.raw.haarcascade_nexus);
                     //File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
