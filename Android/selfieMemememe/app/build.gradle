@@ -15,8 +15,8 @@ String getNdkBuildPath() {
 }
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion "23.0.1"
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
         applicationId "memememe.me.selfiememememe"
