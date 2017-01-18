@@ -74,6 +74,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private Mat mGray;
     private Mat mTempRgba;
     private Mat mTempT;
+    private MatOfRect detectedRects;
+    private Rect[] detectedArray;
 
     private int mAbsoluteDetectSize = 0;
 
@@ -252,6 +254,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         mGray = new Mat();
         mTempRgba = new Mat();
         mTempT = new Mat();
+        detectedRects = new MatOfRect();
+        detectedArray = detectedRects.toArray();
     }
 
     public void onCameraViewStopped() {
@@ -261,6 +265,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         mGray.release();
         mTempRgba.release();
         mTempT.release();
+        detectedRects.release();
     }
 
     private Thread sendCommandToPlatform(String cmd){
@@ -308,20 +313,21 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             mNativeDetector.setMinFaceSize(mAbsoluteDetectSize);
         }
 
-        // always detect in order to keep NativeDetector consistent with camera
-        MatOfRect detectedRects = new MatOfRect();
-        if (mNativeDetector != null) {
-            mNativeDetector.detect(mGray, detectedRects);
-        }
-        else {
-            Log.e(TAG, "Native Detection method is NULL");
-        }
-        Rect[] detectedArray = detectedRects.toArray();
-        detectedRects.release();
+
 
         // states
         if(mCurrentState == State.SEARCHING){
             mTempRgba.setTo(SCREEN_COLOR_BLACK);
+
+            // always detect in order to keep NativeDetector consistent with camera
+            if (mNativeDetector != null) {
+                mNativeDetector.detect(mGray, detectedRects);
+            }
+            else {
+                Log.e(TAG, "Native Detection method is NULL");
+            }
+            detectedArray = detectedRects.toArray();
+            detectedRects.release();
 
             // send search to motors
             if(System.currentTimeMillis()-mLastSearchSendMillis > 1000){
