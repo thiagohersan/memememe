@@ -30,7 +30,7 @@
   - `rm hostapd hostapd_cli`
   - `sudo make; sudo make install`
   - `sudo cp hostapd /usr/sbin/; sudo cp hostapd_cli /usr/sbin/`
-12. Set up [WiFi Access Point](https://learn.adafruit.com/setting-up-a-raspberry-pi-as-a-wifi-access-point/install-software)
+12. Set up [WiFi Access Point](https://learn.adafruit.com/setting-up-a-raspberry-pi-as-a-wifi-access-point/install-software) Ignore the section **Update hostapd (maybe)** the step 11 seems work better
   - the dhcpd.conf will be
   ```
 subnet 10.10.10.0 netmask 255.255.255.0 {
