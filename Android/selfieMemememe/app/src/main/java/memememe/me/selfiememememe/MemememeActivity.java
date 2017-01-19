@@ -74,6 +74,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private Mat mGray;
     private Mat mTempRgba;
     private Mat mTempT;
+    private MatOfRect detectedRects;
+    private Rect[] detectedArray;
 
     private int mAbsoluteDetectSize = 0;
 
@@ -252,6 +254,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         mGray = new Mat();
         mTempRgba = new Mat();
         mTempT = new Mat();
+        detectedRects = new MatOfRect();
+        detectedArray = detectedRects.toArray();
     }
 
     public void onCameraViewStopped() {
@@ -261,6 +265,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         mGray.release();
         mTempRgba.release();
         mTempT.release();
+        detectedRects.release();
     }
 
     private Thread sendCommandToPlatform(String cmd){
@@ -282,6 +287,18 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         return thread;
     }
 
+    private void detectObjects() {
+
+        // use opencv JNI call to detect phones
+        if (mNativeDetector != null) {
+            mNativeDetector.detect(mGray, detectedRects);
+        } else {
+            Log.e(TAG, "Native Detection method is NULL");
+        }
+        detectedArray = detectedRects.toArray();
+        detectedRects.release();
+
+    }
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mTempRgba = inputFrame.rgba();
         mTempT = inputFrame.gray().t();
@@ -308,20 +325,14 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             mNativeDetector.setMinFaceSize(mAbsoluteDetectSize);
         }
 
-        // always detect in order to keep NativeDetector consistent with camera
-        MatOfRect detectedRects = new MatOfRect();
-        if (mNativeDetector != null) {
-            mNativeDetector.detect(mGray, detectedRects);
-        }
-        else {
-            Log.e(TAG, "Native Detection method is NULL");
-        }
-        Rect[] detectedArray = detectedRects.toArray();
-        detectedRects.release();
+
 
         // states
         if(mCurrentState == State.SEARCHING){
             mTempRgba.setTo(SCREEN_COLOR_BLACK);
+
+            //detect Objects e fill detectedArray
+            detectObjects();
 
             // send search to motors
             if(System.currentTimeMillis()-mLastSearchSendMillis > 1000){
@@ -479,6 +490,9 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         else if(mCurrentState == State.SCANNING){
             mTempRgba.setTo(SCREEN_COLOR_BLACK);
 
+            //detect Objects e fill detectedArray
+            detectObjects();
+
             if((System.currentTimeMillis()-mLastStateChangeMillis > 500) && (detectedArray.length > 0)){
                 Log.d(TAG, "found something while SCANNING/LOOKING");
 
@@ -529,6 +543,9 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         }
         else if(mCurrentState == State.REFLECTING){
             // do nothing to image
+
+            //detect Objects e fill detectedArray
+            detectObjects();
 
             // if detect other phone, stop
             if(detectedArray.length > 0){
