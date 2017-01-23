@@ -426,6 +426,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                 sendCommandToPlatform("scan").start();
             }
 
+            /*
             else if(System.currentTimeMillis()-mLastStateChangeMillis > TIMEOUT_SEARCHING) {
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mLastState = State.SEARCHING;
@@ -433,6 +434,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                 Log.d(TAG, "state := CHILLING");
                 sendCommandToPlatform("scan").start();
             }
+            */
         }
         else if(mCurrentState == State.CHILLING){
             long timeChilling = System.currentTimeMillis()-mLastStateChangeMillis;
