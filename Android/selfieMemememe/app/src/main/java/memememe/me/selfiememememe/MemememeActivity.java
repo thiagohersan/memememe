@@ -196,6 +196,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             noiseWriterThread.join(500);
         }
         catch(InterruptedException e){
+            noiseReaderThread.currentThread().interrupt(); // propagating interrupt
+            noiseWriterThread.currentThread().interrupt();
             Log.e(TAG, "Interrupted Exception!!: while re-joining threads onPause.");
         }
     }

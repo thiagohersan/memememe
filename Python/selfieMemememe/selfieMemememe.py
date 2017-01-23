@@ -95,6 +95,7 @@ def loop():
 def cleanUp():
     print  "Stoping OSCServer"
     mServer.stop()
+    mServer.free()
 
 if __name__=="__main__":
     setup()
