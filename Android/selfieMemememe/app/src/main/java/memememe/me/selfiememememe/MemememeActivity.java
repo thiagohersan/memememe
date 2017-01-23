@@ -440,7 +440,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             if((timeChilling > 0.333*TIMEOUT_CHILLING) && (timeChilling < 0.4*TIMEOUT_CHILLING)){
                 sendCommandToPlatform("stop").start();
             }
-            else {
+            else if(timeChilling > 0.4*TIMEOUT_CHILLING){
                 Thread thread = new Thread(new Runnable(){
                     @Override
                     public void run() {
