@@ -63,7 +63,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private static final int TIMEOUT_FLASHING = 4000;
     private static final int DELAY_FLASHING = 1000;
     private static final int TIMEOUT_WAITING = 2000;
-    private static final int TIMEOUT_CHILLING = 45000;
+    private static final int TIMEOUT_CHILLING = 30000;
+    private static final int TIMEOUT_CHILLING_SCANNING = 10000;
     private static final int PERIOD_POSTING = 180000;
     private static final int NUMBER_OF_LOOKS_WHILE_CHILLING = 20;
 
@@ -437,17 +438,17 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         else if(mCurrentState == State.CHILLING){
             long timeChilling = System.currentTimeMillis()-mLastStateChangeMillis;
 
-            if((timeChilling > 0.4*TIMEOUT_CHILLING) && (timeChilling < 0.6*TIMEOUT_CHILLING)) {
-                if (System.currentTimeMillis() - mLastSearchSendMillis > 1000) {
-                    mLastSearchSendMillis = System.currentTimeMillis();
-                    sendCommandToPlatform("stop").start();
-                }
-            }
-            else if(timeChilling > 0.6*TIMEOUT_CHILLING) {
+            if(timeChilling > TIMEOUT_CHILLING) {
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mLastState = State.CHILLING;
                 mCurrentState = State.SEARCHING;
                 Log.d(TAG, "state := SEARCHING");
+            }
+            else if(timeChilling > TIMEOUT_CHILLING_SCANNING) {
+                if (System.currentTimeMillis() - mLastSearchSendMillis > 1000) {
+                    mLastSearchSendMillis = System.currentTimeMillis();
+                    sendCommandToPlatform("stop").start();
+                }
             }
         }
         else if(mCurrentState == State.MAKING_REFLECT_NOISE){
