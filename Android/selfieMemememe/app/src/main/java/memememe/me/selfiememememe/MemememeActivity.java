@@ -437,35 +437,17 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         else if(mCurrentState == State.CHILLING){
             long timeChilling = System.currentTimeMillis()-mLastStateChangeMillis;
 
-            if((timeChilling > 0.333*TIMEOUT_CHILLING) && (timeChilling < 0.4*TIMEOUT_CHILLING)){
-                sendCommandToPlatform("stop").start();
+            if((timeChilling > 0.4*TIMEOUT_CHILLING) && (timeChilling < 0.6*TIMEOUT_CHILLING)) {
+                if (System.currentTimeMillis() - mLastSearchSendMillis > 1000) {
+                    mLastSearchSendMillis = System.currentTimeMillis();
+                    sendCommandToPlatform("stop").start();
+                }
             }
-            else if(timeChilling > 0.4*TIMEOUT_CHILLING){
-                Thread thread = new Thread(new Runnable(){
-                    @Override
-                    public void run() {
-                        try{
-                            for(int i=0; i<NUMBER_OF_LOOKS_WHILE_CHILLING; i++){
-                                OSCMessage lookMessage = new OSCMessage("/memememe/look");
-                                lookMessage.addArgument(((mRandomGenerator.nextFloat()>0.5)?1:-1));
-                                lookMessage.addArgument(((mRandomGenerator.nextFloat()>0.5)?1:-1));
-                                mOscOut.send(lookMessage);
-                            }
-                        }
-                        catch(IOException e){
-                            Log.e(TAG, "IO Exception!!: while sending look osc message.");
-                        }
-                        catch(NullPointerException e){
-                            Log.e(TAG, "Null Pointer Exception!!: while sending look osc message.");
-                        }
-                    }
-                });
+            else if(timeChilling > 0.6*TIMEOUT_CHILLING) {
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mLastState = State.CHILLING;
-                mCurrentWaitingPeriodMillis = (long)(0.6*TIMEOUT_CHILLING);
-                mCurrentState = State.WAITING;
-                Log.d(TAG, "state := WAITING");
-                thread.start();
+                mCurrentState = State.SEARCHING;
+                Log.d(TAG, "state := SEARCHING");
             }
         }
         else if(mCurrentState == State.MAKING_REFLECT_NOISE){
