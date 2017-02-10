@@ -32,6 +32,7 @@
   - `sudo cp hostapd /usr/sbin/; sudo cp hostapd_cli /usr/sbin/`
 12. Set up [WiFi Access Point](https://learn.adafruit.com/setting-up-a-raspberry-pi-as-a-wifi-access-point/install-software) Ignore the section **Update hostapd (maybe)** the step 11 seems work better
   - the dhcpd.conf will be
+    - be aware that the dnsserver can be block in some networks so you might need to change the `option domain-name-server`
   ```
 subnet 10.10.0.0 netmask 255.255.255.0 {
         range 10.10.0.100 10.10.0.200;
