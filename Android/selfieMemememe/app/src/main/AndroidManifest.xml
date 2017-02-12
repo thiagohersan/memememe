@@ -7,7 +7,8 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen">
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
+        android:name=".MemememeApp">
 
         <activity android:name=".MemememeActivity"
             android:label="@string/app_name"

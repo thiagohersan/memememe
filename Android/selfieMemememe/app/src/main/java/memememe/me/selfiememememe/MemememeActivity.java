@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 //OpenCV
 import org.opencv.android.BaseLoaderCallback;
@@ -68,7 +69,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private static final int PERIOD_POSTING = 180000;
     private static final int NUMBER_OF_LOOKS_WHILE_CHILLING = 20;
 
-    private static final boolean MEMEMEME_SELFIE = false ;
+    private static final boolean MEMEMEME_SELFIE = true;
     private static final String TUMBLR_BLOG_ADDRESS = (MEMEMEME_SELFIE)?"memememeselfie.tumblr.com":"memememe2memememe.tumblr.com";
 
     private Mat mRgba;
@@ -112,13 +113,14 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                 try {
                     // load cascade file from application resources
 
-                    InputStream is = getResources().openRawResource(R.raw.haarcascade_nexus);
-                    File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
-                    File mCascadeFile = new File(cascadeDir, "haarcascade_nexus.xml");
-
                     //InputStream is = getResources().openRawResource(R.raw.haarcascade_nexus);
                     //File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
-                    //mCascadeFile = new File(cascadeDir, "cascade.xml");
+                    //File mCascadeFile = new File(cascadeDir, "haarcascade_nexus.xml");
+
+                    //testing with haars faces
+                    InputStream is = getResources().openRawResource(R.raw.lbpcascade_frontalface);
+                    File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
+                    File mCascadeFile = new File(cascadeDir, "lbpcascade_frontalface.xml");
                     FileOutputStream os = new FileOutputStream(mCascadeFile);
 
                     byte[] buffer = new byte[4096];
@@ -151,6 +153,12 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     public void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "called onCreate");
         super.onCreate(savedInstanceState);
+
+        Thread.setDefaultUncaughtExceptionHandler(new CrashDetector(this));
+        if (getIntent().getBooleanExtra("crash", false)) {
+            Toast.makeText(this, "App restarted after crash", Toast.LENGTH_SHORT).show();
+        }
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         setContentView(R.layout.memememe_selfie_surface_view);
@@ -348,6 +356,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                 Log.d(TAG, "found something while SEARCHING");
                 /////////////////
 
+
                 Imgproc.rectangle(mTempRgba,
                         new Point(mTempRgba.width()-detectedArray[0].tl().y, detectedArray[0].br().x),
                         new Point(mTempRgba.width()-detectedArray[0].br().y, detectedArray[0].tl().x),
@@ -436,6 +445,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             }
         }
         else if(mCurrentState == State.CHILLING){
+
             long timeChilling = System.currentTimeMillis()-mLastStateChangeMillis;
 
             if(timeChilling > TIMEOUT_CHILLING) {
@@ -450,6 +460,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                     sendCommandToPlatform("stop").start();
                 }
             }
+            throw new NullPointerException(); //Forces CRASH
+
         }
         else if(mCurrentState == State.MAKING_REFLECT_NOISE){
             mTempRgba.setTo(SCREEN_COLOR_FLASH);
