@@ -10,6 +10,9 @@ import java.net.UnknownHostException;
 import java.util.Random;
 
 // Android Classes
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.content.Context;
 import android.hardware.Camera;
@@ -43,7 +46,7 @@ import com.tumblr.jumblr.JumblrClient;
 import com.tumblr.jumblr.exceptions.JumblrException;
 import com.tumblr.jumblr.types.PhotoPost;
 
-public class MemememeActivity extends AppCompatActivity implements CvCameraViewListener2 {
+public class MemememeActivity extends AppCompatActivity implements CvCameraViewListener2, Thread.UncaughtExceptionHandler{
     private static enum State {WAITING, SEARCHING, CHILLING, REFLECTING, FLASHING, POSTING, SCANNING,
         MAKING_REFLECT_NOISE, MAKING_PICTURE_NOISE};
 
@@ -151,8 +154,9 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     public void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "called onCreate");
         super.onCreate(savedInstanceState);
+
         //start thread for UncaughtException
-        Thread.setDefaultUncaughtExceptionHandler(new CrashDetector(this));
+        Thread.setDefaultUncaughtExceptionHandler(this);
         if (getIntent().getBooleanExtra("crash", false)) {
             Toast.makeText(this, "App restarted after crash", Toast.LENGTH_SHORT).show();
         }
@@ -257,6 +261,29 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         if(mNativeDetector != null) mNativeDetector.release();
         if(mOscOut != null) mOscOut.close();
     }
+
+    // For the uncaught excpetion, try to restart the application after few minutes
+    @Override
+    public void uncaughtException(Thread thread, Throwable ex) {
+        Log.d(TAG, "state := DETECTING CRASH - RESTATING ");
+        Intent intent = new Intent(this, MemememeActivity.class);
+        intent.putExtra("crash", true);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(MemememeApp.getInstance().getBaseContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
+
+        AlarmManager mgr = (AlarmManager) MemememeApp.getInstance().getBaseContext().getSystemService(Context.ALARM_SERVICE);
+        mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 180000, pendingIntent);
+
+        //send OSC to stop platform
+        sendCommandToPlatform("stop").start();
+
+        this.finish();
+        System.exit(2);
+    }
+
 
     public void onCameraViewStarted(int width, int height) {
         mRgba = new Mat();
