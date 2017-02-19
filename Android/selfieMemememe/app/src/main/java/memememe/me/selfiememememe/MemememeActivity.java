@@ -70,6 +70,9 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private static final int TIMEOUT_CHILLING_SCANNING = 10000;
     private static final int PERIOD_POSTING = 180000;
     private static final int NUMBER_OF_LOOKS_WHILE_CHILLING = 20;
+    private static final int TIME_BEFORE_RESTART_APP = 180000;
+
+
 
     private static final boolean MEMEMEME_SELFIE = true;
     private static final String TUMBLR_BLOG_ADDRESS = (MEMEMEME_SELFIE)?"memememeselfie.tumblr.com":"memememe2memememe.tumblr.com";
@@ -275,7 +278,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         PendingIntent pendingIntent = PendingIntent.getActivity(MemememeApp.getInstance().getBaseContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
         AlarmManager mgr = (AlarmManager) MemememeApp.getInstance().getBaseContext().getSystemService(Context.ALARM_SERVICE);
-        mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 180000, pendingIntent);
+        mgr.set(AlarmManager.RTC, System.currentTimeMillis() + TIME_BEFORE_RESTART_APP, pendingIntent);
 
         //send OSC to stop platform
         sendCommandToPlatform("stop").start();
