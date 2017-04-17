@@ -50,6 +50,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private static enum State {WAITING, SEARCHING, CHILLING, REFLECTING, FLASHING, POSTING, SCANNING,
         MAKING_REFLECT_NOISE, MAKING_PICTURE_NOISE};
 
+    private static final boolean MEMEMEME_SELFIE = true;
     private static final String TAG = "MEMEMEME::SELFIE";
     private static final String SELFIE_FILE_NAME = "memememeselfie";
     private static final String[] TEXTS = {"me", "meme", "mememe", "memememe", "#selfie"};
@@ -69,12 +70,9 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private static final int TIMEOUT_CHILLING = 30000;
     private static final int TIMEOUT_CHILLING_SCANNING = 10000;
     private static final int PERIOD_POSTING = 180000;
-    private static final int NUMBER_OF_LOOKS_WHILE_CHILLING = 20;
+    private static final int NUMBER_OF_LOOKS_WHILE_CHILLING = (MEMEMEME_SELFIE)?8:0;
     private static final int TIME_BEFORE_RESTART_APP = 180000;
 
-
-
-    private static final boolean MEMEMEME_SELFIE = true;
     private static final String TUMBLR_BLOG_ADDRESS = (MEMEMEME_SELFIE)?"memememeselfie.tumblr.com":"memememe2memememe.tumblr.com";
 
     private Mat mRgba;
@@ -96,6 +94,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private long mLastSuccessfulTumblrPostMillis;
     private long mCurrentWaitingPeriodMillis;
     private Point mCurrentFlashPosition;
+    private int mCurrentNumberOfLooksWhileChilling;
     private Random mRandomGenerator;
     private int mImageCounter;
 
@@ -256,6 +255,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         mLastStateChangeMillis = System.currentTimeMillis();
         mLastSuccessfulTumblrPostMillis = System.currentTimeMillis();
         mCurrentWaitingPeriodMillis = TIMEOUT_WAITING;
+        mCurrentNumberOfLooksWhileChilling = 0;
     }
 
     public void onDestroy() {
@@ -380,7 +380,9 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             }
 
             // keep from finding too often
-            if((System.currentTimeMillis()-mLastStateChangeMillis > 5000) && (detectedArray.length > 0)){
+            if((mCurrentNumberOfLooksWhileChilling > NUMBER_OF_LOOKS_WHILE_CHILLING) &&
+                    (System.currentTimeMillis()-mLastStateChangeMillis > 5000) &&
+                    (detectedArray.length > 0)) {
                 Log.d(TAG, "found something while SEARCHING");
                 /////////////////
 
@@ -450,6 +452,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                 mLastState = State.SEARCHING;
                 mCurrentWaitingPeriodMillis = TIMEOUT_WAITING;
                 mCurrentState = State.WAITING;
+                mCurrentNumberOfLooksWhileChilling = 0;
                 Log.d(TAG, "state := WAITING");
                 thread.start();
             }
@@ -467,6 +470,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                 mLastStateChangeMillis = System.currentTimeMillis();
                 mLastState = State.SEARCHING;
                 mCurrentState = State.CHILLING;
+                mCurrentNumberOfLooksWhileChilling += 1;
                 Log.d(TAG, "state := CHILLING");
                 sendCommandToPlatform("scan").start();
             }
