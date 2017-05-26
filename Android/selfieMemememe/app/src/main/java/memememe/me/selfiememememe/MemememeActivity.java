@@ -66,11 +66,11 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private static final int TIMEOUT_MAKING_NOISE = 2000;
     private static final int TIMEOUT_FLASHING = 4000;
     private static final int DELAY_FLASHING = 1000;
-    private static final int TIMEOUT_WAITING = 2000;
+    private static final int TIMEOUT_WAITING = 5000;
     private static final int TIMEOUT_CHILLING = 30000;
     private static final int TIMEOUT_CHILLING_SCANNING = 10000;
     private static final int PERIOD_POSTING = 180000;
-    private static final int NUMBER_OF_LOOKS_WHILE_CHILLING = (MEMEMEME_SELFIE)?8:0;
+    private static final int NUMBER_OF_LOOKS_WHILE_CHILLING = (MEMEMEME_SELFIE)?3:0;
     private static final int TIME_BEFORE_RESTART_APP = 180000;
 
     private static final String TUMBLR_BLOG_ADDRESS = (MEMEMEME_SELFIE)?"memememeselfie.tumblr.com":"memememe2memememe.tumblr.com";
