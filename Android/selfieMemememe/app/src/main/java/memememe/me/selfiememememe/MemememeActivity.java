@@ -70,6 +70,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private static final int TIMEOUT_CHILLING = 30000;
     private static final int TIMEOUT_CHILLING_SCANNING = 10000;
     private static final int PERIOD_POSTING = 180000;
+    private static final int PERIOD_HEARTBEAT = 1000;
     private static final int NUMBER_OF_LOOKS_WHILE_CHILLING = (MEMEMEME_SELFIE)?3:0;
     private static final int TIME_BEFORE_RESTART_APP = 180000;
 
@@ -90,7 +91,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
 
     private State mCurrentState, mLastState;
     private long mLastStateChangeMillis;
-    private long mLastSearchSendMillis;
+    private long mLastHeartbeatSendMillis;
     private long mLastSuccessfulTumblrPostMillis;
     private long mCurrentWaitingPeriodMillis;
     private Point mCurrentFlashPosition;
@@ -249,7 +250,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
         mCurrentState = State.SEARCHING;
         Log.d(TAG, "state := SEARCHING");
         // send first message to motors
-        mLastSearchSendMillis = System.currentTimeMillis();
+        mLastHeartbeatSendMillis = System.currentTimeMillis();
         sendCommandToPlatform("reset").start();
 
         mLastStateChangeMillis = System.currentTimeMillis();
@@ -374,8 +375,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
             detectObjects();
 
             // send search to motors
-            if(System.currentTimeMillis()-mLastSearchSendMillis > 1000){
-                mLastSearchSendMillis = System.currentTimeMillis();
+            if(System.currentTimeMillis()-mLastHeartbeatSendMillis > PERIOD_HEARTBEAT){
+                mLastHeartbeatSendMillis = System.currentTimeMillis();
                 sendCommandToPlatform("search").start();
             }
 
@@ -485,8 +486,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                 Log.d(TAG, "state := SEARCHING");
             }
             else if(timeChilling > TIMEOUT_CHILLING_SCANNING) {
-                if (System.currentTimeMillis() - mLastSearchSendMillis > 1000) {
-                    mLastSearchSendMillis = System.currentTimeMillis();
+                if (System.currentTimeMillis() - mLastHeartbeatSendMillis > PERIOD_HEARTBEAT) {
+                    mLastHeartbeatSendMillis = System.currentTimeMillis();
                     sendCommandToPlatform("stop").start();
                 }
             }
