@@ -37,9 +37,10 @@ class OscServer(ServerThread):
 
     @make_method('/memememe/search', '')
     def search_callback(self, path, args):
-        global mState
+        global mState, mLastHeartbeat
         print "%s"%path
         mPlatform.stop()
+        mLastHeartbeat = time()
         mLookQueue = Queue()
         mState = State.SEARCHING
 
@@ -56,10 +57,11 @@ class OscServer(ServerThread):
         print "%s"%path
 
 def setup():
-    global mServer, mState, mPlatform, mLookQueue, mLastLook
+    global mServer, mState, mPlatform, mLookQueue, mLastLook, mLastHeartbeat
 
     mLookQueue = Queue()
     mLastLook = time()
+    mLastHeartbeat = time()
     mState = State.WAITING
 
     try:
@@ -75,11 +77,14 @@ def setup():
         exit(0)
 
 def loop():
-    global mLastLook
+    global mLastLook, mLastHeartbeat
     if(mState == State.SEARCHING):
-        if(mPlatform.isAtTarget()):
-            mPlatform.setNextPositionPerlin('slow', translate='xyz', rotate='xyz')
-        mPlatform.update()
+        if(time()-mLastHeartbeat > 5):
+          mPlatform.stop()
+        else:
+          if(mPlatform.isAtTarget()):
+              mPlatform.setNextPositionPerlin('slow', translate='xyz', rotate='xyz')
+          mPlatform.update()
     elif(mState == State.SCANNING):
         if(mPlatform.isAtTarget() and (time()-mLastLook > 0.2)):
             mPlatform.setNextPositionScan('slow')
