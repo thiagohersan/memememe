@@ -46,9 +46,10 @@ class OscServer(ServerThread):
 
     @make_method('/memememe/scan', '')
     def scan_callback(self, path, args):
-        global mState
+        global mState, mLastHeartbeat
         print "%s"%path
         mPlatform.stop()
+        mLastHeartbeat = time()
         mLookQueue = Queue()
         mState = State.SCANNING
 
@@ -86,10 +87,13 @@ def loop():
               mPlatform.setNextPositionPerlin('slow', translate='xyz', rotate='xyz')
           mPlatform.update()
     elif(mState == State.SCANNING):
-        if(mPlatform.isAtTarget() and (time()-mLastLook > 0.2)):
-            mPlatform.setNextPositionScan('slow')
-            mLastLook = time()
-        mPlatform.update()
+        if(time()-mLastHeartbeat > 5):
+          mPlatform.stop()
+        else:
+          if(mPlatform.isAtTarget() and (time()-mLastLook > 0.2)):
+              mPlatform.setNextPositionScan('slow')
+              mLastLook = time()
+          mPlatform.update()
     elif(mState == State.LOOKING):
         if(mPlatform.isAtTarget() and not mLookQueue.empty() and (time()-mLastLook > 0.5)):
             (x,y) = mLookQueue.get()

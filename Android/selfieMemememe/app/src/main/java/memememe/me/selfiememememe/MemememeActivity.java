@@ -491,6 +491,10 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
                     sendCommandToPlatform("stop").start();
                 }
             }
+            else if(System.currentTimeMillis()-mLastHeartbeatSendMillis > PERIOD_HEARTBEAT){
+                mLastHeartbeatSendMillis = System.currentTimeMillis();
+                sendCommandToPlatform("scan").start();
+            }
             //throw new NullPointerException(); //Forces CRASH
         }
         else if(mCurrentState == State.MAKING_REFLECT_NOISE){
@@ -519,6 +523,12 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
 
             //detect Objects e fill detectedArray
             detectObjects();
+
+            // send scan to motors
+            if(System.currentTimeMillis()-mLastHeartbeatSendMillis > PERIOD_HEARTBEAT){
+                mLastHeartbeatSendMillis = System.currentTimeMillis();
+                sendCommandToPlatform("scan").start();
+            }
 
             if((System.currentTimeMillis()-mLastStateChangeMillis > 500) && (detectedArray.length > 0)){
                 Log.d(TAG, "found something while SCANNING/LOOKING");
@@ -573,6 +583,12 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
 
             //detect Objects e fill detectedArray
             detectObjects();
+
+            // send scan to motors
+            if(System.currentTimeMillis()-mLastHeartbeatSendMillis > PERIOD_HEARTBEAT){
+                mLastHeartbeatSendMillis = System.currentTimeMillis();
+                sendCommandToPlatform("scan").start();
+            }
 
             // if detect other phone, stop
             if(detectedArray.length > 0){
