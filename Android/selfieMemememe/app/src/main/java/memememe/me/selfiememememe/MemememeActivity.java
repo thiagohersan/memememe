@@ -67,8 +67,8 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private static final int TIMEOUT_FLASHING = 4000;
     private static final int DELAY_FLASHING = 1000;
     private static final int TIMEOUT_WAITING = 5000;
-    private static final int TIMEOUT_CHILLING = 30000;
-    private static final int TIMEOUT_CHILLING_SCANNING = 10000;
+    private static final int TIMEOUT_CHILLING = 60000;
+    private static final int TIMEOUT_CHILLING_SCANNING = 20000;
     private static final int PERIOD_POSTING = 180000;
     private static final int PERIOD_HEARTBEAT = 1000;
     private static final int NUMBER_OF_LOOKS_WHILE_CHILLING = (MEMEMEME_SELFIE)?3:0;
