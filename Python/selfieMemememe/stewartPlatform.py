@@ -25,7 +25,7 @@ class StewartPlatform:
     SERVO_MIN_ANGLE_VALUE = 310
     SERVO_MAX_ANGLE_VALUE = 850
 
-    SERVO_SPEED_LIMIT = 0.08
+    SERVO_SPEED_LIMIT = 0.04
     SERVO_ACCELERATION = 0.01
 
     MOVE_SHORT_DISTANCE = 16
@@ -93,7 +93,7 @@ class StewartPlatform:
         for (i,targetAngle) in enumerate(self.targetAngle):
             self.currentAngle[i] = targetAngle
             servoValue = StewartPlatform.getServoAngleValue(i, self.currentAngle[i])
-            self.servos.moveSpeedRW((i+1), servoValue, 300)
+            self.servos.moveSpeedRW((i+1), servoValue, 100)
         self.servos.action()
         sleep(1)
 
