@@ -65,7 +65,7 @@ class StewartPlatform:
         self.currentAngle = [0]*6
         self.currentSpeed = [0]*6
         self.maxSpeed = [0]*6
-        self.currentScanDirection = [1]*3
+        self.currentScanDirection = [choice([-1, 1]), 1, 1]
         self.currentSpeedLimit = StewartPlatform.SERVO_SPEED_LIMIT
         self.servos = Ax12()
         self.angles = StewartPlatformMath()
