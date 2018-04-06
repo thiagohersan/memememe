@@ -50,7 +50,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private static enum State {WAITING, SEARCHING, CHILLING, REFLECTING, FLASHING, POSTING, SCANNING,
         MAKING_REFLECT_NOISE, MAKING_PICTURE_NOISE};
 
-    private static final boolean MEMEMEME_SELFIE = true;
+    private static final boolean MEMEMEME_SELFIE = false;
     private static final String TAG = "MEMEMEME::SELFIE";
     private static final String SELFIE_FILE_NAME = "memememeselfie";
     private static final String[] TEXTS = {"me", "meme", "mememe", "memememe", "#selfie"};
@@ -69,7 +69,7 @@ public class MemememeActivity extends AppCompatActivity implements CvCameraViewL
     private static final int TIMEOUT_WAITING = 5000;
     private static final int TIMEOUT_CHILLING = 60000;
     private static final int TIMEOUT_CHILLING_SCANNING = 20000;
-    private static final int PERIOD_POSTING = 180000;
+    private static final int PERIOD_POSTING = 90000;
     private static final int PERIOD_HEARTBEAT = 1000;
     private static final int NUMBER_OF_LOOKS_WHILE_CHILLING = (MEMEMEME_SELFIE)?3:0;
     private static final int TIME_BEFORE_RESTART_APP = 180000;

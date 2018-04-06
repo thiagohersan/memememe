@@ -50,3 +50,36 @@ iface wlan0 inet static
   address 10.10.0.1
   netmask 255.255.255.0
   ```
+
+13. Dual Wifi interfaces, in case no Ethernet is preset, Setup the extra Wlan Interface to be a client and foward wlan1 to wlan0
+
+Enable wlan1 interface to be DHCP with wpa_supplicant 
+
+Edit `/etc/network/interfaces`
+
+```
+allow-hotplug wlan1
+iface wlan1 inet dhcp
+    wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+```
+
+Add the SSID and Password on `/etc/wpa_supplicant/wpa_supplicant.conf`
+
+```
+network={
+ ssid="SSID"
+ psk="PASSWORD"
+}
+```
+
+Update iptables
+
+```
+sudo iptables -t nat -A POSTROUTING -o wlan1 -j MASQUERADE
+sudo iptables -A FORWARD -i wlan1 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+sudo iptables -A FORWARD -i wlan0 -o wlan1 -j ACCEPT
+```
+
+```
+sudo sh -c "iptables-save > /etc/iptables/rules.v4"
+```
